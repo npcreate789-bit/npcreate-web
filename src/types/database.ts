@@ -75,3 +75,21 @@ export type ClientLogo = {
   display_order: number
   created_at: string
 }
+
+export type LeadStatus = 'new' | 'contacted' | 'closed'
+
+export type Lead = {
+  id: string
+  line_user_id: string
+  display_name: string
+  picture_url: string
+  name: string
+  phone: string
+  brand: string
+  monthly_gmv: string
+  service: string
+  message: string | null
+  status: LeadStatus
+  created_at: string
+  updated_at: string
+}
