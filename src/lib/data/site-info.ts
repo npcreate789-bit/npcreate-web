@@ -39,8 +39,8 @@ export function getLineOaHref(lineOaUrl: string, lineOaId: string): string {
   if (lineOaUrl && lineOaUrl.startsWith("http")) return lineOaUrl
   // auto-generate จาก LINE OA ID
   if (lineOaId) {
-    const id = lineOaId.startsWith("@") ? lineOaId.slice(1) : lineOaId
-    return `https://line.me/R/ti/p/~${id}`
+    const id = lineOaId.startsWith("@") ? lineOaId : `@${lineOaId}`
+    return `https://line.me/R/ti/p/${id}`
   }
   return "/contact"
 }
