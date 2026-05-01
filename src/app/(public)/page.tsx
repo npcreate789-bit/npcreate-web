@@ -1,6 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
 import { mergeHomepage } from "@/lib/data/homepage"
-import { mergeSiteInfo, getLineOaHref } from "@/lib/data/site-info"
 import { HeroSection } from "@/components/public/HeroSection"
 import { PromoBannersSection } from "@/components/public/PromoBannersSection"
 import { ServicesSection } from "@/components/public/ServicesSection"
@@ -14,13 +13,11 @@ export default async function HomePage() {
 
   const [
     { data: settingsData },
-    { data: siteData },
     { data: testimonialsData },
     { data: heroMediaData },
     { data: promoBannersData },
   ] = await Promise.all([
     supabase.from("site_settings").select("value").eq("key", "homepage").maybeSingle(),
-    supabase.from("site_settings").select("value").eq("key", "site_info").maybeSingle(),
     supabase
       .from("testimonials")
       .select("*")
@@ -42,20 +39,18 @@ export default async function HomePage() {
   ])
 
   const hp           = mergeHomepage((settingsData?.value ?? {}) as Record<string, unknown>)
-  const info         = mergeSiteInfo((siteData?.value ?? {}) as Record<string, unknown>)
-  const lineOaHref   = getLineOaHref(info.line_oa_url, info.line_oa_id)
-  const testimonials = (testimonialsData  as Testimonial[])  ?? []
-  const heroMedia    = (heroMediaData     as HeroMedia[])    ?? []
-  const promoBanners = (promoBannersData  as PromoBanner[])  ?? []
+  const testimonials = (testimonialsData as Testimonial[])  ?? []
+  const heroMedia    = (heroMediaData    as HeroMedia[])    ?? []
+  const promoBanners = (promoBannersData as PromoBanner[])  ?? []
 
   return (
     <main>
-      <HeroSection settings={hp} media={heroMedia} lineHref={lineOaHref} />
+      <HeroSection settings={hp} media={heroMedia} lineHref="/contact" />
       <PromoBannersSection banners={promoBanners} />
       <ServicesSection settings={hp.services_section} />
-      <WhyUsSection settings={hp.why_us} lineHref={lineOaHref} />
+      <WhyUsSection settings={hp.why_us} lineHref="/contact" />
       <TestimonialsSection testimonials={testimonials} />
-      <CTASection settings={hp.cta_section} lineOaHref={lineOaHref} />
+      <CTASection settings={hp.cta_section} lineOaHref="/contact" />
     </main>
   )
 }

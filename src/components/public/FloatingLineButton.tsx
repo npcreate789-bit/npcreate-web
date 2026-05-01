@@ -2,8 +2,6 @@ export function FloatingLineButton({ href }: { href: string }) {
   return (
     <a
       href={href}
-      target="_blank"
-      rel="noopener noreferrer"
       aria-label="ติดต่อผ่าน Line OA"
       className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-[#06C755] hover:bg-[#05a847] rounded-full shadow-lg shadow-green-900/30 flex items-center justify-center transition-transform hover:scale-110"
     >

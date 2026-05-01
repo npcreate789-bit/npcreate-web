@@ -21,8 +21,6 @@ export function CTASection({ settings = DEFAULT_HOMEPAGE.cta_section, lineOaHref
 
           <a
             href={lineOaHref}
-            target="_blank"
-            rel="noopener noreferrer"
             className="inline-flex items-center justify-center gap-3 bg-[#DC2626] hover:bg-[#B91C1C] text-white font-bold text-lg px-10 py-4 rounded-xl transition-colors shadow-lg shadow-red-900/20"
           >
             <LineIcon />

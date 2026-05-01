@@ -1,6 +1,5 @@
 import type { Metadata } from "next"
 import { createClient } from "@/lib/supabase/server"
-import { mergeSiteInfo, getLineOaHref } from "@/lib/data/site-info"
 import type { Portfolio } from "@/types/database"
 import { PortfolioGrid } from "@/components/public/portfolio/PortfolioGrid"
 
@@ -12,12 +11,8 @@ export const metadata: Metadata = {
 
 export default async function PortfolioPage() {
   const supabase = await createClient()
-  const [{ data: portfolios }, { data: siteData }] = await Promise.all([
-    supabase.from("portfolios").select("*").eq("is_published", true).order("display_order", { ascending: true }),
-    supabase.from("site_settings").select("value").eq("key", "site_info").maybeSingle(),
-  ])
-  const info       = mergeSiteInfo((siteData?.value ?? {}) as Record<string, unknown>)
-  const lineOaHref = getLineOaHref(info.line_oa_url, info.line_oa_id)
+  const { data: portfolios } = await supabase
+    .from("portfolios").select("*").eq("is_published", true).order("display_order", { ascending: true })
 
   return (
     <main className="min-h-screen bg-[#0A0808] pt-24 pb-24">
@@ -46,7 +41,7 @@ export default async function PortfolioPage() {
           </div>
         </div>
 
-        <PortfolioGrid portfolios={(portfolios as Portfolio[]) ?? []} lineHref={lineOaHref} />
+        <PortfolioGrid portfolios={(portfolios as Portfolio[]) ?? []} lineHref="/contact" />
       </div>
     </main>
   )

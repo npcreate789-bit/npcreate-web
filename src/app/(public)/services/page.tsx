@@ -1,6 +1,5 @@
 import type { Metadata } from "next"
 import { createClient } from "@/lib/supabase/server"
-import { mergeSiteInfo, getLineOaHref } from "@/lib/data/site-info"
 import type { Service } from "@/types/database"
 import { ServicesDetail } from "@/components/public/services/ServicesDetail"
 import { ProcessSection } from "@/components/public/services/ProcessSection"
@@ -16,16 +15,12 @@ export const metadata: Metadata = {
 
 export default async function ServicesPage() {
   const supabase = await createClient()
-  const [{ data }, { data: siteData }] = await Promise.all([
-    supabase.from("services").select("*").eq("is_active", true).order("display_order", { ascending: true }),
-    supabase.from("site_settings").select("value").eq("key", "site_info").maybeSingle(),
-  ])
+  const { data } = await supabase
+    .from("services").select("*").eq("is_active", true).order("display_order", { ascending: true })
 
-  const all        = (data as Service[]) ?? []
-  const services   = all.filter((s) => s.category === "service")
-  const plans      = all.filter((s) => s.category === "pricing")
-  const info       = mergeSiteInfo((siteData?.value ?? {}) as Record<string, unknown>)
-  const lineOaHref = getLineOaHref(info.line_oa_url, info.line_oa_id)
+  const all      = (data as Service[]) ?? []
+  const services = all.filter((s) => s.category === "service")
+  const plans    = all.filter((s) => s.category === "pricing")
 
   return (
     <main className="min-h-screen bg-[#0A0808] pt-24">
@@ -48,9 +43,9 @@ export default async function ServicesPage() {
 
       <ServicesDetail services={services} />
       <ProcessSection />
-      <PricingSection plans={plans} lineHref={lineOaHref} />
-      <FAQSection lineHref={lineOaHref} />
-      <CTASection lineOaHref={lineOaHref} />
+      <PricingSection plans={plans} lineHref="/contact" />
+      <FAQSection lineHref="/contact" />
+      <CTASection lineOaHref="/contact" />
     </main>
   )
 }
