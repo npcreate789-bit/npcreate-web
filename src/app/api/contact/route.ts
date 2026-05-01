@@ -136,6 +136,9 @@ export async function POST(req: NextRequest) {
 
   const data = result.data
 
+  // แจ้งเตือน admin ก่อน — ต้อง await เพราะ Vercel serverless จบทันทีหลัง return response
+  await notifyAdmin(data)
+
   // บันทึกลง Supabase
   try {
     const supabase = await createClient()
@@ -154,9 +157,6 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     console.error("leads insert exception:", err)
   }
-
-  // แจ้งเตือน admin — ไม่ block response ถ้า notification ล้มเหลว
-  notifyAdmin(data).catch((err) => console.error("notifyAdmin uncaught:", err))
 
   const response = NextResponse.json({ success: true })
   response.cookies.set("contact_submitted", "1", {
