@@ -14,55 +14,30 @@ const bodySchema = z.object({
   message:     z.string().max(2000).optional(),
 })
 
-function buildMessage(data: z.infer<typeof bodySchema>): string {
+type Lead = z.infer<typeof bodySchema>
+
+function buildTextMessage(data: Lead): string {
   return [
-    "\n📩 Lead ใหม่จาก NP Create",
+    "📩 Lead ใหม่จาก NP Create",
     `👤 ชื่อ: ${data.name}`,
     `📱 เบอร์: ${data.phone}`,
     `🏪 แบรนด์: ${data.brand}`,
     `💰 GMV: ${data.monthly_gmv}`,
     `🎯 บริการ: ${data.service}`,
     data.message ? `💬 หมายเหตุ: ${data.message}` : "",
-  ]
-    .filter(Boolean)
-    .join("\n")
+  ].filter(Boolean).join("\n")
 }
 
-// ── LINE Notify (วิธีหลัก) ──────────────────────────────────────────────────
-// ตั้งค่า: notify-bot.line.me → My page → Generate token → ตั้งชื่อ → copy
-// วาง token ใน Vercel env var: LINE_NOTIFY_TOKEN
-async function sendLineNotify(text: string): Promise<boolean> {
-  const token = process.env.LINE_NOTIFY_TOKEN
-  if (!token) return false
-
-  try {
-    const res = await fetch("https://notify-api.line.me/api/notify", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        Authorization: `Bearer ${token}`,
-      },
-      body: new URLSearchParams({ message: text }),
-    })
-    if (!res.ok) {
-      const body = await res.text()
-      console.error(`LINE Notify failed: HTTP ${res.status}`, body)
-      return false
-    }
-    return true
-  } catch (err) {
-    console.error("LINE Notify network error:", err)
-    return false
-  }
-}
-
-// ── LINE Messaging API push (วิธีสำรอง) ────────────────────────────────────
-// ต้องการ: LINE_CHANNEL_ACCESS_TOKEN + LINE_ADMIN_USER_ID
-// LINE_ADMIN_USER_ID หาได้จาก webhook event ของ bot เมื่อ admin ทักก่อน
-async function sendLineMessagingPush(text: string): Promise<boolean> {
-  const adminId = process.env.LINE_ADMIN_USER_ID
+// ── 1. LINE Messaging API push ──────────────────────────────────────────────
+// ต้องการ env vars:
+//   LINE_CHANNEL_ACCESS_TOKEN  — จาก LINE Developers → Messaging API channel
+//   LINE_ADMIN_USER_ID         — UID ของ admin (U…) หาได้จาก LINE Developers
+//                                → Basic settings → "Your user ID"
+//                                (admin ต้องเพิ่มบอทเป็นเพื่อนก่อน)
+async function sendLineMessaging(text: string): Promise<boolean> {
   const token   = process.env.LINE_CHANNEL_ACCESS_TOKEN
-  if (!adminId || !token) return false
+  const adminId = process.env.LINE_ADMIN_USER_ID
+  if (!token || !adminId) return false
 
   try {
     const res = await fetch("https://api.line.me/v2/bot/message/push", {
@@ -77,24 +52,71 @@ async function sendLineMessagingPush(text: string): Promise<boolean> {
       }),
     })
     if (!res.ok) {
-      const body = await res.text()
-      console.error(`LINE Messaging push failed: HTTP ${res.status}`, body)
+      console.error(`LINE push failed: HTTP ${res.status}`, await res.text())
       return false
     }
     return true
   } catch (err) {
-    console.error("LINE Messaging push network error:", err)
+    console.error("LINE push error:", err)
     return false
   }
 }
 
-async function notifyAdmin(text: string) {
-  // ลอง LINE Notify ก่อน ถ้าไม่มี token ให้ลอง Messaging API
-  const ok = await sendLineNotify(text)
-  if (!ok) {
-    const ok2 = await sendLineMessagingPush(text)
-    if (!ok2) {
-      console.warn("No LINE notification sent — set LINE_NOTIFY_TOKEN in Vercel env vars")
+// ── 2. Email via Resend (fallback) ──────────────────────────────────────────
+// ต้องการ env vars:
+//   RESEND_API_KEY  — จาก resend.com → API Keys
+//   ADMIN_EMAIL     — email ที่ต้องการรับแจ้งเตือน
+async function sendEmail(data: Lead): Promise<boolean> {
+  const apiKey = process.env.RESEND_API_KEY
+  const to     = process.env.ADMIN_EMAIL
+  if (!apiKey || !to) return false
+
+  const html = `
+    <h2>📩 Lead ใหม่จาก NP Create</h2>
+    <table style="border-collapse:collapse;width:100%;max-width:500px">
+      <tr><td style="padding:8px;color:#666">ชื่อ</td><td style="padding:8px;font-weight:bold">${data.name}</td></tr>
+      <tr style="background:#f9f9f9"><td style="padding:8px;color:#666">เบอร์โทร</td><td style="padding:8px;font-weight:bold">${data.phone}</td></tr>
+      <tr><td style="padding:8px;color:#666">แบรนด์</td><td style="padding:8px;font-weight:bold">${data.brand}</td></tr>
+      <tr style="background:#f9f9f9"><td style="padding:8px;color:#666">GMV/เดือน</td><td style="padding:8px">${data.monthly_gmv}</td></tr>
+      <tr><td style="padding:8px;color:#666">บริการที่สนใจ</td><td style="padding:8px">${data.service}</td></tr>
+      ${data.message ? `<tr style="background:#f9f9f9"><td style="padding:8px;color:#666">หมายเหตุ</td><td style="padding:8px">${data.message}</td></tr>` : ""}
+    </table>
+  `
+
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        from: "NP Create <onboarding@resend.dev>",
+        to: [to],
+        subject: `📩 Lead ใหม่: ${data.name} — ${data.brand}`,
+        html,
+      }),
+    })
+    if (!res.ok) {
+      console.error(`Resend failed: HTTP ${res.status}`, await res.text())
+      return false
+    }
+    return true
+  } catch (err) {
+    console.error("Resend error:", err)
+    return false
+  }
+}
+
+async function notifyAdmin(data: Lead) {
+  const text = buildTextMessage(data)
+  const sentLine = await sendLineMessaging(text)
+  if (!sentLine) {
+    const sentEmail = await sendEmail(data)
+    if (!sentEmail) {
+      console.warn(
+        "ไม่มีช่องทางแจ้งเตือน — ตั้งค่า LINE_CHANNEL_ACCESS_TOKEN+LINE_ADMIN_USER_ID หรือ RESEND_API_KEY+ADMIN_EMAIL ใน Vercel"
+      )
     }
   }
 }
@@ -107,7 +129,6 @@ export async function POST(req: NextRequest) {
   }
 
   const data = result.data
-  const message = buildMessage(data)
 
   // บันทึกลง Supabase
   try {
@@ -125,8 +146,8 @@ export async function POST(req: NextRequest) {
     console.error("leads insert exception:", err)
   }
 
-  // แจ้งเตือน admin — ไม่ block response ถ้า LINE ล้มเหลว
-  notifyAdmin(message).catch((err) => console.error("notifyAdmin error:", err))
+  // แจ้งเตือน admin — ไม่ block response ถ้า notification ล้มเหลว
+  notifyAdmin(data).catch((err) => console.error("notifyAdmin uncaught:", err))
 
   const response = NextResponse.json({ success: true })
   response.cookies.set("contact_submitted", "1", {
