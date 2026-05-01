@@ -190,41 +190,47 @@ export function ContactForm({ hasSubmitted, lineOaHref, lineSession }: Props) {
       {/* LINE Connect — ไม่บังคับ */}
       <div className="rounded-xl border border-white/10 bg-[#0D0A0A] p-4 space-y-3">
         <div className="flex items-center justify-between">
-          <p className="text-slate-300 text-sm font-medium">เชื่อมต่อ LINE</p>
+          <p className="text-slate-300 text-sm font-medium">ไลน์สำหรับติดต่อกลับ</p>
           <span className="text-slate-600 text-xs">ไม่บังคับ</span>
         </div>
-        <p className="text-slate-500 text-xs leading-relaxed">
-          ให้ทีมงานติดต่อกลับทาง LINE ได้โดยตรง สะดวกกว่ารอสาย
-        </p>
 
-        <div className="space-y-1">
-          <label className="text-slate-400 text-xs">ไอดีไลน์ของคุณ (ดูได้ที่ LINE → Settings → Profile → LINE ID)</label>
-          <input
-            {...register("line_id")}
-            placeholder="เช่น johndoe หรือ @johndoe"
-            className={cn(inputClass(false), "text-sm")}
-          />
-        </div>
         {lineSession ? (
+          /* connected — แสดงข้อมูลอัตโนมัติ ไม่ต้องกรอกเอง */
           <div className="flex items-center gap-3 bg-[#06C755]/10 border border-[#06C755]/20 rounded-xl px-3 py-2.5">
             {lineSession.pictureUrl && (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={lineSession.pictureUrl} alt="" className="w-8 h-8 rounded-full flex-shrink-0" />
             )}
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <p className="text-[#06C755] text-sm font-semibold truncate">{lineSession.displayName}</p>
-              <p className="text-[#06C755]/70 text-xs">เชื่อมต่อ LINE แล้ว ✓</p>
+              <p className="text-[#06C755]/70 text-xs">รับข้อมูล LINE อัตโนมัติแล้ว ✓</p>
             </div>
           </div>
         ) : (
-          <button
-            type="button"
-            onClick={handleLineConnect}
-            className="flex items-center justify-center gap-2.5 w-full bg-[#06C755]/10 hover:bg-[#06C755]/20 border border-[#06C755]/30 text-[#06C755] text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors"
-          >
-            <LineIcon size={18} />
-            เชื่อมต่อ LINE (ไม่บังคับ)
-          </button>
+          /* ยังไม่ได้ connect — เลือกกรอก ID เองหรือ connect */
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <label className="text-slate-400 text-xs">กรอกไลน์ไอดีของคุณ</label>
+              <input
+                {...register("line_id")}
+                placeholder="เช่น johndoe (ดูได้ที่ LINE → Settings → Profile)"
+                className={cn(inputClass(false), "text-sm")}
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="flex-1 h-px bg-white/10" />
+              <span className="text-slate-600 text-xs">หรือ</span>
+              <div className="flex-1 h-px bg-white/10" />
+            </div>
+            <button
+              type="button"
+              onClick={handleLineConnect}
+              className="flex items-center justify-center gap-2.5 w-full bg-[#06C755]/10 hover:bg-[#06C755]/20 border border-[#06C755]/30 text-[#06C755] text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors"
+            >
+              <LineIcon size={18} />
+              เชื่อมต่อ LINE อัตโนมัติ
+            </button>
+          </div>
         )}
       </div>
 
