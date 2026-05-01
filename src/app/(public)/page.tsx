@@ -1,7 +1,6 @@
-import { cookies } from "next/headers"
 import { createClient } from "@/lib/supabase/server"
 import { mergeHomepage } from "@/lib/data/homepage"
-import { mergeSiteInfo, getLineOaHref, getCtaHref } from "@/lib/data/site-info"
+import { mergeSiteInfo, getLineOaHref } from "@/lib/data/site-info"
 import { HeroSection } from "@/components/public/HeroSection"
 import { PromoBannersSection } from "@/components/public/PromoBannersSection"
 import { ServicesSection } from "@/components/public/ServicesSection"
@@ -11,7 +10,7 @@ import { CTASection } from "@/components/public/CTASection"
 import type { Testimonial, HeroMedia, PromoBanner } from "@/types/database"
 
 export default async function HomePage() {
-  const [supabase, cookieStore] = await Promise.all([createClient(), cookies()])
+  const supabase = await createClient()
 
   const [
     { data: settingsData },
@@ -45,21 +44,18 @@ export default async function HomePage() {
   const hp           = mergeHomepage((settingsData?.value ?? {}) as Record<string, unknown>)
   const info         = mergeSiteInfo((siteData?.value ?? {}) as Record<string, unknown>)
   const lineOaHref   = getLineOaHref(info.line_oa_url, info.line_oa_id)
-  const hasLineSession = !!cookieStore.get("line_session")?.value
-  const hasSubmitted   = !!cookieStore.get("contact_submitted")?.value
-  const ctaHref        = getCtaHref(hasLineSession, hasSubmitted, lineOaHref)
   const testimonials = (testimonialsData  as Testimonial[])  ?? []
   const heroMedia    = (heroMediaData     as HeroMedia[])    ?? []
   const promoBanners = (promoBannersData  as PromoBanner[])  ?? []
 
   return (
     <main>
-      <HeroSection settings={hp} media={heroMedia} lineHref={ctaHref} />
+      <HeroSection settings={hp} media={heroMedia} lineHref={lineOaHref} />
       <PromoBannersSection banners={promoBanners} />
       <ServicesSection settings={hp.services_section} />
-      <WhyUsSection settings={hp.why_us} lineHref={ctaHref} />
+      <WhyUsSection settings={hp.why_us} lineHref={lineOaHref} />
       <TestimonialsSection testimonials={testimonials} />
-      <CTASection settings={hp.cta_section} lineOaHref={ctaHref} />
+      <CTASection settings={hp.cta_section} lineOaHref={lineOaHref} />
     </main>
   )
 }

@@ -4,7 +4,7 @@ import { ContactForm } from "@/components/public/contact/ContactForm"
 import { ContactInfo } from "@/components/public/contact/ContactInfo"
 import type { LineSession } from "@/components/public/contact/ContactForm"
 import { createClient } from "@/lib/supabase/server"
-import { mergeSiteInfo, getLineOaHref, getCtaHref } from "@/lib/data/site-info"
+import { mergeSiteInfo, getLineOaHref } from "@/lib/data/site-info"
 
 export const metadata: Metadata = {
   title: "ติดต่อ",
@@ -41,9 +41,8 @@ export default async function ContactPage({
   const { error } = await searchParams
 
   const cookieStore = await cookies()
-  const sessionCookie  = cookieStore.get("line_session")?.value
-  const hasLineSession = !!sessionCookie
-  const hasSubmitted   = !!cookieStore.get("contact_submitted")?.value
+  const sessionCookie = cookieStore.get("line_session")?.value
+  const hasSubmitted  = !!cookieStore.get("contact_submitted")?.value
 
   let lineSession: LineSession | null = null
   if (sessionCookie) {
@@ -59,7 +58,6 @@ export default async function ContactPage({
 
   const info       = mergeSiteInfo((siteResult.data?.value ?? {}) as Record<string, unknown>)
   const lineOaHref = getLineOaHref(info.line_oa_url, info.line_oa_id)
-  const ctaHref    = getCtaHref(hasLineSession, hasSubmitted, lineOaHref)
 
   return (
     <main className="min-h-screen bg-[#0A0808] pt-24 pb-24">
@@ -79,7 +77,7 @@ export default async function ContactPage({
         </div>
 
         <div className="grid lg:grid-cols-[1fr_1.6fr] gap-8 items-start">
-          <ContactInfo lineHref={ctaHref} />
+          <ContactInfo lineHref={lineOaHref} />
           <ContactForm
             lineSession={lineSession}
             hasSubmitted={hasSubmitted}

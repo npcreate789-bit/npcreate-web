@@ -3,8 +3,7 @@ import { CheckCircle2, Target, Eye, Heart, Zap } from "lucide-react"
 import { CTASection } from "@/components/public/CTASection"
 import { createClient } from "@/lib/supabase/server"
 import { mergeAboutContent } from "@/lib/data/about-content"
-import { cookies } from "next/headers"
-import { mergeSiteInfo, getLineOaHref, getCtaHref } from "@/lib/data/site-info"
+import { mergeSiteInfo, getLineOaHref } from "@/lib/data/site-info"
 import type { LucideIcon } from "lucide-react"
 
 export const metadata: Metadata = {
@@ -16,18 +15,15 @@ export const metadata: Metadata = {
 const VALUE_ICONS: LucideIcon[] = [Target, Eye, Heart, Zap]
 
 export default async function AboutPage() {
-  const [supabase, cookieStore] = await Promise.all([createClient(), cookies()])
+  const supabase = await createClient()
   const [{ data }, { data: siteData }] = await Promise.all([
     supabase.from("site_settings").select("value").eq("key", "about_content").maybeSingle(),
     supabase.from("site_settings").select("value").eq("key", "site_info").maybeSingle(),
   ])
 
-  const c            = mergeAboutContent((data?.value ?? {}) as Record<string, unknown>)
-  const info         = mergeSiteInfo((siteData?.value ?? {}) as Record<string, unknown>)
-  const lineOaHref   = getLineOaHref(info.line_oa_url, info.line_oa_id)
-  const hasLineSession = !!cookieStore.get("line_session")?.value
-  const hasSubmitted   = !!cookieStore.get("contact_submitted")?.value
-  const ctaHref        = getCtaHref(hasLineSession, hasSubmitted, lineOaHref)
+  const c          = mergeAboutContent((data?.value ?? {}) as Record<string, unknown>)
+  const info       = mergeSiteInfo((siteData?.value ?? {}) as Record<string, unknown>)
+  const lineOaHref = getLineOaHref(info.line_oa_url, info.line_oa_id)
 
   return (
     <main className="min-h-screen bg-[#0A0808] pt-24">
@@ -143,7 +139,7 @@ export default async function AboutPage() {
         </div>
       </section>
 
-      <CTASection lineOaHref={ctaHref} />
+      <CTASection lineOaHref={lineOaHref} />
     </main>
   )
 }

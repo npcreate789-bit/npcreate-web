@@ -1,7 +1,6 @@
 import type { Metadata } from "next"
-import { cookies } from "next/headers"
 import { createClient } from "@/lib/supabase/server"
-import { mergeSiteInfo, getLineOaHref, getCtaHref } from "@/lib/data/site-info"
+import { mergeSiteInfo, getLineOaHref } from "@/lib/data/site-info"
 import type { Portfolio } from "@/types/database"
 import { PortfolioGrid } from "@/components/public/portfolio/PortfolioGrid"
 
@@ -12,16 +11,13 @@ export const metadata: Metadata = {
 }
 
 export default async function PortfolioPage() {
-  const [supabase, cookieStore] = await Promise.all([createClient(), cookies()])
+  const supabase = await createClient()
   const [{ data: portfolios }, { data: siteData }] = await Promise.all([
     supabase.from("portfolios").select("*").eq("is_published", true).order("display_order", { ascending: true }),
     supabase.from("site_settings").select("value").eq("key", "site_info").maybeSingle(),
   ])
-  const info         = mergeSiteInfo((siteData?.value ?? {}) as Record<string, unknown>)
-  const lineOaHref   = getLineOaHref(info.line_oa_url, info.line_oa_id)
-  const hasLineSession = !!cookieStore.get("line_session")?.value
-  const hasSubmitted   = !!cookieStore.get("contact_submitted")?.value
-  const ctaHref        = getCtaHref(hasLineSession, hasSubmitted, lineOaHref)
+  const info       = mergeSiteInfo((siteData?.value ?? {}) as Record<string, unknown>)
+  const lineOaHref = getLineOaHref(info.line_oa_url, info.line_oa_id)
 
   return (
     <main className="min-h-screen bg-[#0A0808] pt-24 pb-24">
@@ -50,7 +46,7 @@ export default async function PortfolioPage() {
           </div>
         </div>
 
-        <PortfolioGrid portfolios={(portfolios as Portfolio[]) ?? []} lineHref={ctaHref} />
+        <PortfolioGrid portfolios={(portfolios as Portfolio[]) ?? []} lineHref={lineOaHref} />
       </div>
     </main>
   )
