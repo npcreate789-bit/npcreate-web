@@ -66,3 +66,16 @@ export async function removeAvatarUrl() {
   revalidatePath("/member")
   revalidatePath("/member/profile")
 }
+
+export async function unlinkLine() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error("ไม่ได้เข้าสู่ระบบ")
+  const { error } = await supabase
+    .from("profiles")
+    .update({ line_user_id: null, line_display_name: null, updated_at: new Date().toISOString() })
+    .eq("id", user.id)
+  if (error) throw new Error(error.message)
+  revalidatePath("/member")
+  revalidatePath("/member/profile")
+}

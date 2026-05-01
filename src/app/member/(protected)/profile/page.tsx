@@ -3,6 +3,7 @@ import { redirect } from "next/navigation"
 import type { Profile } from "@/types/database"
 import { ProfileForm } from "./_components/ProfileForm"
 import { ChangePasswordForm } from "./_components/ChangePasswordForm"
+import { LineSection } from "./_components/LineSection"
 
 export default async function MemberProfilePage() {
   const supabase = await createClient()
@@ -14,16 +15,22 @@ export default async function MemberProfilePage() {
 
   if (!data) redirect("/register")
 
+  const profile = data as Profile
+
   return (
     <div className="min-h-screen bg-[#0A0808] pt-24 pb-16">
       <div className="max-w-xl mx-auto px-4 sm:px-6 space-y-6">
         <div>
           <h1 className="font-display font-bold text-white text-2xl">แก้ไขโปรไฟล์</h1>
           <p className="text-slate-400 text-sm mt-0.5">
-            UserID: <span className="text-[#F59E0B] font-mono font-bold">{(data as Profile).user_code}</span>
+            UserID: <span className="text-[#F59E0B] font-mono font-bold">{profile.user_code}</span>
           </p>
         </div>
-        <ProfileForm profile={data as Profile} email={user.email ?? ""} />
+        <ProfileForm profile={profile} email={user.email ?? ""} />
+        <LineSection
+          lineUserId={profile.line_user_id ?? null}
+          lineDisplayName={profile.line_display_name ?? null}
+        />
         <ChangePasswordForm />
       </div>
     </div>

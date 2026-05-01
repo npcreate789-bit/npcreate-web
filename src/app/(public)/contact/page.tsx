@@ -18,11 +18,34 @@ export default async function ContactPage() {
 
   const hasSubmitted = !!cookieStore.get("contact_submitted")?.value
 
+  // ── ตรวจสอบ LINE: ดึงจาก member profile ก่อน ──
+  const { data: { user } } = await supabase.auth.getUser()
+  const isMember = !!user
+
   let lineSession: LineSession | null = null
-  try {
-    const raw = cookieStore.get("line_session")?.value
-    if (raw) lineSession = JSON.parse(raw) as LineSession
-  } catch {}
+
+  if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("line_user_id, line_display_name")
+      .eq("id", user.id)
+      .maybeSingle()
+    if (profile?.line_user_id) {
+      lineSession = {
+        userId:      profile.line_user_id,
+        displayName: profile.line_display_name ?? "",
+        pictureUrl:  "",
+      }
+    }
+  }
+
+  // fallback: cookie จากผู้ที่ยังไม่ได้ login
+  if (!lineSession) {
+    try {
+      const raw = cookieStore.get("line_session")?.value
+      if (raw) lineSession = JSON.parse(raw) as LineSession
+    } catch {}
+  }
 
   const { data: siteData } = await supabase
     .from("site_settings").select("value").eq("key", "site_info").maybeSingle()
@@ -42,7 +65,7 @@ export default async function ContactPage() {
 
         <div className="grid lg:grid-cols-[1fr_1.6fr] gap-8 items-start">
           <ContactInfo lineHref={lineOaHref} />
-          <ContactForm hasSubmitted={hasSubmitted} lineOaHref={lineOaHref} lineSession={lineSession} />
+          <ContactForm hasSubmitted={hasSubmitted} lineOaHref={lineOaHref} lineSession={lineSession} isMember={isMember} />
         </div>
       </div>
     </main>

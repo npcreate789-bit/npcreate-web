@@ -139,6 +139,8 @@ export type Profile = {
   full_name: string
   phone: string
   line_id: string
+  line_user_id: string | null
+  line_display_name: string | null
   role: UserRole
   avatar_url: string | null
   is_active: boolean

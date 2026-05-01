@@ -42,9 +42,10 @@ interface Props {
   hasSubmitted: boolean
   lineOaHref:   string
   lineSession:  LineSession | null
+  isMember:     boolean
 }
 
-export function ContactForm({ hasSubmitted, lineOaHref, lineSession }: Props) {
+export function ContactForm({ hasSubmitted, lineOaHref, lineSession, isMember }: Props) {
   const [justSubmitted, setJustSubmitted] = useState(false)
   const [apiError, setApiError]           = useState<string | null>(null)
 
@@ -113,7 +114,20 @@ export function ContactForm({ hasSubmitted, lineOaHref, lineSession }: Props) {
           <LineIcon size={20} />
           ทักหาเราผ่าน Line OA เลย
         </a>
-        <p className="text-slate-600 text-xs mt-4">
+
+        {!isMember && (
+          <div className="mt-6 pt-6 border-t border-white/5">
+            <p className="text-slate-400 text-sm mb-3">สมัครสมาชิกเพื่อติดตามสถานะและรับสิทธิ์พิเศษ</p>
+            <a
+              href="/register"
+              className="inline-flex items-center justify-center gap-2 border border-white/10 hover:border-white/20 text-slate-300 hover:text-white text-sm font-medium px-6 py-2.5 rounded-xl transition-colors"
+            >
+              สมัครสมาชิกฟรี →
+            </a>
+          </div>
+        )}
+
+        <p className="text-slate-600 text-xs mt-3">
           หรือรอทีมงานติดต่อกลับผ่านเบอร์โทรที่กรอกไว้
         </p>
       </div>
@@ -202,6 +216,7 @@ export function ContactForm({ hasSubmitted, lineOaHref, lineSession }: Props) {
             )}
             <div className="min-w-0 flex-1">
               <p className="text-[#06C755] text-xs font-semibold truncate">{lineSession.displayName} — เชื่อมต่อ LINE แล้ว ✓</p>
+              {isMember && <p className="text-[#06C755]/50 text-xs">จากโปรไฟล์สมาชิก</p>}
             </div>
           </div>
         ) : (

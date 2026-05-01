@@ -1,6 +1,9 @@
-import { NextResponse } from "next/server"
+import { type NextRequest, NextResponse } from "next/server"
 
-export function GET() {
+export function GET(req: NextRequest) {
+  const returnTo = req.nextUrl.searchParams.get("returnTo") ?? ""
+  const safeReturn = returnTo && /^\/[^/]/.test(returnTo) ? returnTo : ""
+
   const state = crypto.randomUUID()
 
   const params = new URLSearchParams({
@@ -13,14 +16,17 @@ export function GET() {
 
   const authUrl = `https://access.line.me/oauth2/v2.1/authorize?${params}`
 
-  const res = NextResponse.redirect(authUrl)
-  res.cookies.set("line_state", state, {
+  const cookieOpts = {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: 60 * 10, // 10 นาที
-    path: "/api/auth/line",
-  })
+    sameSite: "lax" as const,
+    maxAge: 60 * 10,
+    path: "/",
+  }
+
+  const res = NextResponse.redirect(authUrl)
+  res.cookies.set("line_state", state, cookieOpts)
+  if (safeReturn) res.cookies.set("line_return_to", safeReturn, cookieOpts)
 
   return res
 }
