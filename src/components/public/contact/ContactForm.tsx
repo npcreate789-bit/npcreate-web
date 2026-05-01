@@ -13,6 +13,7 @@ const schema = z.object({
   brand:       z.string().min(2, "กรุณากรอกชื่อแบรนด์หรือร้านค้า"),
   monthly_gmv: z.string().min(1, "กรุณาเลือกยอดขายปัจจุบัน"),
   service:     z.string().min(1, "กรุณาเลือกบริการที่สนใจ"),
+  line_id:     z.string().max(50).optional(),
   message:     z.string().optional(),
 })
 
@@ -195,6 +196,15 @@ export function ContactForm({ hasSubmitted, lineOaHref, lineSession }: Props) {
         <p className="text-slate-500 text-xs leading-relaxed">
           ให้ทีมงานติดต่อกลับทาง LINE ได้โดยตรง สะดวกกว่ารอสาย
         </p>
+
+        <div className="space-y-1">
+          <label className="text-slate-400 text-xs">ไอดีไลน์ของคุณ (ดูได้ที่ LINE → Settings → Profile → LINE ID)</label>
+          <input
+            {...register("line_id")}
+            placeholder="เช่น johndoe หรือ @johndoe"
+            className={cn(inputClass(false), "text-sm")}
+          />
+        </div>
         {lineSession ? (
           <div className="flex items-center gap-3 bg-[#06C755]/10 border border-[#06C755]/20 rounded-xl px-3 py-2.5">
             {lineSession.pictureUrl && (
