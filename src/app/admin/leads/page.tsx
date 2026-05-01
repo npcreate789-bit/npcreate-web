@@ -4,6 +4,7 @@ import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 import type { Lead, LeadStatus } from "@/types/database"
 import { cn } from "@/lib/utils"
+import { LinePushButton } from "./_components/LinePushButton"
 
 const statusTabs: { value: LeadStatus | "all"; label: string }[] = [
   { value: "all", label: "ทั้งหมด" },
@@ -106,7 +107,9 @@ export default async function LeadsPage({
                   <tr key={lead.id} className="hover:bg-white/[0.02] transition-colors">
                     <td className="px-5 py-4">
                       <p className="text-white font-medium">{lead.name}</p>
-                      <p className="text-slate-500 text-xs mt-0.5">{lead.display_name}</p>
+                      {lead.display_name && (
+                        <p className="text-[#06C755] text-xs mt-0.5">💚 {lead.display_name}</p>
+                      )}
                       <p className="text-slate-500 text-xs">{lead.phone}</p>
                     </td>
                     <td className="px-5 py-4 text-slate-300 whitespace-nowrap">{lead.brand}</td>
@@ -125,7 +128,12 @@ export default async function LeadsPage({
                       })}
                     </td>
                     <td className="px-5 py-4">
-                      <StatusActions lead={lead} updateFn={updateLeadStatus} />
+                      <div className="flex flex-col gap-2 items-start">
+                        {lead.line_user_id && (
+                          <LinePushButton lineUserId={lead.line_user_id} leadName={lead.name} />
+                        )}
+                        <StatusActions lead={lead} updateFn={updateLeadStatus} />
+                      </div>
                     </td>
                   </tr>
                 ))}

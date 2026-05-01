@@ -91,9 +91,10 @@ export type LeadStatus = 'new' | 'contacted' | 'closed'
 
 export type Lead = {
   id: string
-  line_user_id: string
-  display_name: string
-  picture_url: string
+  line_user_id: string | null
+  display_name: string | null
+  picture_url: string | null
+  line_id: string | null
   name: string
   phone: string
   brand: string

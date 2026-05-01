@@ -12,7 +12,6 @@ const bodySchema = z.object({
   monthly_gmv:   z.enum(VALID_GMV),
   service:       z.enum(VALID_SERVICE),
   message:       z.string().max(2000).optional(),
-  line_id:       z.string().max(50).optional(),
   line_user_id:  z.string().max(100).optional(),
   display_name:  z.string().max(200).optional(),
 })
@@ -25,7 +24,6 @@ function buildTextMessage(data: Lead): string {
     `👤 ชื่อ: ${data.name}`,
     `📱 เบอร์: ${data.phone}`,
     data.display_name ? `💚 LINE: ${data.display_name}` : "",
-    data.line_id      ? `🆔 ไอดีไลน์: ${data.line_id}` : "",
     `🏪 แบรนด์: ${data.brand}`,
     `💰 GMV: ${data.monthly_gmv}`,
     `🎯 บริการ: ${data.service}`,
@@ -149,7 +147,6 @@ export async function POST(req: NextRequest) {
       monthly_gmv:  data.monthly_gmv,
       service:      data.service,
       message:      data.message ?? null,
-      line_id:      data.line_id      ?? null,
       line_user_id: data.line_user_id ?? null,
       display_name: data.display_name ?? null,
     })
