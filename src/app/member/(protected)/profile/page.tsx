@@ -16,7 +16,8 @@ export default async function MemberProfilePage() {
   if (!data) redirect("/register")
 
   const profile    = data as Profile
-  const isLineOnly = !user.email && user.app_metadata?.provider === "line"
+  // LINE-only users have virtual email ending with @line.npcreate.co.th
+  const isLineOnly = user.email?.endsWith("@line.npcreate.co.th") ?? false
 
   return (
     <div className="min-h-screen bg-[#0A0808] pt-24 pb-16">

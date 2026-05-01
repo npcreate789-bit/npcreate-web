@@ -18,7 +18,7 @@ const bodySchema = z.object({
 
 type Lead = z.infer<typeof bodySchema>
 
-function buildTextMessage(data: Lead): string {
+function buildAdminMessage(data: Lead): string {
   return [
     "📩 Lead ใหม่จาก NP Create",
     `👤 ชื่อ: ${data.name}`,
@@ -31,17 +31,21 @@ function buildTextMessage(data: Lead): string {
   ].filter(Boolean).join("\n")
 }
 
-// ── 1. LINE Messaging API push ──────────────────────────────────────────────
-// ต้องการ env vars:
-//   LINE_CHANNEL_ACCESS_TOKEN  — จาก LINE Developers → Messaging API channel
-//   LINE_ADMIN_USER_ID         — UID ของ admin (U…) หาได้จาก LINE Developers
-//                                → Basic settings → "Your user ID"
-//                                (admin ต้องเพิ่มบอทเป็นเพื่อนก่อน)
-async function sendLineMessaging(text: string): Promise<boolean> {
-  const token   = process.env.LINE_CHANNEL_ACCESS_TOKEN
-  const adminId = process.env.LINE_ADMIN_USER_ID
-  if (!token || !adminId) return false
+function buildCustomerMessage(name: string): string {
+  return [
+    `สวัสดีครับ คุณ${name} 🙏`,
+    "",
+    "ทีมงาน NP Create ได้รับข้อมูลของคุณแล้วครับ",
+    "เราจะติดต่อกลับภายใน 1 ชั่วโมง ในเวลาทำการ 9:00–20:00 น.",
+    "",
+    "ขอบคุณที่สนใจบริการของเรานะครับ 😊",
+  ].join("\n")
+}
 
+// ── LINE Messaging API push ─────────────────────────────────────────────────
+async function pushLine(to: string, text: string): Promise<boolean> {
+  const token = process.env.LINE_CHANNEL_ACCESS_TOKEN
+  if (!token || !to) return false
   try {
     const res = await fetch("https://api.line.me/v2/bot/message/push", {
       method: "POST",
@@ -49,13 +53,10 @@ async function sendLineMessaging(text: string): Promise<boolean> {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({
-        to: adminId,
-        messages: [{ type: "text", text }],
-      }),
+      body: JSON.stringify({ to, messages: [{ type: "text", text }] }),
     })
     if (!res.ok) {
-      console.error(`LINE push failed: HTTP ${res.status}`, await res.text())
+      console.error(`LINE push to ${to.slice(0, 6)}... failed: HTTP ${res.status}`)
       return false
     }
     return true
@@ -65,10 +66,7 @@ async function sendLineMessaging(text: string): Promise<boolean> {
   }
 }
 
-// ── 2. Email via Resend (fallback) ──────────────────────────────────────────
-// ต้องการ env vars:
-//   RESEND_API_KEY  — จาก resend.com → API Keys
-//   ADMIN_EMAIL     — email ที่ต้องการรับแจ้งเตือน
+// ── Email via Resend (fallback when admin LINE push fails) ──────────────────
 async function sendEmail(data: Lead): Promise<boolean> {
   const apiKey = process.env.RESEND_API_KEY
   const to     = process.env.ADMIN_EMAIL
@@ -95,14 +93,14 @@ async function sendEmail(data: Lead): Promise<boolean> {
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        from: "NP Create <onboarding@resend.dev>",
-        to: [to],
+        from:    "NP Create <onboarding@resend.dev>",
+        to:      [to],
         subject: `📩 Lead ใหม่: ${data.name} — ${data.brand}`,
         html,
       }),
     })
     if (!res.ok) {
-      console.error(`Resend failed: HTTP ${res.status}`, await res.text())
+      console.error(`Resend failed: HTTP ${res.status}`)
       return false
     }
     return true
@@ -113,17 +111,17 @@ async function sendEmail(data: Lead): Promise<boolean> {
 }
 
 async function notifyAdmin(data: Lead) {
-  const text = buildTextMessage(data)
-  const sentLine = await sendLineMessaging(text)
+  const adminId = process.env.LINE_ADMIN_USER_ID
+  const sentLine = adminId ? await pushLine(adminId, buildAdminMessage(data)) : false
   if (!sentLine) {
     const sentEmail = await sendEmail(data)
     if (!sentEmail) {
-      console.warn(
-        "ไม่มีช่องทางแจ้งเตือน — ตั้งค่า LINE_CHANNEL_ACCESS_TOKEN+LINE_ADMIN_USER_ID หรือ RESEND_API_KEY+ADMIN_EMAIL ใน Vercel"
-      )
+      console.warn("ไม่มีช่องทางแจ้งเตือน admin — ตั้งค่า LINE_ADMIN_USER_ID หรือ RESEND_API_KEY ใน Vercel")
     }
   }
 }
+
+// ── Handler ─────────────────────────────────────────────────────────────────
 
 export async function POST(req: NextRequest) {
   const raw = await req.json().catch(() => null)
@@ -134,34 +132,44 @@ export async function POST(req: NextRequest) {
 
   const data = result.data
 
-  // แจ้งเตือน admin ก่อน — ต้อง await เพราะ Vercel serverless จบทันทีหลัง return response
-  await notifyAdmin(data)
+  // Get authenticated user (for member_id linkage)
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  const memberId = user?.id ?? null
 
-  // บันทึกลง Supabase
-  try {
-    const supabase = await createClient()
-    const { error: dbError } = await supabase.from("leads").insert({
-      name:         data.name,
-      phone:        data.phone,
-      brand:        data.brand,
-      monthly_gmv:  data.monthly_gmv,
-      service:      data.service,
-      message:      data.message ?? null,
-      line_user_id: data.line_user_id ?? null,
-      display_name: data.display_name ?? null,
-    })
-    if (dbError) console.error("leads insert failed:", dbError)
-  } catch (err) {
-    console.error("leads insert exception:", err)
+  // ── 1. บันทึกลง DB ก่อน — ถ้าล้มเหลวให้ return error ทันที (ไม่ set cookie) ──
+  const { error: dbError } = await supabase.from("leads").insert({
+    name:         data.name,
+    phone:        data.phone,
+    brand:        data.brand,
+    monthly_gmv:  data.monthly_gmv,
+    service:      data.service,
+    message:      data.message ?? null,
+    line_user_id: data.line_user_id ?? null,
+    display_name: data.display_name ?? null,
+    member_id:    memberId,
+  })
+
+  if (dbError) {
+    console.error("leads insert failed:", dbError)
+    return NextResponse.json({ error: "บันทึกข้อมูลไม่สำเร็จ กรุณาลองใหม่" }, { status: 500 })
   }
 
+  // ── 2. แจ้ง admin + แจ้ง customer พร้อมกัน (ไม่ block หากล้มเหลว) ──
+  const notifications: Promise<unknown>[] = [notifyAdmin(data)]
+  if (data.line_user_id) {
+    notifications.push(pushLine(data.line_user_id, buildCustomerMessage(data.name)))
+  }
+  await Promise.allSettled(notifications)
+
+  // ── 3. Set cookie + return ──
   const response = NextResponse.json({ success: true })
   response.cookies.set("contact_submitted", "1", {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure:   process.env.NODE_ENV === "production",
     sameSite: "lax",
-    maxAge: 60 * 60 * 24 * 365,
-    path: "/",
+    maxAge:   60 * 60 * 24 * 365,
+    path:     "/",
   })
   return response
 }

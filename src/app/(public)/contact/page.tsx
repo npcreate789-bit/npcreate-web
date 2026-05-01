@@ -16,14 +16,32 @@ type LineSession = { userId: string; displayName: string; pictureUrl: string }
 export default async function ContactPage() {
   const [cookieStore, supabase] = await Promise.all([cookies(), createClient()])
 
-  const hasSubmitted = !!cookieStore.get("contact_submitted")?.value
-
-  // ── ตรวจสอบ LINE: ดึงจาก member profile ก่อน ──
   const { data: { user } } = await supabase.auth.getUser()
   const isMember = !!user
 
-  let lineSession: LineSession | null = null
+  // ── hasSubmitted: member → ตรวจ active lead ใน DB, anonymous → cookie ──
+  let hasSubmitted = false
+  if (user) {
+    // member ที่มี lead ที่ยัง "new" หรือ "contacted" ถือว่ายังรออยู่
+    try {
+      const { data: activeLead } = await supabase
+        .from("leads")
+        .select("id")
+        .eq("member_id", user.id)
+        .in("status", ["new", "contacted"])
+        .limit(1)
+        .maybeSingle()
+      hasSubmitted = !!activeLead
+    } catch {
+      // graceful fallback ถ้า member_id column ยังไม่มี
+      hasSubmitted = false
+    }
+  } else {
+    hasSubmitted = !!cookieStore.get("contact_submitted")?.value
+  }
 
+  // ── LINE session: ดึงจาก member profile ก่อน fallback cookie ──
+  let lineSession: LineSession | null = null
   if (user) {
     const { data: profile } = await supabase
       .from("profiles")
@@ -39,7 +57,6 @@ export default async function ContactPage() {
     }
   }
 
-  // fallback: cookie จากผู้ที่ยังไม่ได้ login
   if (!lineSession) {
     try {
       const raw = cookieStore.get("line_session")?.value

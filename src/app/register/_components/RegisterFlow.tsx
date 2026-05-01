@@ -20,7 +20,6 @@ function OtpRegisterFlow() {
   const [otp, setOtp]           = useState("")
   const [fullName, setFullName] = useState("")
   const [phone, setPhone]       = useState("")
-  const [lineId, setLineId]     = useState("")
   const [loading, setLoading]   = useState(false)
   const [error, setError]       = useState<string | null>(null)
 
@@ -67,7 +66,7 @@ function OtpRegisterFlow() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error("ไม่พบข้อมูลผู้ใช้")
       const { error } = await supabase.from("profiles")
-        .update({ full_name: fullName.trim(), phone: phone.trim(), line_id: lineId.trim() })
+        .update({ full_name: fullName.trim(), phone: phone.trim() })
         .eq("id", user.id)
       if (error) throw error
       router.push("/member"); router.refresh()
@@ -135,10 +134,6 @@ function OtpRegisterFlow() {
             <input value={phone} onChange={(e) => setPhone(e.target.value)}
               placeholder="08x-xxx-xxxx" type="tel" className={inputCls()} />
           </Field>
-          <Field label="LINE ID">
-            <input value={lineId} onChange={(e) => setLineId(e.target.value)}
-              placeholder="@yourlineid" className={inputCls()} />
-          </Field>
           <button type="submit" disabled={loading || !fullName.trim()} className={btnCls()}>
             {loading ? <><Loader2 size={14} className="animate-spin" /> กำลังบันทึก...</> : "สมัครสมาชิก"}
           </button>
@@ -160,7 +155,6 @@ function PasswordRegisterFlow() {
   const [showConfirm, setShowConfirm] = useState(false)
   const [fullName, setFullName]     = useState("")
   const [phone, setPhone]           = useState("")
-  const [lineId, setLineId]         = useState("")
   const [loading, setLoading]       = useState(false)
   const [error, setError]           = useState<string | null>(null)
 
@@ -192,7 +186,7 @@ function PasswordRegisterFlow() {
       // Update profile with provided info
       if (data.user) {
         await supabase.from("profiles")
-          .update({ full_name: fullName.trim(), phone: phone.trim(), line_id: lineId.trim() })
+          .update({ full_name: fullName.trim(), phone: phone.trim() })
           .eq("id", data.user.id)
       }
 
@@ -288,10 +282,6 @@ function PasswordRegisterFlow() {
           <Field label="เบอร์โทรศัพท์">
             <input value={phone} onChange={(e) => setPhone(e.target.value)}
               placeholder="08x-xxx-xxxx" type="tel" className={inputCls()} />
-          </Field>
-          <Field label="LINE ID">
-            <input value={lineId} onChange={(e) => setLineId(e.target.value)}
-              placeholder="@yourlineid" className={inputCls()} />
           </Field>
           <button type="submit" disabled={loading || !fullName.trim()} className={btnCls()}>
             {loading ? <><Loader2 size={14} className="animate-spin" /> กำลังสมัคร...</> : "สมัครสมาชิก"}
