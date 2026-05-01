@@ -87,8 +87,10 @@ export async function GET(req: NextRequest) {
 
     // ── mode=member → Login/Register ด้วย LINE ──────────────────────────────────
     if (lineMode === "member") {
-      if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-        console.error("LINE login: SUPABASE_SERVICE_ROLE_KEY is not set")
+      const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? ""
+      // JWT service role key starts with "eyJ"; placeholder / publishable key is invalid
+      if (!serviceKey || !serviceKey.startsWith("eyJ")) {
+        console.error("LINE login: SUPABASE_SERVICE_ROLE_KEY is missing or invalid (got:", serviceKey.slice(0, 10), "...)")
         return redirectWithError(base, returnTo, "server_config_error")
       }
 
@@ -98,17 +100,32 @@ export async function GET(req: NextRequest) {
       let userId: string | null = null
 
       // ── 1. หา user จาก profiles.line_user_id ──
-      const { data: existingProfile } = await admin
+      const { data: existingProfile, error: profileLookupErr } = await admin
         .from("profiles")
         .select("id")
         .eq("line_user_id", profile.userId)
         .maybeSingle()
 
+      if (profileLookupErr) {
+        console.error("LINE login: profiles lookup failed:", profileLookupErr.message, profileLookupErr.code)
+        return redirectWithError(base, returnTo, "server_config_error")
+      }
+
       if (existingProfile) {
         userId = existingProfile.id
       } else {
         // ── 2. หา auth user จาก virtual email (กรณี trigger สร้าง user แต่ profile ยังไม่มี line_user_id) ──
-        const { data: userList } = await admin.auth.admin.listUsers({ perPage: 1000 })
+        const { data: userList, error: listErr } = await admin.auth.admin.listUsers({ perPage: 1000 })
+
+        if (listErr) {
+          console.error("LINE login: listUsers failed:", listErr.message, listErr.status)
+          // 401/403 = wrong service role key
+          if (listErr.status === 401 || listErr.status === 403) {
+            return redirectWithError(base, returnTo, "server_config_error")
+          }
+          return redirectWithError(base, returnTo, "create_user_failed")
+        }
+
         const existingAuthUser = userList?.users?.find(u => u.email === virtualEmail)
 
         if (existingAuthUser) {
@@ -131,17 +148,38 @@ export async function GET(req: NextRequest) {
             },
           })
           if (createErr || !newUser?.user) {
-            console.error("LINE createUser failed:", createErr?.message, createErr?.status)
-            return redirectWithError(base, returnTo, "create_user_failed")
+            console.error("LINE createUser failed — status:", createErr?.status, "msg:", createErr?.message)
+            // 401/403 = wrong service role key; show clearer error
+            if (createErr?.status === 401 || createErr?.status === 403) {
+              return redirectWithError(base, returnTo, "server_config_error")
+            }
+            // 422 = user already exists despite listUsers not finding them (edge case)
+            if (createErr?.status === 422) {
+              console.error("LINE createUser 422: user may already exist, retrying listUsers")
+              const { data: retryList } = await admin.auth.admin.listUsers({ perPage: 1000 })
+              const retryUser = retryList?.users?.find(u => u.email === virtualEmail)
+              if (retryUser) {
+                userId = retryUser.id
+                await admin.from("profiles").update({
+                  line_user_id:      profile.userId,
+                  line_display_name: profile.displayName,
+                  updated_at:        new Date().toISOString(),
+                }).eq("id", userId)
+              } else {
+                return redirectWithError(base, returnTo, "create_user_failed")
+              }
+            } else {
+              return redirectWithError(base, returnTo, "create_user_failed")
+            }
+          } else {
+            userId = newUser.user.id
+            // อัปเดต line fields บน profile ที่ trigger สร้างให้
+            await admin.from("profiles").update({
+              line_user_id:      profile.userId,
+              line_display_name: profile.displayName,
+              updated_at:        new Date().toISOString(),
+            }).eq("id", userId)
           }
-          userId = newUser.user.id
-
-          // อัปเดต line fields บน profile ที่ trigger สร้างให้
-          await admin.from("profiles").update({
-            line_user_id:      profile.userId,
-            line_display_name: profile.displayName,
-            updated_at:        new Date().toISOString(),
-          }).eq("id", userId)
         }
       }
 
@@ -155,8 +193,8 @@ export async function GET(req: NextRequest) {
         email:   virtualEmail,
         options: { redirectTo: `${base}${returnTo || "/member"}` },
       })
-      if (linkErr || !linkData.properties?.hashed_token) {
-        console.error("LINE generateLink failed:", linkErr?.message)
+      if (linkErr || !linkData?.properties?.hashed_token) {
+        console.error("LINE generateLink failed — status:", linkErr?.status, "msg:", linkErr?.message)
         return redirectWithError(base, returnTo, "link_failed")
       }
 
