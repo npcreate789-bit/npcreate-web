@@ -6,12 +6,14 @@ const VALID_GMV     = ["ยังไม่เปิดร้าน", "น้อ�
 const VALID_SERVICE = ["ยิงแอด GMV Max", "วางกลยุทธ์ TikTok Shop", "Content & Creative", "ทั้งหมด", "ยังไม่แน่ใจ"] as const
 
 const bodySchema = z.object({
-  name:        z.string().min(2).max(100),
-  phone:       z.string().regex(/^0[6-9]\d{8}$/),
-  brand:       z.string().min(2).max(200),
-  monthly_gmv: z.enum(VALID_GMV),
-  service:     z.enum(VALID_SERVICE),
-  message:     z.string().max(2000).optional(),
+  name:          z.string().min(2).max(100),
+  phone:         z.string().regex(/^0[6-9]\d{8}$/),
+  brand:         z.string().min(2).max(200),
+  monthly_gmv:   z.enum(VALID_GMV),
+  service:       z.enum(VALID_SERVICE),
+  message:       z.string().max(2000).optional(),
+  line_user_id:  z.string().max(100).optional(),
+  display_name:  z.string().max(200).optional(),
 })
 
 type Lead = z.infer<typeof bodySchema>
@@ -21,6 +23,7 @@ function buildTextMessage(data: Lead): string {
     "📩 Lead ใหม่จาก NP Create",
     `👤 ชื่อ: ${data.name}`,
     `📱 เบอร์: ${data.phone}`,
+    data.line_user_id ? `💚 LINE: ${data.display_name ?? ""} (${data.line_user_id})` : "",
     `🏪 แบรนด์: ${data.brand}`,
     `💰 GMV: ${data.monthly_gmv}`,
     `🎯 บริการ: ${data.service}`,
@@ -79,7 +82,8 @@ async function sendEmail(data: Lead): Promise<boolean> {
       <tr><td style="padding:8px;color:#666">แบรนด์</td><td style="padding:8px;font-weight:bold">${data.brand}</td></tr>
       <tr style="background:#f9f9f9"><td style="padding:8px;color:#666">GMV/เดือน</td><td style="padding:8px">${data.monthly_gmv}</td></tr>
       <tr><td style="padding:8px;color:#666">บริการที่สนใจ</td><td style="padding:8px">${data.service}</td></tr>
-      ${data.message ? `<tr style="background:#f9f9f9"><td style="padding:8px;color:#666">หมายเหตุ</td><td style="padding:8px">${data.message}</td></tr>` : ""}
+      ${data.line_user_id ? `<tr style="background:#f9f9f9"><td style="padding:8px;color:#666">LINE</td><td style="padding:8px;color:#06C755;font-weight:bold">${data.display_name ?? ""} (${data.line_user_id})</td></tr>` : ""}
+      ${data.message ? `<tr><td style="padding:8px;color:#666">หมายเหตุ</td><td style="padding:8px">${data.message}</td></tr>` : ""}
     </table>
   `
 
@@ -134,12 +138,14 @@ export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient()
     const { error: dbError } = await supabase.from("leads").insert({
-      name:        data.name,
-      phone:       data.phone,
-      brand:       data.brand,
-      monthly_gmv: data.monthly_gmv,
-      service:     data.service,
-      message:     data.message ?? null,
+      name:         data.name,
+      phone:        data.phone,
+      brand:        data.brand,
+      monthly_gmv:  data.monthly_gmv,
+      service:      data.service,
+      message:      data.message ?? null,
+      line_user_id: data.line_user_id ?? null,
+      display_name: data.display_name ?? null,
     })
     if (dbError) console.error("leads insert failed:", dbError)
   } catch (err) {

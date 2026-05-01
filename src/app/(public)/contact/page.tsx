@@ -11,10 +11,18 @@ export const metadata: Metadata = {
     "ปรึกษาฟรี ไม่มีข้อผูกมัด ทีมงานตอบกลับภายใน 1 ชั่วโมง ผ่าน Line OA หรือกรอกฟอร์มด้านล่าง",
 }
 
+type LineSession = { userId: string; displayName: string; pictureUrl: string }
+
 export default async function ContactPage() {
   const [cookieStore, supabase] = await Promise.all([cookies(), createClient()])
 
   const hasSubmitted = !!cookieStore.get("contact_submitted")?.value
+
+  let lineSession: LineSession | null = null
+  try {
+    const raw = cookieStore.get("line_session")?.value
+    if (raw) lineSession = JSON.parse(raw) as LineSession
+  } catch {}
 
   const { data: siteData } = await supabase
     .from("site_settings").select("value").eq("key", "site_info").maybeSingle()
@@ -34,7 +42,7 @@ export default async function ContactPage() {
 
         <div className="grid lg:grid-cols-[1fr_1.6fr] gap-8 items-start">
           <ContactInfo lineHref={lineOaHref} />
-          <ContactForm hasSubmitted={hasSubmitted} lineOaHref={lineOaHref} />
+          <ContactForm hasSubmitted={hasSubmitted} lineOaHref={lineOaHref} lineSession={lineSession} />
         </div>
       </div>
     </main>

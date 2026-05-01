@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -34,18 +34,37 @@ const serviceOptions = [
   { value: "ยังไม่แน่ใจ",              label: "ยังไม่แน่ใจ อยากปรึกษาก่อน" },
 ]
 
+type LineSession = { userId: string; displayName: string; pictureUrl: string }
+
+const DRAFT_KEY = "npc_contact_draft"
+
 interface Props {
   hasSubmitted: boolean
   lineOaHref:   string
+  lineSession:  LineSession | null
 }
 
-export function ContactForm({ hasSubmitted, lineOaHref }: Props) {
+export function ContactForm({ hasSubmitted, lineOaHref, lineSession }: Props) {
   const [justSubmitted, setJustSubmitted] = useState(false)
   const [apiError, setApiError]           = useState<string | null>(null)
 
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({
+  const { register, handleSubmit, reset, getValues, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
   })
+
+  // หลังจาก LINE OAuth redirect กลับมา — restore ฟอร์มจาก sessionStorage
+  useEffect(() => {
+    const raw = sessionStorage.getItem(DRAFT_KEY)
+    if (raw) {
+      try { reset(JSON.parse(raw)) } catch {}
+      sessionStorage.removeItem(DRAFT_KEY)
+    }
+  }, [reset])
+
+  const handleLineConnect = () => {
+    sessionStorage.setItem(DRAFT_KEY, JSON.stringify(getValues()))
+    window.location.href = "/api/auth/line"
+  }
 
   const onSubmit = async (data: FormData) => {
     setApiError(null)
@@ -53,7 +72,13 @@ export function ContactForm({ hasSubmitted, lineOaHref }: Props) {
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          ...data,
+          ...(lineSession ? {
+            line_user_id: lineSession.userId,
+            display_name: lineSession.displayName,
+          } : {}),
+        }),
       })
       if (!res.ok) {
         setApiError("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง")
@@ -160,6 +185,38 @@ export function ContactForm({ hasSubmitted, lineOaHref }: Props) {
           className={cn(inputClass(false), "resize-none")}
         />
       </Field>
+
+      {/* LINE Connect — ไม่บังคับ */}
+      <div className="rounded-xl border border-white/10 bg-[#0D0A0A] p-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <p className="text-slate-300 text-sm font-medium">เชื่อมต่อ LINE</p>
+          <span className="text-slate-600 text-xs">ไม่บังคับ</span>
+        </div>
+        <p className="text-slate-500 text-xs leading-relaxed">
+          ให้ทีมงานติดต่อกลับทาง LINE ได้โดยตรง สะดวกกว่ารอสาย
+        </p>
+        {lineSession ? (
+          <div className="flex items-center gap-3 bg-[#06C755]/10 border border-[#06C755]/20 rounded-xl px-3 py-2.5">
+            {lineSession.pictureUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={lineSession.pictureUrl} alt="" className="w-8 h-8 rounded-full flex-shrink-0" />
+            )}
+            <div className="min-w-0">
+              <p className="text-[#06C755] text-sm font-semibold truncate">{lineSession.displayName}</p>
+              <p className="text-[#06C755]/70 text-xs">เชื่อมต่อ LINE แล้ว ✓</p>
+            </div>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={handleLineConnect}
+            className="flex items-center justify-center gap-2.5 w-full bg-[#06C755]/10 hover:bg-[#06C755]/20 border border-[#06C755]/30 text-[#06C755] text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors"
+          >
+            <LineIcon size={18} />
+            เชื่อมต่อ LINE (ไม่บังคับ)
+          </button>
+        )}
+      </div>
 
       <button
         type="submit"
