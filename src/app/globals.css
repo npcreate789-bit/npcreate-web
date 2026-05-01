@@ -5,55 +5,55 @@
 
 :root {
   /* Brand Colors */
-  --brand-primary: #6366F1;
-  --brand-primary-dark: #4F46E5;
-  --brand-accent: #10B981;
-  --brand-accent-dark: #059669;
+  --brand-primary: #DC2626;
+  --brand-primary-dark: #B91C1C;
+  --brand-accent: #DC2626;
+  --brand-accent-dark: #B91C1C;
   --brand-highlight: #F59E0B;
 
   /* shadcn defaults — overridden with brand */
   --background: #ffffff;
-  --foreground: #1E293B;
+  --foreground: #1C0D0D;
   --card: #ffffff;
-  --card-foreground: #1E293B;
+  --card-foreground: #1C0D0D;
   --popover: #ffffff;
-  --popover-foreground: #1E293B;
-  --primary: #6366F1;
+  --popover-foreground: #1C0D0D;
+  --primary: #DC2626;
   --primary-foreground: #ffffff;
   --secondary: #F1F5F9;
-  --secondary-foreground: #1E293B;
+  --secondary-foreground: #1C0D0D;
   --muted: #F8FAFC;
   --muted-foreground: #64748B;
-  --accent: #10B981;
+  --accent: #DC2626;
   --accent-foreground: #ffffff;
   --destructive: #EF4444;
   --destructive-foreground: #ffffff;
   --border: #E2E8F0;
   --input: #E2E8F0;
-  --ring: #6366F1;
+  --ring: #DC2626;
   --radius: 0.625rem;
 }
 
 .dark {
-  --background: #0F172A;
+  --background: #0A0808;
   --foreground: #F8FAFC;
-  --card: #1E293B;
+  --card: #1C0D0D;
   --card-foreground: #F8FAFC;
-  --popover: #1E293B;
+  --popover: #1C0D0D;
   --popover-foreground: #F8FAFC;
-  --primary: #818CF8;
-  --primary-foreground: #0F172A;
+  --primary: #FCA5A5;
+  --primary-foreground: #0A0808;
   --secondary: #334155;
   --secondary-foreground: #F8FAFC;
   --muted: #334155;
   --muted-foreground: #94A3B8;
-  --accent: #34D399;
-  --accent-foreground: #0F172A;
+  --accent: #FCA5A5;
+  --accent-foreground: #0A0808;
   --destructive: #F87171;
-  --destructive-foreground: #0F172A;
+  --destructive-foreground: #0A0808;
   --border: #334155;
   --input: #334155;
-  --ring: #818CF8;
+  --ring: #DC2626;
 }
 
 @theme inline {
@@ -97,12 +97,12 @@
 }
 
 body {
-  background-color: var(--background);
+  background-color: #0A0808;
   color: var(--foreground);
   font-feature-settings: "rlig" 1, "calt" 1;
 }
 
-/* Smooth scroll */
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 4rem; /* offset fixed navbar (h-16) for anchor links */
 }

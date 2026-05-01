@@ -6,7 +6,7 @@ export function OrganizationJsonLd() {
     url: "https://npcreate.co.th",
     logo: "https://npcreate.co.th/og-image.png",
     description:
-      "รับยิงแอด GMV Max และทำการตลาด TikTok Shop ผลงานพิสูจน์แล้วกับ 50+ แบรนด์ ยอดขายรวมทะลุ 100 ล้านบาท",
+      "รับยิงแอด GMV Max และทำการตลาด TikTok Shop ดูแลมาแล้วมากกว่า 500 แบรนด์ ยอดขายรวมทะลุ 800 ล้านบาท",
     contactPoint: {
       "@type": "ContactPoint",
       contactType: "customer service",
@@ -35,7 +35,7 @@ export function ServicesJsonLd() {
         "@type": "Service",
         position: 1,
         name: "ยิงแอด GMV Max",
-        description: "บริการยิงโฆษณา TikTok Shop ด้วย GMV Max เพิ่มยอดขาย ROAS 8–15x",
+        description: "บริการยิงโฆษณา TikTok Shop ด้วย GMV Max เพิ่มยอดขาย ROI 8–15x",
         provider: { "@type": "Organization", name: "NP Create" },
         areaServed: "TH",
       },

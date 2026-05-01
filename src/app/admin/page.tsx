@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
-import { Users, Briefcase, MessageSquare, Star } from "lucide-react"
+import { Users, Briefcase, MessageSquare } from "lucide-react"
 import Link from "next/link"
 import type { Lead } from "@/types/database"
 
@@ -30,10 +30,10 @@ export default async function AdminDashboard() {
     .limit(5)
 
   const statCards = [
-    { label: "Leads ทั้งหมด", value: stats.leadsTotal, icon: Users, color: "text-[#6366F1]", bg: "bg-[#6366F1]/10", href: "/admin/leads" },
+    { label: "Leads ทั้งหมด", value: stats.leadsTotal, icon: Users, color: "text-[#DC2626]", bg: "bg-[#DC2626]/10", href: "/admin/leads" },
     { label: "Leads ใหม่", value: stats.leadsNew, icon: Users, color: "text-[#F59E0B]", bg: "bg-[#F59E0B]/10", href: "/admin/leads?status=new" },
-    { label: "Portfolio (เผยแพร่)", value: stats.portfolios, icon: Briefcase, color: "text-[#10B981]", bg: "bg-[#10B981]/10", href: "/admin/portfolios" },
-    { label: "บริการ (เปิดใช้)", value: stats.services, icon: MessageSquare, color: "text-[#818CF8]", bg: "bg-[#818CF8]/10", href: "/admin/services" },
+    { label: "Portfolio (เผยแพร่)", value: stats.portfolios, icon: Briefcase, color: "text-[#DC2626]", bg: "bg-[#DC2626]/10", href: "/admin/portfolios" },
+    { label: "บริการ (เปิดใช้)", value: stats.services, icon: MessageSquare, color: "text-[#FCA5A5]", bg: "bg-[#FCA5A5]/10", href: "/admin/services" },
   ]
 
   return (
@@ -51,7 +51,7 @@ export default async function AdminDashboard() {
             <Link
               key={card.label}
               href={card.href}
-              className="bg-[#1E293B] border border-white/5 rounded-2xl p-5 hover:border-white/10 transition-colors"
+              className="bg-[#1C0D0D] border border-white/5 rounded-2xl p-5 hover:border-white/10 transition-colors"
             >
               <div className={`w-10 h-10 ${card.bg} rounded-xl flex items-center justify-center mb-4`}>
                 <Icon size={18} className={card.color} />
@@ -64,10 +64,10 @@ export default async function AdminDashboard() {
       </div>
 
       {/* Recent leads */}
-      <div className="bg-[#1E293B] border border-white/5 rounded-2xl overflow-hidden">
+      <div className="bg-[#1C0D0D] border border-white/5 rounded-2xl overflow-hidden">
         <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
           <h2 className="font-semibold text-white text-sm">Leads ล่าสุด</h2>
-          <Link href="/admin/leads" className="text-[#6366F1] text-xs hover:text-[#818CF8] transition-colors">
+          <Link href="/admin/leads" className="text-[#DC2626] text-xs hover:text-[#FCA5A5] transition-colors">
             ดูทั้งหมด →
           </Link>
         </div>
@@ -78,8 +78,8 @@ export default async function AdminDashboard() {
           <div className="divide-y divide-white/5">
             {(recentLeads as Lead[]).map((lead) => (
               <div key={lead.id} className="flex items-center gap-4 px-6 py-4">
-                <div className="w-8 h-8 rounded-full bg-[#6366F1]/10 flex items-center justify-center shrink-0">
-                  <span className="text-[#6366F1] text-xs font-bold">{lead.display_name[0]}</span>
+                <div className="w-8 h-8 rounded-full bg-[#DC2626]/10 flex items-center justify-center shrink-0">
+                  <span className="text-[#DC2626] text-xs font-bold">{lead.display_name?.[0]?.toUpperCase() ?? "?"}</span>
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-white text-sm font-medium truncate">{lead.name}</p>
@@ -98,8 +98,8 @@ export default async function AdminDashboard() {
 function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
     new: "bg-[#F59E0B]/10 text-[#F59E0B]",
-    contacted: "bg-[#6366F1]/10 text-[#818CF8]",
-    closed: "bg-[#10B981]/10 text-[#10B981]",
+    contacted: "bg-[#DC2626]/10 text-[#FCA5A5]",
+    closed: "bg-[#DC2626]/10 text-[#DC2626]",
   }
   const labels: Record<string, string> = {
     new: "ใหม่",

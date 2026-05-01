@@ -1,0 +1,478 @@
+"use client"
+
+import { useState } from "react"
+import { useForm, useWatch } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { Loader2, Play, BarChart2, Zap, TrendingUp } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { portfolioSchema, type PortfolioInput } from "../schema"
+import { createPortfolio, updatePortfolio } from "../actions"
+import type { Portfolio } from "@/types/database"
+
+function toSlug(text: string) {
+  return (
+    text.toLowerCase().trim()
+      .replace(/[^\w\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-") || `portfolio-${Date.now()}`
+  )
+}
+
+function toNum(v: unknown) {
+  if (v === "" || v === null || v === undefined) return null
+  const n = Number(v)
+  return isNaN(n) ? null : n
+}
+
+function fmtGMV(val: number | null | undefined) {
+  if (!val) return "—"
+  if (val >= 1_000_000) return `${(val / 1_000_000).toFixed(1)}M`
+  if (val >= 1_000) return `${Math.round(val / 1_000)}K`
+  return val.toLocaleString()
+}
+
+// These gradient strings must be here as literals so Tailwind's JIT includes them
+const GRADIENT_OPTIONS = [
+  "from-red-800 via-rose-700 to-red-600",
+  "from-rose-500 via-pink-500 to-fuchsia-600",
+  "from-amber-500 via-orange-500 to-red-500",
+  "from-yellow-500 via-amber-500 to-orange-600",
+  "from-slate-500 via-gray-600 to-zinc-700",
+  "from-red-900 via-red-700 to-rose-600",
+  "from-rose-600 via-red-500 to-red-700",
+  "from-pink-500 via-rose-500 to-red-600",
+  "from-red-700 via-rose-600 to-red-500",
+]
+
+const SERVICE_OPTIONS = [
+  "ยิงแอด GMV Max",
+  "วางกลยุทธ์ TikTok Shop",
+  "Content & Creative",
+  "รายงานผล & วิเคราะห์",
+]
+
+const INDUSTRY_OPTIONS = [
+  { value: "fashion",   label: "แฟชั่น" },
+  { value: "food",      label: "อาหาร" },
+  { value: "beauty",    label: "ความงาม" },
+  { value: "health",    label: "สุขภาพ" },
+  { value: "lifestyle", label: "ไลฟ์สไตล์" },
+  { value: "other",     label: "อื่นๆ" },
+]
+
+interface Props {
+  portfolio?: Portfolio
+}
+
+export function PortfolioForm({ portfolio }: Props) {
+  const isEdit = !!portfolio
+  const [serverError, setServerError] = useState<string | null>(null)
+
+  const {
+    register,
+    handleSubmit,
+    control,
+    setValue,
+    formState: { errors, isSubmitting },
+  } = useForm<PortfolioInput>({
+    resolver: zodResolver(portfolioSchema),
+    defaultValues: portfolio
+      ? {
+          title:          portfolio.title,
+          slug:           portfolio.slug,
+          client_name:    portfolio.client_name ?? "",
+          industry:       portfolio.industry ?? "",
+          service_type:   portfolio.service_type ?? [],
+          short_desc:     portfolio.short_desc ?? "",
+          gmv_before:     portfolio.gmv_before,
+          gmv_after:      portfolio.gmv_after,
+          gmv_growth_pct: portfolio.gmv_growth_pct,
+          roas:           portfolio.roas,
+          duration_days:  portfolio.duration_days,
+          cover_image:    portfolio.cover_image ?? "",
+          media_type:     portfolio.media_type ?? "image",
+          video_id:       portfolio.video_id ?? "",
+          gradient:       portfolio.gradient ?? GRADIENT_OPTIONS[0],
+          is_featured:    portfolio.is_featured,
+          is_published:   portfolio.is_published,
+          display_order:  portfolio.display_order,
+        }
+      : {
+          title: "", slug: "", client_name: "", industry: "",
+          service_type: [], short_desc: "",
+          gmv_before: null, gmv_after: null, gmv_growth_pct: null,
+          roas: null, duration_days: null,
+          cover_image: "",
+          media_type: "image", video_id: "", gradient: GRADIENT_OPTIONS[0],
+          is_featured: false, is_published: false, display_order: 0,
+        },
+  })
+
+  const watched      = useWatch({ control })
+  const serviceType  = watched.service_type ?? []
+  const mediaType    = watched.media_type ?? "image"
+  const gradient     = watched.gradient ?? GRADIENT_OPTIONS[0]
+  const industryLabel = INDUSTRY_OPTIONS.find((o) => o.value === watched.industry)?.label ?? ""
+
+  const toggleService = (s: string) =>
+    setValue(
+      "service_type",
+      serviceType.includes(s) ? serviceType.filter((x) => x !== s) : [...serviceType, s]
+    )
+
+  const onSubmit = async (data: PortfolioInput) => {
+    setServerError(null)
+    try {
+      if (isEdit && portfolio) {
+        await updatePortfolio(portfolio.id, data)
+      } else {
+        await createPortfolio(data)
+      }
+    } catch (e) {
+      setServerError(e instanceof Error ? e.message : "เกิดข้อผิดพลาด กรุณาลองใหม่")
+    }
+  }
+
+  return (
+    <div className="grid xl:grid-cols-[minmax(0,1fr)_300px] gap-8 items-start">
+
+      {/* ── Left: form ── */}
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        {serverError && (
+          <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm px-4 py-3 rounded-xl">
+            {serverError}
+          </div>
+        )}
+
+        {/* ข้อมูลหลัก */}
+        <Section title="ข้อมูลแบรนด์">
+          <Field label="ชื่อ Portfolio" error={errors.title?.message} required>
+            <input
+              {...register("title", {
+                onChange: (e) => { if (!isEdit) setValue("slug", toSlug(e.target.value)) },
+              })}
+              placeholder="เช่น Glow Beauty — GMV เพิ่ม 280%"
+              className={inputClass(!!errors.title)}
+            />
+          </Field>
+
+          <Field label="Slug (URL)" error={errors.slug?.message} required>
+            <input {...register("slug")} placeholder="glow-beauty-gmv-280" className={inputClass(!!errors.slug)} />
+          </Field>
+
+          <div className="grid sm:grid-cols-2 gap-4">
+            <Field label="ชื่อแบรนด์ / ลูกค้า">
+              <input {...register("client_name")} placeholder="เช่น Glow Beauty" className={inputClass(false)} />
+            </Field>
+            <Field label="หมวดหมู่">
+              <select {...register("industry")} className={inputClass(false)}>
+                <option value="">— เลือก —</option>
+                {INDUSTRY_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+              </select>
+            </Field>
+          </div>
+
+          <Field label="คำอธิบายผลงาน (แสดงบนการ์ด)">
+            <textarea
+              {...register("short_desc")}
+              rows={3}
+              placeholder="สรุปผลงานใน 1–2 ประโยค เช่น เพิ่มยอดขายจาก 200K → 2.4M/เดือน ใน 3 เดือน ด้วยกลยุทธ์ GMV Max"
+              className={cn(inputClass(false), "resize-none")}
+            />
+          </Field>
+        </Section>
+
+        {/* ประเภทสื่อ + gradient */}
+        <Section title="รูปแบบการ์ด">
+          <Field label="ประเภทสื่อ">
+            <div className="flex gap-2">
+              {([
+                { value: "image",  label: "🖼 รูปภาพ" },
+                { value: "video",  label: "▶ YouTube" },
+                { value: "tiktok", label: "♪ TikTok" },
+              ] as const).map((t) => (
+                <button
+                  key={t.value}
+                  type="button"
+                  onClick={() => setValue("media_type", t.value)}
+                  className={cn(
+                    "flex-1 py-2.5 rounded-xl text-sm font-medium border transition-all",
+                    mediaType === t.value
+                      ? "bg-[#DC2626] border-[#DC2626] text-white"
+                      : "bg-transparent border-white/10 text-slate-400 hover:text-white"
+                  )}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          </Field>
+
+          {mediaType === "video" && (
+            <Field label="YouTube Video ID">
+              <input
+                {...register("video_id")}
+                placeholder="เช่น dQw4w9WgXcQ"
+                className={inputClass(false)}
+              />
+              <p className="text-slate-500 text-xs mt-1.5">
+                copy จาก URL: youtube.com/watch?v=<span className="text-slate-400">VIDEO_ID</span>
+              </p>
+            </Field>
+          )}
+
+          {mediaType === "tiktok" && (
+            <Field label="TikTok Video URL">
+              <input
+                {...register("video_id")}
+                placeholder="https://www.tiktok.com/@username/video/7123456789"
+                className={inputClass(false)}
+              />
+              <p className="text-slate-500 text-xs mt-1.5">
+                วาง URL เต็มจาก TikTok — ระบบจะดึง Video ID ให้อัตโนมัติ
+              </p>
+            </Field>
+          )}
+
+          <Field label="สีธีมการ์ด">
+            <div className="flex flex-wrap gap-2 mt-1">
+              {GRADIENT_OPTIONS.map((g) => (
+                <button
+                  key={g}
+                  type="button"
+                  onClick={() => setValue("gradient", g)}
+                  title={g}
+                  className={cn(
+                    "w-9 h-9 rounded-xl bg-gradient-to-br border-2 transition-all",
+                    g,
+                    gradient === g
+                      ? "border-white shadow-lg scale-110"
+                      : "border-transparent opacity-60 hover:opacity-90 hover:scale-105"
+                  )}
+                />
+              ))}
+            </div>
+          </Field>
+        </Section>
+
+        {/* ตัวเลขผลลัพธ์ */}
+        <Section title="ตัวเลขผลลัพธ์ (แสดงบนการ์ด)">
+          <div className="grid sm:grid-cols-3 gap-4">
+            <Field label="GMV หลัง (บาท/เดือน)">
+              <input type="number" {...register("gmv_after", { setValueAs: toNum })} placeholder="2400000" className={inputClass(false)} />
+            </Field>
+            <Field label="ROI (เท่า)">
+              <input type="number" step="0.1" {...register("roas", { setValueAs: toNum })} placeholder="9" className={inputClass(false)} />
+            </Field>
+            <Field label="Growth (%)">
+              <input type="number" {...register("gmv_growth_pct", { setValueAs: toNum })} placeholder="280" className={inputClass(false)} />
+            </Field>
+          </div>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <Field label="GMV ก่อน (บาท/เดือน)">
+              <input type="number" {...register("gmv_before", { setValueAs: toNum })} placeholder="200000" className={inputClass(false)} />
+            </Field>
+            <Field label="ระยะเวลา (วัน)">
+              <input type="number" {...register("duration_days", { setValueAs: toNum })} placeholder="30" className={inputClass(false)} />
+            </Field>
+          </div>
+        </Section>
+
+        {/* แท็กบริการ */}
+        <Section title="แท็ก / บริการที่ใช้">
+          <div className="flex flex-wrap gap-2">
+            {SERVICE_OPTIONS.map((s) => (
+              <button
+                key={s}
+                type="button"
+                onClick={() => toggleService(s)}
+                className={cn(
+                  "px-3 py-1.5 rounded-full text-xs font-medium transition-all border",
+                  serviceType.includes(s)
+                    ? "bg-[#DC2626] border-[#DC2626] text-white"
+                    : "bg-transparent border-white/10 text-slate-400 hover:text-white"
+                )}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+          <p className="text-slate-600 text-xs mt-1">แสดงเป็นแท็กใต้คำอธิบายในการ์ด</p>
+        </Section>
+
+        {/* รูปภาพ */}
+        <Section title="รูปภาพปก (ถ้ามี)">
+          <Field label="Cover Image URL">
+            <input {...register("cover_image")} placeholder="https://..." className={inputClass(false)} />
+          </Field>
+        </Section>
+
+        {/* การแสดงผล */}
+        <Section title="การแสดงผล">
+          <div className="flex flex-col gap-3">
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input type="checkbox" {...register("is_published")} className="w-4 h-4 accent-[#DC2626]" />
+              <span className="text-slate-300 text-sm">เผยแพร่ (แสดงบนหน้า Portfolio)</span>
+            </label>
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input type="checkbox" {...register("is_featured")} className="w-4 h-4 accent-[#DC2626]" />
+              <span className="text-slate-300 text-sm">Featured (แสดงในส่วนพิเศษ)</span>
+            </label>
+          </div>
+          <Field label="ลำดับแสดงผล">
+            <input type="number" {...register("display_order", { valueAsNumber: true })} placeholder="0" className={cn(inputClass(false), "max-w-[120px]")} />
+          </Field>
+        </Section>
+
+        <div className="flex items-center gap-3 pt-2">
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="inline-flex items-center gap-2 bg-[#DC2626] hover:bg-[#B91C1C] disabled:opacity-60 text-white font-semibold px-6 py-2.5 rounded-xl transition-colors text-sm"
+          >
+            {isSubmitting && <Loader2 size={14} className="animate-spin" />}
+            {isEdit ? "บันทึกการแก้ไข" : "สร้าง Portfolio"}
+          </button>
+          <a href="/admin/portfolios" className="text-slate-400 hover:text-white text-sm transition-colors">
+            ยกเลิก
+          </a>
+        </div>
+      </form>
+
+      {/* ── Right: live preview ── */}
+      <div className="xl:sticky xl:top-6 space-y-3">
+        <p className="text-slate-500 text-[11px] font-semibold uppercase tracking-widest">
+          ตัวอย่างการ์ด (hover state)
+        </p>
+        <CardPreview
+          brand={watched.client_name || watched.title || "ชื่อแบรนด์"}
+          category={industryLabel}
+          mediaType={mediaType}
+          gradient={gradient}
+          gmv={fmtGMV(watched.gmv_after)}
+          roi={watched.roas ? `${watched.roas}x` : "—"}
+          growth={watched.gmv_growth_pct ? `+${watched.gmv_growth_pct}%` : "—"}
+          desc={watched.short_desc || "คำอธิบายสั้นของผลงาน จะแสดงเมื่อ hover บนการ์ด"}
+          tags={serviceType}
+        />
+        <p className="text-slate-600 text-[10px] text-center leading-relaxed">
+          การ์ดจะแสดงผลแบบนี้บนหน้า /portfolio<br />เมื่อผู้ใช้ hover เมาส์
+        </p>
+      </div>
+    </div>
+  )
+}
+
+// ── Live preview card ──────────────────────────────────────────────────────────
+
+function CardPreview({
+  brand, category, mediaType, gradient, gmv, roi, growth, desc, tags,
+}: {
+  brand: string; category: string; mediaType: string; gradient: string
+  gmv: string; roi: string; growth: string; desc: string; tags: string[]
+}) {
+  return (
+    <div className="relative aspect-[3/4] rounded-2xl overflow-hidden w-full max-w-[260px] mx-auto ring-1 ring-white/10">
+      {/* Gradient bg */}
+      <div className={cn("absolute inset-0 bg-gradient-to-br", gradient)} />
+
+      {/* Brand initial watermark */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
+        <span className="font-bold text-[80px] text-white/10 leading-none">
+          {(brand[0] ?? "N").toUpperCase()}
+        </span>
+      </div>
+
+      {/* Video play button */}
+      {mediaType === "video" && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+            <Play className="text-white fill-white ml-0.5" size={18} />
+          </div>
+        </div>
+      )}
+
+      {/* Type badge */}
+      <div className="absolute top-3 right-3">
+        <span className="text-[10px] bg-black/40 backdrop-blur-sm text-white/90 px-2 py-0.5 rounded-full">
+          {mediaType === "tiktok" ? "TikTok" : mediaType === "video" ? "วิดีโอ" : "รูปภาพ"}
+        </span>
+      </div>
+
+      {/* Hover overlay — always visible in preview */}
+      <div className="absolute inset-0 bg-black/85 backdrop-blur-[2px] flex flex-col justify-center p-4">
+        {/* Stats row */}
+        <div className="grid grid-cols-3 gap-1.5 mb-4">
+          {[
+            { Icon: BarChart2, label: "GMV",    value: gmv },
+            { Icon: Zap,       label: "ROI",    value: roi },
+            { Icon: TrendingUp,label: "Growth", value: growth },
+          ].map(({ Icon, label, value }) => (
+            <div key={label} className="bg-black/30 backdrop-blur-sm rounded-lg p-2 text-center">
+              <Icon size={11} className="text-[#F59E0B] mx-auto mb-1" />
+              <div className="text-[#F59E0B] font-bold text-base leading-none">{value}</div>
+              <div className="text-white/40 text-[9px] mt-0.5">{label}</div>
+            </div>
+          ))}
+        </div>
+
+        <p className="text-white font-semibold text-sm leading-tight mb-0.5">{brand}</p>
+        {category && <p className="text-white/50 text-[10px] mb-2">{category}</p>}
+        <p className="text-white/70 text-[11px] leading-relaxed line-clamp-3 mb-3">{desc}</p>
+
+        {tags.length > 0 && (
+          <div className="flex flex-wrap gap-1 mb-3">
+            {tags.slice(0, 2).map((tag) => (
+              <span key={tag} className="text-[9px] bg-white/10 text-white/60 px-1.5 py-0.5 rounded-full">
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
+
+        <span className="text-[#FCA5A5] text-[10px] font-medium text-center">
+          คลิกเพื่อดูเพิ่มเติม →
+        </span>
+      </div>
+    </div>
+  )
+}
+
+// ── Shared helpers ─────────────────────────────────────────────────────────────
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="bg-[#1C0D0D] border border-white/5 rounded-2xl p-6 space-y-4">
+      <h2 className="text-white font-semibold text-sm">{title}</h2>
+      {children}
+    </div>
+  )
+}
+
+function Field({
+  label, error, required, children,
+}: {
+  label: string; error?: string; required?: boolean; children: React.ReactNode
+}) {
+  return (
+    <div className="space-y-1.5">
+      <label className="text-slate-300 text-xs font-medium">
+        {label}{required && <span className="text-[#DC2626] ml-1">*</span>}
+      </label>
+      {children}
+      {error && <p className="text-red-400 text-xs">{error}</p>}
+    </div>
+  )
+}
+
+function inputClass(hasError: boolean) {
+  return cn(
+    "w-full bg-[#0A0808] border rounded-xl px-3 py-2 text-white text-sm placeholder:text-slate-600",
+    "focus:outline-none focus:ring-2 transition-colors appearance-none",
+    hasError
+      ? "border-red-500/50 focus:ring-red-500/30"
+      : "border-white/10 focus:border-[#DC2626]/50 focus:ring-[#DC2626]/20"
+  )
+}

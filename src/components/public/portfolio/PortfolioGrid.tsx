@@ -3,17 +3,59 @@
 import { useState } from "react"
 import { Play } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { portfolioItems, categoryOptions, categoryLabel } from "@/lib/data/portfolio"
+import { categoryOptions, categoryLabel } from "@/lib/data/portfolio"
 import type { PortfolioCategory, PortfolioMediaType, PortfolioItem } from "@/lib/data/portfolio"
+import type { Portfolio } from "@/types/database"
 import { PortfolioModal } from "./PortfolioModal"
 
-export function PortfolioGrid() {
+function parseTikTokId(input: string): string | undefined {
+  if (!input) return undefined
+  const match = input.match(/\/video\/(\d+)/)
+  return match ? match[1] : /^\d+$/.test(input.trim()) ? input.trim() : undefined
+}
+
+function fmtGMV(val: number | null): string {
+  if (!val) return "—"
+  if (val >= 1_000_000) return `${(val / 1_000_000).toFixed(1)}M`
+  if (val >= 1_000) return `${Math.round(val / 1_000)}K`
+  return val.toLocaleString()
+}
+
+function toItem(p: Portfolio): PortfolioItem {
+  return {
+    id:          p.id,
+    brand:       p.client_name || p.title,
+    category:    (p.industry ?? "other") as Exclude<PortfolioCategory, "all">,
+    // TikTok maps to "video" so the filter treats it as video content
+    type:        p.media_type === "image" ? "image" : "video",
+    gradient:    p.gradient ?? "from-red-800 via-rose-700 to-red-600",
+    stats: {
+      gmv:    fmtGMV(p.gmv_after),
+      roas:   p.roas           ? `${p.roas}x`            : "—",
+      growth: p.gmv_growth_pct ? `+${p.gmv_growth_pct}%` : "—",
+    },
+    description: p.short_desc ?? "",
+    tags:        p.service_type ?? [],
+    videoId:     p.media_type === "video"  ? (p.video_id  ?? undefined) : undefined,
+    tiktokId:    p.media_type === "tiktok" ? parseTikTokId(p.video_id ?? "") : undefined,
+    coverImage:  p.cover_image ?? undefined,
+  }
+}
+
+interface Props {
+  portfolios: Portfolio[]
+  lineHref?: string
+}
+
+export function PortfolioGrid({ portfolios, lineHref = "/api/auth/line" }: Props) {
   const [activeCategory, setActiveCategory] = useState<PortfolioCategory>("all")
   const [activeType, setActiveType] = useState<PortfolioMediaType>("all")
   const [selected, setSelected] = useState<PortfolioItem | null>(null)
 
-  const filtered = portfolioItems.filter((item) => {
-    const matchCat = activeCategory === "all" || item.category === activeCategory
+  const items = portfolios.map(toItem)
+
+  const filtered = items.filter((item) => {
+    const matchCat  = activeCategory === "all" || item.category === activeCategory
     const matchType = activeType === "all" || item.type === activeType
     return matchCat && matchType
   })
@@ -30,8 +72,8 @@ export function PortfolioGrid() {
               className={cn(
                 "px-4 py-1.5 rounded-full text-sm font-medium transition-all",
                 activeCategory === opt.value
-                  ? "bg-[#6366F1] text-white shadow-lg shadow-indigo-900/30"
-                  : "bg-[#1E293B] text-slate-400 hover:text-white hover:bg-[#273549]"
+                  ? "bg-[#DC2626] text-white shadow-lg shadow-red-900/30"
+                  : "bg-[#1C0D0D] text-slate-400 hover:text-white hover:bg-[#1C0D0D]/80"
               )}
             >
               {opt.label}
@@ -39,14 +81,14 @@ export function PortfolioGrid() {
           ))}
         </div>
 
-        <div className="flex items-center gap-1 bg-[#1E293B] p-1 rounded-lg shrink-0">
+        <div className="flex items-center gap-1 bg-[#1C0D0D] p-1 rounded-lg shrink-0">
           {(["all", "image", "video"] as const).map((type) => (
             <button
               key={type}
               onClick={() => setActiveType(type)}
               className={cn(
                 "px-3 py-1.5 rounded-md text-xs font-medium transition-colors",
-                activeType === type ? "bg-[#0F172A] text-white" : "text-slate-400 hover:text-white"
+                activeType === type ? "bg-[#0A0808] text-white" : "text-slate-400 hover:text-white"
               )}
             >
               {type === "all" ? "ทั้งหมด" : type === "image" ? "รูปภาพ" : "วิดีโอ"}
@@ -55,41 +97,63 @@ export function PortfolioGrid() {
         </div>
       </div>
 
-      <p className="text-slate-500 text-sm mb-8">{filtered.length} ผลงาน</p>
-
-      {filtered.length === 0 ? (
-        <div className="text-center py-24 text-slate-500">ไม่พบผลงานในหมวดหมู่นี้</div>
-      ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
-          {filtered.map((item) => (
-            <PortfolioCard key={item.id} item={item} onClick={() => setSelected(item)} />
-          ))}
+      {items.length === 0 ? (
+        <div className="text-center py-32">
+          <p className="text-slate-500 text-base">ยังไม่มีผลงาน</p>
+          <p className="text-slate-600 text-sm mt-2">ติดต่อเราเพื่อเริ่มต้นสร้างยอดขาย</p>
         </div>
+      ) : filtered.length === 0 ? (
+        <div className="text-center py-24 text-slate-500">
+          ไม่พบผลงานในหมวดหมู่นี้
+        </div>
+      ) : (
+        <>
+          <p className="text-slate-500 text-sm mb-8">{filtered.length} ผลงาน</p>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
+            {filtered.map((item) => (
+              <PortfolioCard key={item.id} item={item} onClick={() => setSelected(item)} />
+            ))}
+          </div>
+        </>
       )}
 
-      {selected && <PortfolioModal item={selected} onClose={() => setSelected(null)} />}
+      {selected && <PortfolioModal item={selected} onClose={() => setSelected(null)} lineHref={lineHref} />}
     </>
   )
 }
 
 function PortfolioCard({ item, onClick }: { item: PortfolioItem; onClick: () => void }) {
+  const isVideo = item.type === "video"
+
   return (
     <div
       onClick={onClick}
       className="group relative aspect-[3/4] rounded-2xl overflow-hidden cursor-pointer"
     >
-      {/* Gradient background */}
-      <div className={cn("absolute inset-0 bg-gradient-to-br transition-transform duration-500 group-hover:scale-105", item.gradient)} />
+      {/* Background: cover image OR gradient */}
+      {item.coverImage ? (
+        <div
+          className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
+          style={{ backgroundImage: `url(${item.coverImage})` }}
+        />
+      ) : (
+        <div className={cn(
+          "absolute inset-0 bg-gradient-to-br transition-transform duration-500 group-hover:scale-105",
+          item.gradient
+        )} />
+      )}
 
-      {/* Brand initial watermark */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <span className="font-display font-black text-[80px] text-white/10 select-none leading-none">
-          {item.brand[0]}
-        </span>
-      </div>
+      {/* Brand initial watermark (when no cover image) */}
+      {!item.coverImage && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <span className="font-display font-black text-[80px] text-white/10 select-none leading-none">
+            {item.brand[0]}
+          </span>
+        </div>
+      )}
 
-      {/* Play button */}
-      {item.type === "video" && (
+      {/* Play button for video/tiktok */}
+      {isVideo && (
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
             <Play className="text-white fill-white ml-0.5" size={20} />
@@ -97,25 +161,25 @@ function PortfolioCard({ item, onClick }: { item: PortfolioItem; onClick: () => 
         </div>
       )}
 
-      {/* Type badge */}
+      {/* Media type badge */}
       <div className="absolute top-3 right-3">
         <span className="text-[11px] bg-black/40 backdrop-blur-sm text-white/90 px-2.5 py-1 rounded-full font-medium">
-          {item.type === "video" ? "วิดีโอ" : "รูปภาพ"}
+          {item.tiktokId ? "TikTok" : isVideo ? "วิดีโอ" : "รูปภาพ"}
         </span>
       </div>
 
-      {/* Bottom label — always visible */}
+      {/* Default bottom label — slides out on hover */}
       <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 via-black/30 to-transparent translate-y-0 group-hover:translate-y-full transition-transform duration-300">
         <p className="font-display font-semibold text-white text-sm leading-tight">{item.brand}</p>
-        <p className="text-white/50 text-xs mt-0.5">{categoryLabel[item.category]}</p>
+        <p className="text-white/50 text-xs mt-0.5">{categoryLabel[item.category] ?? item.category}</p>
       </div>
 
-      {/* Hover stats overlay — slides up from bottom */}
+      {/* Hover overlay — slides up on hover */}
       <div className="absolute inset-0 bg-black/85 backdrop-blur-[2px] translate-y-full group-hover:translate-y-0 transition-transform duration-300 flex flex-col justify-center p-5">
         <div className="grid grid-cols-3 gap-2 mb-4">
           {[
-            { label: "GMV", value: item.stats.gmv },
-            { label: "ROAS", value: item.stats.roas },
+            { label: "GMV",    value: item.stats.gmv },
+            { label: "ROI",    value: item.stats.roas },
             { label: "Growth", value: item.stats.growth },
           ].map((stat) => (
             <div key={stat.label} className="text-center">
@@ -127,19 +191,23 @@ function PortfolioCard({ item, onClick }: { item: PortfolioItem; onClick: () => 
           ))}
         </div>
 
-        <p className="text-white/70 text-xs leading-relaxed line-clamp-3 mb-3">
-          {item.description}
-        </p>
+        <p className="text-white font-semibold text-sm mb-0.5">{item.brand}</p>
+        {item.category && (
+          <p className="text-white/50 text-xs mb-2">{categoryLabel[item.category] ?? item.category}</p>
+        )}
+        <p className="text-white/70 text-xs leading-relaxed line-clamp-3 mb-3">{item.description}</p>
 
-        <div className="flex flex-wrap gap-1 mb-4">
-          {item.tags.slice(0, 2).map((tag) => (
-            <span key={tag} className="text-[10px] bg-white/10 text-white/60 px-2 py-0.5 rounded-full">
-              {tag}
-            </span>
-          ))}
-        </div>
+        {item.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1 mb-3">
+            {item.tags.slice(0, 2).map((tag) => (
+              <span key={tag} className="text-[10px] bg-white/10 text-white/60 px-2 py-0.5 rounded-full">
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
 
-        <span className="text-[#818CF8] text-xs font-medium text-center">
+        <span className="text-[#FCA5A5] text-xs font-medium text-center">
           คลิกเพื่อดูเพิ่มเติม →
         </span>
       </div>

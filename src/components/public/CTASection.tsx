@@ -1,30 +1,35 @@
-export function CTASection() {
+import { DEFAULT_HOMEPAGE, type HomepageSettings } from "@/lib/data/homepage"
+
+interface Props {
+  settings?: HomepageSettings["cta_section"]
+  lineOaHref?: string
+}
+
+export function CTASection({ settings = DEFAULT_HOMEPAGE.cta_section, lineOaHref = "/api/auth/line" }: Props) {
   return (
-    <section className="py-24 bg-[#0F172A]">
+    <section className="py-24 bg-[#0A0808]">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
-        <div className="bg-gradient-to-br from-[#6366F1]/20 to-[#10B981]/10 border border-[#6366F1]/20 rounded-3xl p-10 sm:p-14">
+        <div className="bg-gradient-to-br from-[#DC2626]/20 to-[#DC2626]/10 border border-[#DC2626]/20 rounded-3xl p-10 sm:p-14">
           <h2 className="font-display font-bold text-3xl sm:text-4xl text-white mb-4">
-            พร้อมปั้นยอดขาย
+            {settings.heading}
             <br />
-            <span className="text-[#6366F1]">ไปด้วยกันไหม?</span>
+            <span className="text-[#DC2626]">{settings.heading_highlight}</span>
           </h2>
           <p className="text-slate-400 text-lg mb-8 max-w-md mx-auto">
-            ปรึกษาฟรี ไม่มีค่าใช้จ่าย วิเคราะห์ TikTok Shop ของคุณและเสนอแนวทางที่เหมาะสมที่สุด
+            {settings.subtext}
           </p>
 
           <a
-            href="https://lin.ee/XXXXXXX"
+            href={lineOaHref}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center justify-center gap-3 bg-[#10B981] hover:bg-[#059669] text-white font-bold text-lg px-10 py-4 rounded-xl transition-colors shadow-lg shadow-emerald-900/20"
+            className="inline-flex items-center justify-center gap-3 bg-[#DC2626] hover:bg-[#B91C1C] text-white font-bold text-lg px-10 py-4 rounded-xl transition-colors shadow-lg shadow-red-900/20"
           >
             <LineIcon />
-            ปรึกษาฟรีผ่าน Line OA
+            {settings.cta_text}
           </a>
 
-          <p className="text-slate-500 text-sm mt-5">
-            ตอบกลับภายใน 1 ชั่วโมง · ไม่มีข้อผูกมัด
-          </p>
+          <p className="text-slate-500 text-sm mt-5">{settings.footer_text}</p>
         </div>
       </div>
     </section>

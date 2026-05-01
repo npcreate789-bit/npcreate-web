@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
+import Image from "next/image"
 import { cn } from "@/lib/utils"
 import { CheckCircle2, Loader2, LogOut, User } from "lucide-react"
 
@@ -42,10 +43,13 @@ const serviceOptions = [
 ]
 
 interface Props {
-  lineSession: LineSession | null
+  lineSession:    LineSession | null
+  hasSubmitted:   boolean
+  lineOaHref:     string
+  hasAddedLineOa: boolean
 }
 
-export function ContactForm({ lineSession }: Props) {
+export function ContactForm({ lineSession, hasSubmitted, lineOaHref, hasAddedLineOa }: Props) {
   const router = useRouter()
   const [submitted, setSubmitted] = useState(false)
   const [apiError, setApiError] = useState<string | null>(null)
@@ -88,14 +92,44 @@ export function ContactForm({ lineSession }: Props) {
 
   const handleLogout = async () => {
     setLoggingOut(true)
-    await fetch("/api/auth/line/logout", { method: "POST" })
-    router.refresh()
+    try {
+      const res = await fetch("/api/auth/line/logout", { method: "POST" })
+      if (!res.ok) throw new Error("logout failed")
+      router.refresh()
+    } catch {
+      setApiError("ออกจากระบบไม่สำเร็จ กรุณาลองใหม่")
+      setLoggingOut(false)
+    }
+  }
+
+  // ─── เคยส่งข้อมูลแล้ว ─────────────────────────────────────
+  if (hasSubmitted && !submitted) {
+    return (
+      <div className="bg-[#1C0D0D] border border-white/5 rounded-2xl p-8 sm:p-10 text-center">
+        <div className="w-16 h-16 bg-[#06C755]/10 rounded-full flex items-center justify-center mx-auto mb-5">
+          <LineIcon size={30} className="text-[#06C755]" />
+        </div>
+        <h3 className="font-display font-bold text-white text-xl mb-2">ส่งข้อมูลแล้ว</h3>
+        <p className="text-slate-400 text-sm leading-relaxed mb-8 max-w-sm mx-auto">
+          คุณเคยส่งข้อมูลติดต่อไว้แล้ว สามารถทักหาทีมงานผ่าน Line OA ได้เลยทันที
+        </p>
+        <a
+          href={lineOaHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center justify-center gap-2.5 bg-[#06C755] hover:bg-[#05a847] text-white font-semibold px-8 py-3.5 rounded-xl transition-colors"
+        >
+          <LineIcon size={20} className="text-white" />
+          เปิด Line OA และส่งข้อความ
+        </a>
+      </div>
+    )
   }
 
   // ─── ยังไม่ได้ Login ───────────────────────────────────────
   if (!lineSession) {
     return (
-      <div className="bg-[#1E293B] border border-white/5 rounded-2xl p-8 sm:p-10 text-center">
+      <div className="bg-[#1C0D0D] border border-white/5 rounded-2xl p-8 sm:p-10 text-center">
         <div className="w-16 h-16 bg-[#06C755]/10 rounded-full flex items-center justify-center mx-auto mb-5">
           <LineIcon size={30} className="text-[#06C755]" />
         </div>
@@ -119,12 +153,51 @@ export function ContactForm({ lineSession }: Props) {
     )
   }
 
+  // ─── Login แล้วแต่ยังไม่ได้เพิ่มเพื่อน LINE OA ──────────────
+  if (lineSession && !hasAddedLineOa) {
+    return (
+      <div className="bg-[#1C0D0D] border border-white/5 rounded-2xl p-8 sm:p-10 text-center">
+        <div className="w-16 h-16 bg-[#06C755]/10 rounded-full flex items-center justify-center mx-auto mb-5">
+          <LineIcon size={30} className="text-[#06C755]" />
+        </div>
+        <h3 className="font-display font-bold text-white text-xl mb-2">
+          เพิ่มเพื่อน Line OA ก่อน
+        </h3>
+        <p className="text-slate-400 text-sm leading-relaxed mb-2 max-w-sm mx-auto">
+          กรุณาเพิ่ม <strong className="text-white">NP Create</strong> เป็นเพื่อนใน Line ก่อน
+          เพื่อให้ทีมงานสามารถติดต่อกลับได้
+        </p>
+        <p className="text-slate-500 text-xs mb-8">
+          เชื่อมต่อในชื่อ: <span className="text-[#06C755] font-mono">{lineSession.displayName}</span>
+        </p>
+        <a
+          href={lineOaHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center justify-center gap-2.5 bg-[#06C755] hover:bg-[#05a847] text-white font-semibold px-8 py-3.5 rounded-xl transition-colors mb-5"
+        >
+          <LineIcon size={20} className="text-white" />
+          เพิ่มเพื่อน NP Create
+        </a>
+        <div>
+          <button
+            type="button"
+            onClick={() => router.refresh()}
+            className="text-slate-400 hover:text-white text-sm transition-colors underline underline-offset-2"
+          >
+            เพิ่มเพื่อนแล้ว — ไปต่อ
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   // ─── Submit สำเร็จ ─────────────────────────────────────────
   if (submitted) {
     return (
-      <div className="bg-[#1E293B] border border-white/5 rounded-2xl p-8 sm:p-10 text-center">
-        <div className="w-16 h-16 bg-[#10B981]/10 rounded-full flex items-center justify-center mx-auto mb-5">
-          <CheckCircle2 size={32} className="text-[#10B981]" />
+      <div className="bg-[#1C0D0D] border border-white/5 rounded-2xl p-8 sm:p-10 text-center">
+        <div className="w-16 h-16 bg-[#DC2626]/10 rounded-full flex items-center justify-center mx-auto mb-5">
+          <CheckCircle2 size={32} className="text-[#DC2626]" />
         </div>
         <h3 className="font-display font-bold text-white text-xl mb-2">
           ส่งข้อมูลเรียบร้อยแล้ว!
@@ -136,12 +209,13 @@ export function ContactForm({ lineSession }: Props) {
           ทีมงานจะติดต่อกลับผ่าน Line ภายใน 1 ชั่วโมง
         </p>
         <a
-          href="https://lin.ee/XXXXXXX"
+          href={lineOaHref}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center justify-center gap-2 bg-[#06C755] hover:bg-[#05a847] text-white font-semibold px-8 py-3 rounded-xl transition-colors text-sm"
+          className="inline-flex items-center justify-center gap-2.5 bg-[#06C755] hover:bg-[#05a847] text-white font-semibold px-8 py-3 rounded-xl transition-colors text-sm"
         >
-          ทักหาเราก่อนได้เลย →
+          <LineIcon size={16} className="text-white" />
+          ทักหาเราผ่าน Line OA ได้เลย →
         </a>
       </div>
     )
@@ -151,20 +225,22 @@ export function ContactForm({ lineSession }: Props) {
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="bg-[#1E293B] border border-white/5 rounded-2xl p-6 sm:p-8 space-y-5"
+      className="bg-[#1C0D0D] border border-white/5 rounded-2xl p-6 sm:p-8 space-y-5"
     >
       {/* Profile header */}
       <div className="flex items-center justify-between pb-4 border-b border-white/5">
         <div className="flex items-center gap-3">
           {lineSession.pictureUrl ? (
-            <img
+            <Image
               src={lineSession.pictureUrl}
               alt={lineSession.displayName}
-              className="w-10 h-10 rounded-full object-cover"
+              width={40}
+              height={40}
+              className="rounded-full object-cover"
             />
           ) : (
-            <div className="w-10 h-10 rounded-full bg-[#6366F1]/20 flex items-center justify-center">
-              <User size={18} className="text-[#6366F1]" />
+            <div className="w-10 h-10 rounded-full bg-[#DC2626]/20 flex items-center justify-center">
+              <User size={18} className="text-[#DC2626]" />
             </div>
           )}
           <div>
@@ -247,7 +323,7 @@ export function ContactForm({ lineSession }: Props) {
       <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full inline-flex items-center justify-center gap-2 bg-[#6366F1] hover:bg-[#4F46E5] disabled:opacity-60 text-white font-semibold py-3.5 rounded-xl transition-colors"
+        className="w-full inline-flex items-center justify-center gap-2 bg-[#DC2626] hover:bg-[#B91C1C] disabled:opacity-60 text-white font-semibold py-3.5 rounded-xl transition-colors"
       >
         {isSubmitting ? (
           <>
@@ -291,11 +367,11 @@ function Field({
 
 function inputClass(hasError: boolean) {
   return cn(
-    "w-full bg-[#0F172A] border rounded-xl px-4 py-2.5 text-white text-sm placeholder:text-slate-500",
+    "w-full bg-[#0A0808] border rounded-xl px-4 py-2.5 text-white text-sm placeholder:text-slate-500",
     "focus:outline-none focus:ring-2 transition-colors appearance-none",
     hasError
       ? "border-red-500/50 focus:ring-red-500/30"
-      : "border-white/10 focus:border-[#6366F1]/50 focus:ring-[#6366F1]/20"
+      : "border-white/10 focus:border-[#DC2626]/50 focus:ring-[#DC2626]/20"
   )
 }
 

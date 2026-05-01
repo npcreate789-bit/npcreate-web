@@ -31,16 +31,16 @@ const faqs = [
   },
 ]
 
-export function FAQSection() {
+export function FAQSection({ lineHref = "/api/auth/line" }: { lineHref?: string }) {
   const [openIndex, setOpenIndex] = useState<number | null>(null)
 
   const toggle = (i: number) => setOpenIndex(openIndex === i ? null : i)
 
   return (
-    <section className="py-20 bg-[#0A0F1E]">
+    <section className="py-20 bg-[#0A0404]">
       <div className="max-w-3xl mx-auto px-4 sm:px-6">
         <div className="text-center mb-12">
-          <span className="text-[#6366F1] text-sm font-semibold uppercase tracking-widest">FAQ</span>
+          <span className="text-[#DC2626] text-sm font-semibold uppercase tracking-widest">FAQ</span>
           <h2 className="font-display font-bold text-3xl sm:text-4xl text-white mt-3">
             คำถามที่พบบ่อย
           </h2>
@@ -50,7 +50,7 @@ export function FAQSection() {
           {faqs.map((faq, i) => (
             <div
               key={i}
-              className="bg-[#1E293B] border border-white/5 rounded-xl overflow-hidden"
+              className="bg-[#1C0D0D] border border-white/5 rounded-xl overflow-hidden"
             >
               <button
                 onClick={() => toggle(i)}
@@ -80,10 +80,8 @@ export function FAQSection() {
         <div className="text-center mt-10">
           <p className="text-slate-400 text-sm mb-4">ยังมีคำถามอื่นอีก?</p>
           <a
-            href="https://lin.ee/XXXXXXX"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-[#6366F1] hover:text-[#818CF8] font-medium text-sm transition-colors"
+            href={lineHref}
+            className="inline-flex items-center gap-2 text-[#DC2626] hover:text-[#FCA5A5] font-medium text-sm transition-colors"
           >
             ถามผ่าน Line OA ได้เลย →
           </a>

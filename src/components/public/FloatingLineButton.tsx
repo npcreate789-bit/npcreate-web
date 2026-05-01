@@ -1,9 +1,7 @@
-"use client"
-
-export function FloatingLineButton() {
+export function FloatingLineButton({ href }: { href: string }) {
   return (
     <a
-      href="https://lin.ee/XXXXXXX"
+      href={href}
       target="_blank"
       rel="noopener noreferrer"
       aria-label="ติดต่อผ่าน Line OA"

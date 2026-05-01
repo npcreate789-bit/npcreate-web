@@ -17,9 +17,16 @@ type LineSession = {
   pictureUrl: string
 }
 
+const sessionSchema = z.object({
+  userId: z.string().min(1),
+  displayName: z.string().min(1),
+  pictureUrl: z.string(),
+})
+
 function parseSession(cookie: string): LineSession | null {
   try {
-    return JSON.parse(cookie)
+    const result = sessionSchema.safeParse(JSON.parse(cookie))
+    return result.success ? result.data : null
   } catch {
     return null
   }
@@ -29,7 +36,10 @@ async function pushLineMessage(text: string) {
   const adminId = process.env.LINE_ADMIN_USER_ID
   const token = process.env.LINE_CHANNEL_ACCESS_TOKEN
 
-  if (!adminId || !token) return
+  if (!adminId || !token) {
+    console.warn("LINE_ADMIN_USER_ID or LINE_CHANNEL_ACCESS_TOKEN not set — skipping push")
+    return
+  }
 
   await fetch("https://api.line.me/v2/bot/message/push", {
     method: "POST",
@@ -41,8 +51,13 @@ async function pushLineMessage(text: string) {
       to: adminId,
       messages: [{ type: "text", text }],
     }),
-  }).catch(() => {
-    // push ล้มเหลวไม่ควร block response
+  }).then(async (res) => {
+    if (!res.ok) {
+      const body = await res.text()
+      console.error(`LINE push failed: HTTP ${res.status}`, body)
+    }
+  }).catch((err) => {
+    console.error("LINE push network error:", err)
   })
 }
 
@@ -51,7 +66,7 @@ function buildMessage(session: LineSession, data: z.infer<typeof bodySchema>): s
     "📩 Lead ใหม่จาก NP Create",
     "",
     `👤 ชื่อ: ${data.name}`,
-    `🆔 Line: ${session.displayName} (${session.userId})`,
+    `🆔 Line: ${session.displayName}`,
     `📱 เบอร์: ${data.phone}`,
     `🏪 แบรนด์: ${data.brand}`,
     `💰 GMV: ${data.monthly_gmv}`,
@@ -86,10 +101,10 @@ export async function POST(req: NextRequest) {
 
   const data = result.data
 
-  // บันทึกลง Supabase (leads table — สร้างใน Phase 4)
+  // บันทึกลง Supabase
   try {
     const supabase = await createClient()
-    await supabase.from("leads").insert({
+    const { error: dbError } = await supabase.from("leads").insert({
       line_user_id: session.userId,
       display_name: session.displayName,
       picture_url: session.pictureUrl,
@@ -100,12 +115,27 @@ export async function POST(req: NextRequest) {
       service: data.service,
       message: data.message ?? null,
     })
-  } catch {
-    // ถ้า DB ยังไม่พร้อม ให้ข้ามไป ไม่ block user
+    if (dbError) {
+      console.error("leads insert failed:", dbError)
+    }
+  } catch (err) {
+    console.error("leads insert exception:", err)
   }
 
   // Push message หา admin Line OA
   await pushLineMessage(buildMessage(session, data))
 
-  return NextResponse.json({ success: true })
+  const cookieOpts = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax" as const,
+    maxAge: 60 * 60 * 24 * 365, // 1 ปี
+    path: "/",
+  }
+
+  const response = NextResponse.json({ success: true })
+  response.cookies.set("contact_submitted", "1", cookieOpts)
+  // refresh line_session ให้ครบ 1 ปีนับจากวันที่ submit
+  response.cookies.set("line_session", sessionCookie, cookieOpts)
+  return response
 }

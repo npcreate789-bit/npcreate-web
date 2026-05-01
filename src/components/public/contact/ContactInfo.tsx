@@ -1,12 +1,13 @@
 import { Clock, MessageCircle, Shield } from "lucide-react"
 
-const channels = [
+function buildChannels(lineHref: string) {
+  return [
   {
     icon: MessageCircle,
     title: "Line OA",
     value: "@npcreate",
     description: "ช่องทางหลัก — ตอบเร็วที่สุด",
-    href: "https://lin.ee/XXXXXXX",
+    href: lineHref,
     color: "text-[#06C755]",
     bg: "bg-[#06C755]/10",
   },
@@ -15,20 +16,21 @@ const channels = [
     title: "เวลาทำการ",
     value: "09:00 – 20:00 น.",
     description: "จันทร์ – อาทิตย์",
-    color: "text-[#6366F1]",
-    bg: "bg-[#6366F1]/10",
+    color: "text-[#DC2626]",
+    bg: "bg-[#DC2626]/10",
   },
   {
     icon: Shield,
     title: "รับประกัน",
     value: "ตอบกลับใน 1 ชม.",
     description: "ในเวลาทำการ ไม่ทำให้รอนาน",
-    color: "text-[#10B981]",
-    bg: "bg-[#10B981]/10",
+    color: "text-[#DC2626]",
+    bg: "bg-[#DC2626]/10",
   },
-]
+]}
 
-export function ContactInfo() {
+export function ContactInfo({ lineHref = "/api/auth/line" }: { lineHref?: string }) {
+  const channels = buildChannels(lineHref)
   return (
     <div className="space-y-5">
       <div>
@@ -44,7 +46,7 @@ export function ContactInfo() {
         {channels.map((ch) => {
           const Icon = ch.icon
           const content = (
-            <div className="flex items-start gap-4 bg-[#1E293B] border border-white/5 rounded-xl p-4">
+            <div className="flex items-start gap-4 bg-[#1C0D0D] border border-white/5 rounded-xl p-4">
               <div className={`w-10 h-10 ${ch.bg} rounded-xl flex items-center justify-center shrink-0`}>
                 <Icon size={18} className={ch.color} />
               </div>
@@ -60,8 +62,6 @@ export function ContactInfo() {
             <a
               key={ch.title}
               href={ch.href}
-              target="_blank"
-              rel="noopener noreferrer"
               className="block hover:opacity-80 transition-opacity"
             >
               {content}
@@ -74,9 +74,7 @@ export function ContactInfo() {
 
       {/* Direct Line CTA */}
       <a
-        href="https://lin.ee/XXXXXXX"
-        target="_blank"
-        rel="noopener noreferrer"
+        href={lineHref}
         className="flex items-center justify-center gap-2 w-full bg-[#06C755] hover:bg-[#05a847] text-white font-semibold py-3.5 rounded-xl transition-colors text-sm"
       >
         <LineIcon />

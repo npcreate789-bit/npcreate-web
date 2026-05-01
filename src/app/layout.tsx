@@ -3,13 +3,10 @@ import { Inter, Plus_Jakarta_Sans, Noto_Sans_Thai } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import "./globals.css"
-import { Navbar } from "@/components/public/Navbar"
-import { Footer } from "@/components/public/Footer"
-import { FloatingLineButton } from "@/components/public/FloatingLineButton"
 import { OrganizationJsonLd } from "@/components/JsonLd"
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" })
-const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-jakarta" })
+const inter    = Inter({ subsets: ["latin"], variable: "--font-inter" })
+const jakarta  = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-jakarta" })
 const notoThai = Noto_Sans_Thai({ subsets: ["thai"], variable: "--font-thai" })
 
 const BASE_URL = "https://npcreate.co.th"
@@ -21,7 +18,7 @@ export const metadata: Metadata = {
     template: "%s | NP Create",
   },
   description:
-    "ปั้นยอดขาย TikTok Shop ของคุณให้โต 10 เท่าด้วย GMV Max ผลงานพิสูจน์แล้วกับ 50+ แบรนด์ ยอดขายรวมทะลุ 100 ล้านบาท",
+    "ปั้นยอดขาย TikTok Shop ของคุณให้โต 10 เท่าด้วย GMV Max ดูแลมาแล้วมากกว่า 500 แบรนด์ ยอดขายรวมทะลุ 800 ล้านบาท",
   keywords: [
     "รับยิงแอด GMV Max", "TikTok Shop", "ยิงแอด TikTok",
     "การตลาดออนไลน์", "NP Create", "เพิ่มยอดขาย TikTok Shop",
@@ -49,13 +46,10 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="th" suppressHydrationWarning>
-      <body className={`${inter.variable} ${jakarta.variable} ${notoThai.variable} font-sans antialiased`}>
+    <html lang="th" suppressHydrationWarning className="bg-[#0A0808]">
+      <body className={`${inter.variable} ${jakarta.variable} ${notoThai.variable} font-sans antialiased bg-[#0A0808]`}>
         <OrganizationJsonLd />
-        <Navbar />
         {children}
-        <Footer />
-        <FloatingLineButton />
         <Analytics />
         <SpeedInsights />
       </body>

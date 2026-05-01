@@ -60,7 +60,7 @@ export async function GET(req: NextRequest) {
 
     const profile: LineProfile = await profileRes.json()
 
-    if (!profileRes.ok) {
+    if (!profileRes.ok || !profile.userId || !profile.displayName) {
       return redirectWithError(base, "profile_failed")
     }
 
@@ -77,7 +77,7 @@ export async function GET(req: NextRequest) {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
-      maxAge: 60 * 60, // 1 ชั่วโมง
+      maxAge: 60 * 60 * 24 * 365, // 1 ปี — ใช้เป็น identity marker
       path: "/",
     })
 

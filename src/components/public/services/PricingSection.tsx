@@ -1,11 +1,16 @@
 import { CheckCircle2 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import type { Service } from "@/types/database"
 
-const plans = [
+// Hardcoded fallback shown before any DB data exists
+const FALLBACK = [
   {
-    name: "Starter",
-    price: "15,000",
-    description: "เหมาะสำหรับแบรนด์ที่เพิ่งเริ่มต้นบน TikTok Shop",
+    title: "Starter",
+    short_desc: "เหมาะสำหรับแบรนด์ที่เพิ่งเริ่มต้นบน TikTok Shop",
+    starting_price: "15,000",
+    cta: "เริ่มต้น",
+    badge: null as string | null,
+    is_popular: false,
     features: [
       "GMV Max campaign (Ad budget ถึง 50K/เดือน)",
       "Creative 4 ชิ้น/เดือน",
@@ -13,13 +18,14 @@ const plans = [
       "Line support",
       "Monthly review",
     ],
-    cta: "เริ่มต้น",
-    highlight: false,
   },
   {
-    name: "Growth",
-    price: "30,000",
-    description: "สำหรับแบรนด์ที่ต้องการเติบโตอย่างจริงจัง",
+    title: "Growth",
+    short_desc: "สำหรับแบรนด์ที่ต้องการเติบโตอย่างจริงจัง",
+    starting_price: "30,000",
+    cta: "เลือกแพ็กเกจนี้",
+    badge: "แนะนำ" as string | null,
+    is_popular: true,
     features: [
       "GMV Max campaign (Ad budget ไม่จำกัด)",
       "Creative 8 ชิ้น/เดือน + A/B testing",
@@ -28,14 +34,14 @@ const plans = [
       "Line + Video call support",
       "Competitor analysis",
     ],
-    cta: "เลือกแพ็กเกจนี้",
-    highlight: true,
-    badge: "แนะนำ",
   },
   {
-    name: "Scale",
-    price: "ตามตกลง",
-    description: "สำหรับแบรนด์ที่ต้องการ scale ยอดขายอย่างก้าวกระโดด",
+    title: "Scale",
+    short_desc: "สำหรับแบรนด์ที่ต้องการ scale ยอดขายอย่างก้าวกระโดด",
+    starting_price: "ตามตกลง",
+    cta: "ติดต่อเพื่อปรึกษา",
+    badge: null as string | null,
+    is_popular: false,
     features: [
       "ทุกอย่างใน Growth",
       "Dedicated account manager",
@@ -44,17 +50,24 @@ const plans = [
       "Weekly strategy call",
       "Priority support ตลอด 24 ชม.",
     ],
-    cta: "ติดต่อเพื่อปรึกษา",
-    highlight: false,
   },
 ]
 
-export function PricingSection() {
+type PlanItem = Pick<Service, "title" | "short_desc" | "starting_price" | "cta" | "badge" | "is_popular" | "features">
+
+interface Props {
+  plans?: Service[]
+  lineHref?: string
+}
+
+export function PricingSection({ plans, lineHref = "/api/auth/line" }: Props) {
+  const items: PlanItem[] = plans && plans.length > 0 ? plans : FALLBACK
+
   return (
-    <section className="py-20 bg-[#0F172A]">
+    <section className="py-20 bg-[#0A0808]">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="text-center mb-14">
-          <span className="text-[#6366F1] text-sm font-semibold uppercase tracking-widest">
+          <span className="text-[#DC2626] text-sm font-semibold uppercase tracking-widest">
             แพ็กเกจราคา
           </span>
           <h2 className="font-display font-bold text-3xl sm:text-4xl text-white mt-3">
@@ -66,14 +79,14 @@ export function PricingSection() {
         </div>
 
         <div className="grid md:grid-cols-3 gap-6">
-          {plans.map((plan) => (
+          {items.map((plan) => (
             <div
-              key={plan.name}
+              key={plan.title}
               className={cn(
                 "relative rounded-2xl p-7 flex flex-col",
-                plan.highlight
-                  ? "bg-[#6366F1] border border-[#818CF8]/30 shadow-2xl shadow-indigo-900/40"
-                  : "bg-[#1E293B] border border-white/5"
+                plan.is_popular
+                  ? "bg-[#DC2626] border border-[#FCA5A5]/30 shadow-2xl shadow-red-900/40"
+                  : "bg-[#1C0D0D] border border-white/5"
               )}
             >
               {plan.badge && (
@@ -85,47 +98,35 @@ export function PricingSection() {
               )}
 
               <div className="mb-6">
-                <h3
-                  className={cn(
-                    "font-display font-bold text-xl mb-1",
-                    plan.highlight ? "text-white" : "text-white"
-                  )}
-                >
-                  {plan.name}
-                </h3>
-                <p className={cn("text-sm", plan.highlight ? "text-indigo-200" : "text-slate-400")}>
-                  {plan.description}
+                <h3 className="font-display font-bold text-xl text-white mb-1">{plan.title}</h3>
+                <p className={cn("text-sm", plan.is_popular ? "text-red-100" : "text-slate-400")}>
+                  {plan.short_desc}
                 </p>
               </div>
 
-              <div className="mb-6">
-                <div className="flex items-end gap-1">
-                  <span
-                    className={cn(
-                      "font-display font-bold text-3xl",
-                      plan.highlight ? "text-white" : "text-white"
-                    )}
-                  >
-                    {plan.price === "ตามตกลง" ? plan.price : `฿${plan.price}`}
-                  </span>
-                  {plan.price !== "ตามตกลง" && (
-                    <span className={cn("text-sm mb-1", plan.highlight ? "text-indigo-200" : "text-slate-400")}>
-                      /เดือน
+              {plan.starting_price && (
+                <div className="mb-6">
+                  <div className="flex items-end gap-1">
+                    <span className="font-display font-bold text-3xl text-white">
+                      {plan.starting_price === "ตามตกลง" ? plan.starting_price : `฿${plan.starting_price}`}
                     </span>
-                  )}
+                    {plan.starting_price !== "ตามตกลง" && (
+                      <span className={cn("text-sm mb-1", plan.is_popular ? "text-red-100" : "text-slate-400")}>
+                        /เดือน
+                      </span>
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
 
               <ul className="space-y-3 mb-8 flex-1">
-                {plan.features.map((feature) => (
-                  <li key={feature} className="flex items-start gap-2.5">
+                {plan.features.map((feature, i) => (
+                  <li key={i} className="flex items-start gap-2.5">
                     <CheckCircle2
                       size={15}
-                      className={cn("shrink-0 mt-0.5", plan.highlight ? "text-indigo-200" : "text-[#10B981]")}
+                      className={cn("shrink-0 mt-0.5", plan.is_popular ? "text-red-100" : "text-[#DC2626]")}
                     />
-                    <span
-                      className={cn("text-sm", plan.highlight ? "text-indigo-100" : "text-slate-300")}
-                    >
+                    <span className={cn("text-sm", plan.is_popular ? "text-white/80" : "text-slate-300")}>
                       {feature}
                     </span>
                   </li>
@@ -133,17 +134,15 @@ export function PricingSection() {
               </ul>
 
               <a
-                href="https://lin.ee/XXXXXXX"
-                target="_blank"
-                rel="noopener noreferrer"
+                href={lineHref}
                 className={cn(
                   "w-full inline-flex items-center justify-center font-semibold text-sm py-3 rounded-xl transition-colors",
-                  plan.highlight
-                    ? "bg-white text-[#6366F1] hover:bg-indigo-50"
-                    : "bg-[#6366F1]/10 text-[#818CF8] hover:bg-[#6366F1]/20 border border-[#6366F1]/20"
+                  plan.is_popular
+                    ? "bg-white text-[#DC2626] hover:bg-red-50"
+                    : "bg-[#DC2626]/10 text-[#FCA5A5] hover:bg-[#DC2626]/20 border border-[#DC2626]/20"
                 )}
               >
-                {plan.cta}
+                {plan.cta ?? "ติดต่อเลย"}
               </a>
             </div>
           ))}

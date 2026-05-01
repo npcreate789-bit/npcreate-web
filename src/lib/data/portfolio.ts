@@ -15,6 +15,8 @@ export type PortfolioItem = {
   description: string
   tags: string[]
   videoId?: string
+  tiktokId?: string
+  coverImage?: string
 }
 
 export const categoryOptions: { value: PortfolioCategory; label: string }[] = [
@@ -40,7 +42,7 @@ export const portfolioItems: PortfolioItem[] = [
     brand: 'Luxe Fashion',
     category: 'fashion',
     type: 'video',
-    gradient: 'from-violet-600 via-purple-600 to-indigo-700',
+    gradient: 'from-red-800 via-rose-700 to-red-600',
     stats: { gmv: '2.4M', roas: '12x', growth: '+340%' },
     description: 'เพิ่มยอดขายจาก 200K → 2.4M/เดือน ใน 3 เดือนด้วยกลยุทธ์ GMV Max แบบ full funnel',
     tags: ['GMV Max', 'Fashion', 'TikTok Shop'],
@@ -61,7 +63,7 @@ export const portfolioItems: PortfolioItem[] = [
     brand: 'Fit Life',
     category: 'health',
     type: 'video',
-    gradient: 'from-emerald-500 via-teal-500 to-cyan-600',
+    gradient: 'from-red-700 via-rose-600 to-red-500',
     stats: { gmv: '950K', roas: '15x', growth: '+420%' },
     description: 'อาหารเสริมสุขภาพ เติบโต 4x ใน 2 เดือนแรก จาก cold start ไม่มียอดขายเลย',
     tags: ['GMV Max', 'Health', 'Supplement'],
@@ -92,7 +94,7 @@ export const portfolioItems: PortfolioItem[] = [
     brand: 'Pure Essence',
     category: 'beauty',
     type: 'video',
-    gradient: 'from-sky-500 via-blue-500 to-indigo-600',
+    gradient: 'from-red-900 via-red-700 to-rose-600',
     stats: { gmv: '760K', roas: '13x', growth: '+250%' },
     description: 'เซรั่มบำรุงผิว new launch เปิดตัวด้วย GMV Max ได้ผลทันทีตั้งแต่สัปดาห์แรก',
     tags: ['GMV Max', 'Serum', 'New Launch'],
@@ -103,7 +105,7 @@ export const portfolioItems: PortfolioItem[] = [
     brand: 'Home & Life',
     category: 'lifestyle',
     type: 'video',
-    gradient: 'from-lime-500 via-green-500 to-emerald-600',
+    gradient: 'from-rose-600 via-red-500 to-red-700',
     stats: { gmv: '2.1M', roas: '7x', growth: '+160%' },
     description: 'ของตกแต่งบ้าน สร้าง brand awareness และยอดขายพร้อมกันในแคมเปญเดียว',
     tags: ['GMV Max', 'Home Decor', 'Lifestyle'],

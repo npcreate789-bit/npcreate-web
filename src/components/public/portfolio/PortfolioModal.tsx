@@ -9,9 +9,10 @@ import { categoryLabel } from "@/lib/data/portfolio"
 interface Props {
   item: PortfolioItem
   onClose: () => void
+  lineHref?: string
 }
 
-export function PortfolioModal({ item, onClose }: Props) {
+export function PortfolioModal({ item, onClose, lineHref = "/api/auth/line" }: Props) {
   useEffect(() => {
     document.body.style.overflow = "hidden"
     return () => { document.body.style.overflow = "" }
@@ -31,7 +32,7 @@ export function PortfolioModal({ item, onClose }: Props) {
       <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
 
       <div
-        className="relative z-10 w-full max-w-3xl max-h-[90vh] overflow-y-auto bg-[#1E293B] rounded-2xl shadow-2xl"
+        className="relative z-10 w-full max-w-3xl max-h-[90vh] overflow-y-auto bg-[#1C0D0D] rounded-2xl shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close */}
@@ -64,7 +65,7 @@ export function PortfolioModal({ item, onClose }: Props) {
               <div className="grid grid-cols-3 gap-2">
                 {[
                   { Icon: BarChart2, label: "GMV", value: item.stats.gmv },
-                  { Icon: Zap, label: "ROAS", value: item.stats.roas },
+                  { Icon: Zap, label: "ROI", value: item.stats.roas },
                   { Icon: TrendingUp, label: "Growth", value: item.stats.growth },
                 ].map(({ Icon, label, value }) => (
                   <div key={label} className="bg-black/30 backdrop-blur-sm rounded-xl p-3 text-center">
@@ -82,11 +83,11 @@ export function PortfolioModal({ item, onClose }: Props) {
           {/* Right — info panel */}
           <div className="p-6 sm:p-8 flex flex-col">
             <div className="flex items-center gap-2 mb-4">
-              <span className="text-xs bg-[#6366F1]/20 text-[#818CF8] px-2.5 py-1 rounded-full font-medium">
+              <span className="text-xs bg-[#DC2626]/20 text-[#FCA5A5] px-2.5 py-1 rounded-full font-medium">
                 {categoryLabel[item.category]}
               </span>
               <span className="text-xs bg-white/5 text-slate-400 px-2.5 py-1 rounded-full">
-                {item.type === "video" ? "วิดีโอ" : "รูปภาพ"}
+                {item.tiktokId ? "TikTok" : item.type === "video" ? "วิดีโอ" : "รูปภาพ"}
               </span>
             </div>
 
@@ -97,14 +98,14 @@ export function PortfolioModal({ item, onClose }: Props) {
               {item.tags.map((tag) => (
                 <span
                   key={tag}
-                  className="text-xs bg-[#0F172A] text-slate-400 px-3 py-1 rounded-full border border-white/5"
+                  className="text-xs bg-[#0A0808] text-slate-400 px-3 py-1 rounded-full border border-white/5"
                 >
                   {tag}
                 </span>
               ))}
             </div>
 
-            {/* Video embed */}
+            {/* YouTube embed */}
             {item.type === "video" && item.videoId && (
               <div className="rounded-xl overflow-hidden aspect-video bg-black mb-6">
                 <iframe
@@ -117,11 +118,23 @@ export function PortfolioModal({ item, onClose }: Props) {
               </div>
             )}
 
+            {/* TikTok embed */}
+            {item.tiktokId && (
+              <div className="rounded-xl overflow-hidden bg-black mb-6 flex justify-center" style={{ minHeight: 560 }}>
+                <iframe
+                  src={`https://www.tiktok.com/embed/v2/${item.tiktokId}`}
+                  className="w-full"
+                  style={{ minHeight: 560 }}
+                  allow="autoplay; encrypted-media"
+                  allowFullScreen
+                  title={`${item.brand} — TikTok`}
+                />
+              </div>
+            )}
+
             <a
-              href="https://lin.ee/XXXXXXX"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-auto w-full inline-flex items-center justify-center bg-[#6366F1] hover:bg-[#4F46E5] text-white font-semibold py-3 rounded-xl transition-colors text-sm"
+              href={lineHref}
+              className="mt-auto w-full inline-flex items-center justify-center bg-[#DC2626] hover:bg-[#B91C1C] text-white font-semibold py-3 rounded-xl transition-colors text-sm"
             >
               ต้องการผลลัพธ์แบบนี้ — ติดต่อเลย
             </a>

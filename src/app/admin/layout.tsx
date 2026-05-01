@@ -6,12 +6,19 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  if (!user) redirect("/login")
+  if (!user) redirect("/member/login?next=/admin")
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle()
+
+  if (profile?.role !== "admin") redirect("/member")
 
   return (
-    <div className="min-h-screen bg-[#0F172A]">
+    <div className="min-h-screen bg-[#0A0808]">
       <Sidebar />
-      {/* Desktop: offset for sidebar | Mobile: offset for top bar */}
       <div className="lg:pl-56 pt-14 lg:pt-0">
         <main className="p-6 sm:p-8">{children}</main>
       </div>

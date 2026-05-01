@@ -14,8 +14,8 @@ const statusTabs: { value: LeadStatus | "all"; label: string }[] = [
 
 const statusStyles: Record<LeadStatus, string> = {
   new: "bg-[#F59E0B]/10 text-[#F59E0B]",
-  contacted: "bg-[#6366F1]/10 text-[#818CF8]",
-  closed: "bg-[#10B981]/10 text-[#10B981]",
+  contacted: "bg-[#DC2626]/10 text-[#FCA5A5]",
+  closed: "bg-[#DC2626]/10 text-[#DC2626]",
 }
 
 const statusLabels: Record<LeadStatus, string> = {
@@ -37,7 +37,10 @@ export default async function LeadsPage({
   searchParams: Promise<{ status?: string }>
 }) {
   const { status: statusParam } = await searchParams
-  const activeStatus = (statusParam as LeadStatus | "all") ?? "all"
+  const validStatuses = ["all", "new", "contacted", "closed"] as const
+  const activeStatus = validStatuses.includes(statusParam as typeof validStatuses[number])
+    ? (statusParam as LeadStatus | "all")
+    : "all"
 
   const supabase = await createClient()
 
@@ -73,8 +76,8 @@ export default async function LeadsPage({
             className={cn(
               "px-4 py-1.5 rounded-full text-sm font-medium transition-all",
               activeStatus === tab.value
-                ? "bg-[#6366F1] text-white"
-                : "bg-[#1E293B] text-slate-400 hover:text-white"
+                ? "bg-[#DC2626] text-white"
+                : "bg-[#1C0D0D] text-slate-400 hover:text-white"
             )}
           >
             {tab.label}
@@ -83,7 +86,7 @@ export default async function LeadsPage({
       </div>
 
       {/* Table */}
-      <div className="bg-[#1E293B] border border-white/5 rounded-2xl overflow-hidden">
+      <div className="bg-[#1C0D0D] border border-white/5 rounded-2xl overflow-hidden">
         {!leads || leads.length === 0 ? (
           <div className="py-16 text-center text-slate-500 text-sm">ไม่มี leads ในหมวดหมู่นี้</div>
         ) : (

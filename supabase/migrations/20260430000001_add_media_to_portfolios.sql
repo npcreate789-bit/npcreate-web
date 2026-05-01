@@ -1,0 +1,4 @@
+ALTER TABLE portfolios
+  ADD COLUMN IF NOT EXISTS media_type TEXT NOT NULL DEFAULT 'image',
+  ADD COLUMN IF NOT EXISTS video_id   TEXT,
+  ADD COLUMN IF NOT EXISTS gradient   TEXT;

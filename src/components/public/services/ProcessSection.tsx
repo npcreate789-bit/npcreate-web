@@ -31,10 +31,10 @@ const steps = [
 
 export function ProcessSection() {
   return (
-    <section className="py-20 bg-[#0A0F1E]">
+    <section className="py-20 bg-[#0A0404]">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="text-center mb-14">
-          <span className="text-[#10B981] text-sm font-semibold uppercase tracking-widest">
+          <span className="text-[#DC2626] text-sm font-semibold uppercase tracking-widest">
             ขั้นตอนการทำงาน
           </span>
           <h2 className="font-display font-bold text-3xl sm:text-4xl text-white mt-3">
@@ -50,11 +50,11 @@ export function ProcessSection() {
           <div className="hidden lg:block absolute top-8 left-[12.5%] right-[12.5%] h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
           {steps.map((step) => (
-            <div key={step.step} className="relative bg-[#1E293B] border border-white/5 rounded-2xl p-6">
-              <div className="w-12 h-12 rounded-xl bg-[#6366F1]/10 border border-[#6366F1]/20 flex items-center justify-center mb-5">
-                <span className="font-display font-bold text-[#6366F1] text-sm">{step.step}</span>
+            <div key={step.step} className="relative bg-[#1C0D0D] border border-white/5 rounded-2xl p-6">
+              <div className="w-12 h-12 rounded-xl bg-[#DC2626]/10 border border-[#DC2626]/20 flex items-center justify-center mb-5">
+                <span className="font-display font-bold text-[#DC2626] text-sm">{step.step}</span>
               </div>
-              <span className="text-[#10B981] text-xs font-medium">{step.duration}</span>
+              <span className="text-[#DC2626] text-xs font-medium">{step.duration}</span>
               <h3 className="font-display font-semibold text-white text-base mt-2 mb-3">
                 {step.title}
               </h3>
