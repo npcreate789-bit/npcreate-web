@@ -24,8 +24,25 @@ export async function GET(request: NextRequest) {
         },
       }
     )
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
-    if (!error) {
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+
+    if (!error && data.session) {
+      const user = data.session.user
+
+      // sync line_user_id เมื่อ login ด้วย LINE OAuth
+      const lineIdentity = user.identities?.find(i => i.provider === "line")
+      if (lineIdentity) {
+        const lineUserId      = lineIdentity.identity_data?.provider_id as string | undefined
+        const lineDisplayName = (user.user_metadata?.name ?? user.user_metadata?.full_name ?? null) as string | null
+        if (lineUserId) {
+          await supabase.from("profiles").update({
+            line_user_id:      lineUserId,
+            line_display_name: lineDisplayName,
+            updated_at:        new Date().toISOString(),
+          }).eq("id", user.id)
+        }
+      }
+
       return NextResponse.redirect(`${base}${next}`)
     }
   }

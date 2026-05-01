@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { Loader2, Mail, KeyRound, User, Lock, Eye, EyeOff } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { LineLoginButton } from "@/components/auth/LineLoginButton"
 
 type Method = "otp" | "password"
 type OtpStep = "email" | "otp" | "profile"
@@ -312,6 +313,12 @@ export function RegisterFlow() {
 
   return (
     <div className="bg-[#1C0D0D] border border-white/5 rounded-2xl p-8 space-y-6">
+
+      {/* LINE register — primary CTA */}
+      <LineLoginButton label="สมัครสมาชิกด้วย LINE" next="/member" />
+
+      <Divider label="หรือสมัครด้วยอีเมล" />
+
       {/* Method toggle */}
       <div className="flex rounded-xl bg-white/5 p-1 gap-1">
         <MethodTab active={method === "password"} onClick={() => setMethod("password")}>
@@ -328,6 +335,16 @@ export function RegisterFlow() {
 }
 
 // ─── Shared UI Helpers ───────────────────────────────────────────────────────
+
+function Divider({ label }: { label: string }) {
+  return (
+    <div className="flex items-center gap-3">
+      <div className="flex-1 h-px bg-white/10" />
+      <span className="text-slate-600 text-xs">{label}</span>
+      <div className="flex-1 h-px bg-white/10" />
+    </div>
+  )
+}
 
 function MethodTab({ active, onClick, children }: {
   active: boolean; onClick: () => void; children: React.ReactNode

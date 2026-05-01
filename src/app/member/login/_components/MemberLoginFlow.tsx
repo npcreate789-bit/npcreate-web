@@ -6,6 +6,7 @@ import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
 import { Loader2, Mail, KeyRound, Lock, Eye, EyeOff } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { LineLoginButton } from "@/components/auth/LineLoginButton"
 
 type Method = "otp" | "password"
 
@@ -159,6 +160,12 @@ export function MemberLoginFlow() {
 
   return (
     <div className="bg-[#1C0D0D] border border-white/5 rounded-2xl p-8 space-y-6">
+
+      {/* LINE login — primary CTA */}
+      <LineLoginButton label="เข้าสู่ระบบด้วย LINE" next={next} />
+
+      <Divider label="หรือเข้าสู่ระบบด้วยอีเมล" />
+
       {/* Method toggle */}
       <div className="flex rounded-xl bg-white/5 p-1 gap-1">
         <MethodTab active={method === "password"} onClick={() => setMethod("password")}>
@@ -190,6 +197,16 @@ function MethodTab({ active, onClick, children }: {
       )}>
       {children}
     </button>
+  )
+}
+
+function Divider({ label }: { label: string }) {
+  return (
+    <div className="flex items-center gap-3">
+      <div className="flex-1 h-px bg-white/10" />
+      <span className="text-slate-600 text-xs">{label}</span>
+      <div className="flex-1 h-px bg-white/10" />
+    </div>
   )
 }
 
