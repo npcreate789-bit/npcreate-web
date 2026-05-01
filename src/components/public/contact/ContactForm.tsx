@@ -64,7 +64,7 @@ export function ContactForm({ hasSubmitted, lineOaHref, lineSession, isMember }:
 
   const handleLineConnect = () => {
     sessionStorage.setItem(DRAFT_KEY, JSON.stringify(getValues()))
-    window.location.href = "/api/auth/line"
+    window.location.href = "/api/auth/line?mode=member&returnTo=/contact"
   }
 
   const onSubmit = async (data: FormData) => {
@@ -200,48 +200,62 @@ export function ContactForm({ hasSubmitted, lineOaHref, lineSession, isMember }:
         />
       </Field>
 
-      {/* LINE Connect — ไม่บังคับ */}
-      <div className="rounded-xl border border-white/10 bg-[#0D0A0A] p-4 space-y-3">
+      {/* LINE Connect — บังคับ */}
+      <div className={cn(
+        "rounded-xl border p-4 space-y-3 transition-colors",
+        lineSession
+          ? "border-[#06C755]/30 bg-[#06C755]/5"
+          : "border-[#06C755]/40 bg-[#06C755]/5"
+      )}>
         <div className="flex items-center justify-between">
-          <p className="text-slate-300 text-sm font-medium">ไลน์สำหรับติดต่อกลับ</p>
-          <span className="text-slate-600 text-xs">ไม่บังคับ</span>
+          <p className="text-white text-sm font-semibold">ยืนยันตัวตนด้วย LINE</p>
+          <span className="text-[#F59E0B] text-xs font-medium">จำเป็น</span>
         </div>
 
         {lineSession ? (
-          /* connected — แสดง badge */
-          <div className="flex items-center gap-3 bg-[#06C755]/10 border border-[#06C755]/20 rounded-xl px-3 py-2">
+          /* connected */
+          <div className="flex items-center gap-3 bg-[#06C755]/10 border border-[#06C755]/20 rounded-xl px-3 py-2.5">
             {lineSession.pictureUrl && (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={lineSession.pictureUrl} alt="" className="w-7 h-7 rounded-full flex-shrink-0" />
+              <img src={lineSession.pictureUrl} alt="" className="w-8 h-8 rounded-full flex-shrink-0" />
             )}
             <div className="min-w-0 flex-1">
-              <p className="text-[#06C755] text-xs font-semibold truncate">{lineSession.displayName} — เชื่อมต่อ LINE แล้ว ✓</p>
-              {isMember && <p className="text-[#06C755]/50 text-xs">จากโปรไฟล์สมาชิก</p>}
+              <p className="text-[#06C755] text-sm font-semibold truncate">{lineSession.displayName}</p>
+              <p className="text-[#06C755]/60 text-xs">
+                {isMember ? "จากโปรไฟล์สมาชิก ✓" : "เชื่อมต่อ LINE แล้ว ✓"}
+              </p>
             </div>
           </div>
         ) : (
           /* ยังไม่ได้ connect */
-          <button
-            type="button"
-            onClick={handleLineConnect}
-            className="flex items-center justify-center gap-2.5 w-full bg-[#06C755]/10 hover:bg-[#06C755]/20 border border-[#06C755]/30 text-[#06C755] text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors"
-          >
-            <LineIcon size={18} />
-            เชื่อมต่อ LINE
-          </button>
+          <div className="space-y-2">
+            <button
+              type="button"
+              onClick={handleLineConnect}
+              className="flex items-center justify-center gap-2.5 w-full bg-[#06C755] hover:bg-[#05a847] text-white text-sm font-semibold px-4 py-3 rounded-xl transition-colors"
+            >
+              <LineIcon size={18} />
+              เข้าสู่ระบบ / สมัครสมาชิกด้วย LINE
+            </button>
+            <p className="text-slate-500 text-xs text-center">
+              ระบบจะสร้างบัญชีสมาชิกให้อัตโนมัติ หากยังไม่มีบัญชี
+            </p>
+          </div>
         )}
       </div>
 
       <button
         type="submit"
-        disabled={isSubmitting}
-        className="w-full inline-flex items-center justify-center gap-2 bg-[#DC2626] hover:bg-[#B91C1C] disabled:opacity-60 text-white font-semibold py-3.5 rounded-xl transition-colors"
+        disabled={isSubmitting || !lineSession}
+        className="w-full inline-flex items-center justify-center gap-2 bg-[#DC2626] hover:bg-[#B91C1C] disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold py-3.5 rounded-xl transition-colors"
       >
         {isSubmitting ? (
           <>
             <Loader2 size={16} className="animate-spin" />
             กำลังส่ง...
           </>
+        ) : !lineSession ? (
+          "กรุณายืนยันตัวตนด้วย LINE ก่อน"
         ) : (
           "ส่งข้อมูลและรอการติดต่อกลับ"
         )}
