@@ -1,8 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 
-// Temporary debug endpoint — remove after confirming service role key is correct
-// Access: GET /api/debug/admin-check?secret=npcreate-debug
+// Temporary debug endpoint — remove after LINE login is confirmed working
+// Access: GET /api/debug/admin-check?secret=npcreate-debug[&test=create]
 export async function GET(req: NextRequest) {
   const secret = req.nextUrl.searchParams.get("secret")
   if (secret !== "npcreate-debug") {
@@ -21,29 +21,54 @@ export async function GET(req: NextRequest) {
     })
   }
 
-  try {
-    const admin = createAdminClient()
-    const { data, error } = await admin.auth.admin.listUsers({ perPage: 1 })
+  const admin = createAdminClient()
 
-    if (error) {
+  // Basic connectivity check
+  const { data: listData, error: listError } = await admin.auth.admin.listUsers({ perPage: 1 })
+  if (listError) {
+    return NextResponse.json({
+      ok:      false,
+      step:    "listUsers",
+      problem: `${listError.message} (status ${listError.status})`,
+      keyPreview,
+    })
+  }
+
+  // If ?test=create — try creating a throw-away user to verify the DB trigger works
+  if (req.nextUrl.searchParams.get("test") === "create") {
+    const testEmail = `debug-test-${Date.now()}@line.npcreate.co.th`
+
+    const { data: newUser, error: createError } = await admin.auth.admin.createUser({
+      email:         testEmail,
+      email_confirm: true,
+      user_metadata: { full_name: "Debug Test", provider: "line" },
+    })
+
+    if (createError || !newUser?.user) {
       return NextResponse.json({
         ok:      false,
-        problem: `Admin API call failed: ${error.message} (status ${error.status})`,
+        step:    "createUser",
+        problem: `${createError?.message ?? "no user returned"} (status ${createError?.status})`,
+        hint:    "DB trigger handle_new_user() may be failing — check Supabase logs",
         keyPreview,
       })
     }
 
+    // Clean up — delete the test user
+    await admin.auth.admin.deleteUser(newUser.user.id)
+
     return NextResponse.json({
-      ok:         true,
-      message:    "Admin client working correctly",
-      userCount:  data?.users?.length ?? 0,
-      keyPreview,
-    })
-  } catch (e) {
-    return NextResponse.json({
-      ok:      false,
-      problem: String(e),
+      ok:        true,
+      message:   "createUser + deleteUser both succeeded — trigger works",
+      userCount: listData?.users?.length ?? 0,
       keyPreview,
     })
   }
+
+  return NextResponse.json({
+    ok:        true,
+    message:   "Admin client working. Add ?test=create to also test user creation.",
+    userCount: listData?.users?.length ?? 0,
+    keyPreview,
+  })
 }
