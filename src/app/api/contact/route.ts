@@ -23,7 +23,7 @@ function buildTextMessage(data: Lead): string {
     "📩 Lead ใหม่จาก NP Create",
     `👤 ชื่อ: ${data.name}`,
     `📱 เบอร์: ${data.phone}`,
-    data.line_user_id ? `💚 LINE: ${data.display_name ?? ""} (${data.line_user_id})` : "",
+    data.line_user_id ? `💚 LINE: ${data.display_name ?? ""}\n🆔 ไอดีไลน์: ${data.line_user_id}` : "",
     `🏪 แบรนด์: ${data.brand}`,
     `💰 GMV: ${data.monthly_gmv}`,
     `🎯 บริการ: ${data.service}`,
