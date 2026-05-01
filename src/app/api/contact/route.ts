@@ -2,13 +2,16 @@ import { type NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { createClient } from "@/lib/supabase/server"
 
+const VALID_GMV = ["ยังไม่เปิดร้าน", "น้อยกว่า 50K", "50K-200K", "200K-1M", "1M+"] as const
+const VALID_SERVICE = ["ยิงแอด GMV Max", "วางกลยุทธ์ TikTok Shop", "Content & Creative", "ทั้งหมด", "ยังไม่แน่ใจ"] as const
+
 const bodySchema = z.object({
-  name: z.string().min(2),
-  phone: z.string().regex(/^0[6-9]\d{8}$/),
-  brand: z.string().min(2),
-  monthly_gmv: z.string().min(1),
-  service: z.string().min(1),
-  message: z.string().optional(),
+  name:        z.string().min(2).max(100),
+  phone:       z.string().regex(/^0[6-9]\d{8}$/),
+  brand:       z.string().min(2).max(200),
+  monthly_gmv: z.enum(VALID_GMV),
+  service:     z.enum(VALID_SERVICE),
+  message:     z.string().max(2000).optional(),
 })
 
 type LineSession = {
@@ -93,10 +96,7 @@ export async function POST(req: NextRequest) {
   const raw = await req.json().catch(() => null)
   const result = bodySchema.safeParse(raw)
   if (!result.success) {
-    return NextResponse.json(
-      { error: "validation_error", details: result.error.flatten() },
-      { status: 400 }
-    )
+    return NextResponse.json({ error: "invalid_input" }, { status: 400 })
   }
 
   const data = result.data

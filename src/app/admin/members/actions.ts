@@ -1,10 +1,10 @@
 "use server"
 
-import { createClient } from "@/lib/supabase/server"
+import { requireAdmin } from "@/lib/auth"
 import { revalidatePath } from "next/cache"
 
 export async function updateMemberRole(id: string, role: string) {
-  const supabase = await createClient()
+  const { supabase } = await requireAdmin()
   const { error } = await supabase
     .from("profiles")
     .update({ role, updated_at: new Date().toISOString() })
@@ -14,7 +14,7 @@ export async function updateMemberRole(id: string, role: string) {
 }
 
 export async function toggleMemberActive(id: string, is_active: boolean) {
-  const supabase = await createClient()
+  const { supabase } = await requireAdmin()
   const { error } = await supabase
     .from("profiles")
     .update({ is_active, updated_at: new Date().toISOString() })

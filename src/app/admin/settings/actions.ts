@@ -1,11 +1,11 @@
 "use server"
 
-import { createClient } from "@/lib/supabase/server"
+import { requireAdmin } from "@/lib/auth"
 import { revalidatePath } from "next/cache"
 import type { SiteInfo } from "@/lib/data/site-info"
 
 export async function updateSiteInfo(data: SiteInfo) {
-  const supabase = await createClient()
+  const { supabase } = await requireAdmin()
   const clean: SiteInfo = {
     site_name:     data.site_name.trim(),
     tagline:       data.tagline.trim(),
@@ -28,8 +28,16 @@ export async function updateSiteInfo(data: SiteInfo) {
   revalidatePath("/", "layout")
 }
 
-export async function changePassword(newPassword: string) {
-  const supabase = await createClient()
+export async function changePassword(currentPassword: string, newPassword: string) {
+  const { supabase, user } = await requireAdmin()
+
+  // Verify current password before allowing change
+  const { error: verifyError } = await supabase.auth.signInWithPassword({
+    email: user.email!,
+    password: currentPassword,
+  })
+  if (verifyError) throw new Error("รหัสผ่านปัจจุบันไม่ถูกต้อง")
+
   const { error } = await supabase.auth.updateUser({ password: newPassword })
   if (error) throw new Error(error.message)
 }

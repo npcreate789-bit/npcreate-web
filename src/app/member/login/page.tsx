@@ -14,7 +14,9 @@ export default async function MemberLoginPage({
 
   if (user) {
     const { next } = await searchParams
-    redirect(next ?? "/member")
+    // Validate next to prevent open redirect — only allow relative paths
+    const safePath = next && /^\/[^/]/.test(next) ? next : "/member"
+    redirect(safePath)
   }
 
   return (

@@ -25,6 +25,11 @@ export async function updateAvatarUrl(url: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error("ไม่ได้เข้าสู่ระบบ")
+  // Only allow URLs from our Supabase storage bucket
+  const base = process.env.NEXT_PUBLIC_SUPABASE_URL
+  if (!base || !url.startsWith(`${base}/storage/`)) {
+    throw new Error("Invalid avatar URL")
+  }
   const { error } = await supabase
     .from("profiles")
     .update({ avatar_url: url, updated_at: new Date().toISOString() })

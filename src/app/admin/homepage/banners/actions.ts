@@ -1,6 +1,6 @@
 "use server"
 
-import { createClient } from "@/lib/supabase/server"
+import { requireAdmin } from "@/lib/auth"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import type { PromoBannerInput } from "./schema"
@@ -22,7 +22,7 @@ function revalidate() {
 }
 
 export async function createPromoBanner(data: PromoBannerInput) {
-  const supabase = await createClient()
+  const { supabase } = await requireAdmin()
   const { error } = await supabase.from("promo_banners").insert(clean(data))
   if (error) throw new Error(error.message)
   revalidate()
@@ -30,7 +30,7 @@ export async function createPromoBanner(data: PromoBannerInput) {
 }
 
 export async function updatePromoBanner(id: string, data: PromoBannerInput) {
-  const supabase = await createClient()
+  const { supabase } = await requireAdmin()
   const { error } = await supabase
     .from("promo_banners")
     .update({ ...clean(data), updated_at: new Date().toISOString() })
@@ -41,14 +41,14 @@ export async function updatePromoBanner(id: string, data: PromoBannerInput) {
 }
 
 export async function deletePromoBanner(id: string) {
-  const supabase = await createClient()
+  const { supabase } = await requireAdmin()
   const { error } = await supabase.from("promo_banners").delete().eq("id", id)
   if (error) throw new Error(error.message)
   revalidate()
 }
 
 export async function togglePromoBannerActive(id: string, is_active: boolean) {
-  const supabase = await createClient()
+  const { supabase } = await requireAdmin()
   const { error } = await supabase
     .from("promo_banners")
     .update({ is_active, updated_at: new Date().toISOString() })

@@ -6,17 +6,24 @@ import { cn } from "@/lib/utils"
 import { changePassword } from "../actions"
 
 export function AdminAccountForm({ email }: { email: string }) {
-  const [newPass, setNewPass]       = useState("")
+  const [currentPass, setCurrentPass] = useState("")
+  const [newPass, setNewPass]         = useState("")
   const [confirmPass, setConfirmPass] = useState("")
-  const [showNew, setShowNew]       = useState(false)
+  const [showCurrent, setShowCurrent] = useState(false)
+  const [showNew, setShowNew]         = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
-  const [status, setStatus]         = useState<"idle" | "ok" | "error">("idle")
-  const [errorMsg, setErrorMsg]     = useState("")
-  const [pending, startTransition]  = useTransition()
+  const [status, setStatus]           = useState<"idle" | "ok" | "error">("idle")
+  const [errorMsg, setErrorMsg]       = useState("")
+  const [pending, startTransition]    = useTransition()
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setStatus("idle")
+    if (!currentPass) {
+      setErrorMsg("กรุณากรอกรหัสผ่านปัจจุบัน")
+      setStatus("error")
+      return
+    }
     if (newPass.length < 8) {
       setErrorMsg("รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร")
       setStatus("error")
@@ -29,8 +36,9 @@ export function AdminAccountForm({ email }: { email: string }) {
     }
     startTransition(async () => {
       try {
-        await changePassword(newPass)
+        await changePassword(currentPass, newPass)
         setStatus("ok")
+        setCurrentPass("")
         setNewPass("")
         setConfirmPass("")
       } catch (err) {
@@ -78,6 +86,26 @@ export function AdminAccountForm({ email }: { email: string }) {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
+            <label className="text-slate-300 text-xs font-medium">รหัสผ่านปัจจุบัน</label>
+            <div className="relative">
+              <input
+                type={showCurrent ? "text" : "password"}
+                value={currentPass}
+                onChange={(e) => { setCurrentPass(e.target.value); setStatus("idle") }}
+                placeholder="รหัสผ่านที่ใช้อยู่"
+                className={inputClass()}
+              />
+              <button
+                type="button"
+                onClick={() => setShowCurrent((v) => !v)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"
+              >
+                {showCurrent ? <EyeOff size={15} /> : <Eye size={15} />}
+              </button>
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
             <label className="text-slate-300 text-xs font-medium">รหัสผ่านใหม่</label>
             <div className="relative">
               <input
@@ -119,7 +147,7 @@ export function AdminAccountForm({ email }: { email: string }) {
 
           <button
             type="submit"
-            disabled={pending || !newPass || !confirmPass}
+            disabled={pending || !currentPass || !newPass || !confirmPass}
             className="inline-flex items-center gap-2 bg-[#DC2626] hover:bg-[#B91C1C] disabled:opacity-50 text-white font-semibold px-6 py-2.5 rounded-xl text-sm transition-colors"
           >
             {pending && <Loader2 size={14} className="animate-spin" />}

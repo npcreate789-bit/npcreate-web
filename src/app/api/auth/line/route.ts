@@ -19,7 +19,7 @@ export function GET() {
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     maxAge: 60 * 10, // 10 นาที
-    path: "/",
+    path: "/api/auth/line",
   })
 
   return res

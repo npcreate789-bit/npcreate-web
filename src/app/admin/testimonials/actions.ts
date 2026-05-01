@@ -1,6 +1,6 @@
 "use server"
 
-import { createClient } from "@/lib/supabase/server"
+import { requireAdmin } from "@/lib/auth"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import type { TestimonialInput } from "./schema"
@@ -16,7 +16,7 @@ function clean(data: TestimonialInput) {
 }
 
 export async function createTestimonial(data: TestimonialInput) {
-  const supabase = await createClient()
+  const { supabase } = await requireAdmin()
   const { error } = await supabase.from("testimonials").insert(clean(data))
   if (error) throw new Error(error.message)
   revalidatePath("/admin/testimonials")
@@ -25,7 +25,7 @@ export async function createTestimonial(data: TestimonialInput) {
 }
 
 export async function updateTestimonial(id: string, data: TestimonialInput) {
-  const supabase = await createClient()
+  const { supabase } = await requireAdmin()
   const { error } = await supabase
     .from("testimonials")
     .update({ ...clean(data), updated_at: new Date().toISOString() })
@@ -37,7 +37,7 @@ export async function updateTestimonial(id: string, data: TestimonialInput) {
 }
 
 export async function deleteTestimonial(id: string) {
-  const supabase = await createClient()
+  const { supabase } = await requireAdmin()
   const { error } = await supabase.from("testimonials").delete().eq("id", id)
   if (error) throw new Error(error.message)
   revalidatePath("/admin/testimonials")
@@ -45,7 +45,7 @@ export async function deleteTestimonial(id: string) {
 }
 
 export async function togglePublishedTestimonial(id: string, is_published: boolean) {
-  const supabase = await createClient()
+  const { supabase } = await requireAdmin()
   const { error } = await supabase
     .from("testimonials")
     .update({ is_published, updated_at: new Date().toISOString() })
