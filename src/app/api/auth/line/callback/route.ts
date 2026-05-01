@@ -87,56 +87,79 @@ export async function GET(req: NextRequest) {
 
     // ── mode=member → Login/Register ด้วย LINE ──────────────────────────────────
     if (lineMode === "member") {
-      const admin       = createAdminClient()
+      if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+        console.error("LINE login: SUPABASE_SERVICE_ROLE_KEY is not set")
+        return redirectWithError(base, returnTo, "server_config_error")
+      }
+
+      const admin        = createAdminClient()
       const virtualEmail = `${profile.userId}@line.npcreate.co.th`
 
-      // หา auth user เดิมจาก email หรือ profile
+      let userId: string | null = null
+
+      // ── 1. หา user จาก profiles.line_user_id ──
       const { data: existingProfile } = await admin
         .from("profiles")
         .select("id")
         .eq("line_user_id", profile.userId)
         .maybeSingle()
 
-      let userId: string
-
       if (existingProfile) {
-        // มี account อยู่แล้ว — ใช้ user id เดิม
         userId = existingProfile.id
       } else {
-        // สร้าง auth user ใหม่
-        const { data: newUser, error: createErr } = await admin.auth.admin.createUser({
-          email:          virtualEmail,
-          email_confirm:  true,
-          user_metadata:  {
-            full_name:   profile.displayName,
-            avatar_url:  profile.pictureUrl,
-            provider:    "line",
-          },
-        })
-        if (createErr || !newUser.user) {
-          return redirectWithError(base, returnTo, "create_user_failed")
-        }
-        userId = newUser.user.id
+        // ── 2. หา auth user จาก virtual email (กรณี trigger สร้าง user แต่ profile ยังไม่มี line_user_id) ──
+        const { data: userList } = await admin.auth.admin.listUsers({ perPage: 1000 })
+        const existingAuthUser = userList?.users?.find(u => u.email === virtualEmail)
 
-        // อัปเดต line fields บน profile ที่ trigger สร้างให้
-        await admin.from("profiles").update({
-          line_user_id:      profile.userId,
-          line_display_name: profile.displayName,
-          updated_at:        new Date().toISOString(),
-        }).eq("id", userId)
+        if (existingAuthUser) {
+          userId = existingAuthUser.id
+          // อัปเดต profile ที่ยังไม่ได้ link LINE
+          await admin.from("profiles").update({
+            line_user_id:      profile.userId,
+            line_display_name: profile.displayName,
+            updated_at:        new Date().toISOString(),
+          }).eq("id", userId)
+        } else {
+          // ── 3. สร้าง auth user ใหม่ ──
+          const { data: newUser, error: createErr } = await admin.auth.admin.createUser({
+            email:          virtualEmail,
+            email_confirm:  true,
+            user_metadata:  {
+              full_name:  profile.displayName,
+              avatar_url: profile.pictureUrl,
+              provider:   "line",
+            },
+          })
+          if (createErr || !newUser?.user) {
+            console.error("LINE createUser failed:", createErr?.message, createErr?.status)
+            return redirectWithError(base, returnTo, "create_user_failed")
+          }
+          userId = newUser.user.id
+
+          // อัปเดต line fields บน profile ที่ trigger สร้างให้
+          await admin.from("profiles").update({
+            line_user_id:      profile.userId,
+            line_display_name: profile.displayName,
+            updated_at:        new Date().toISOString(),
+          }).eq("id", userId)
+        }
       }
 
-      // Generate magic sign-in link แล้ว redirect ไป app โดยตรง
+      if (!userId) {
+        return redirectWithError(base, returnTo, "create_user_failed")
+      }
+
+      // ── 4. Generate magic link → sign in ──
       const { data: linkData, error: linkErr } = await admin.auth.admin.generateLink({
-        type:  "magiclink",
-        email: virtualEmail,
+        type:    "magiclink",
+        email:   virtualEmail,
         options: { redirectTo: `${base}${returnTo || "/member"}` },
       })
       if (linkErr || !linkData.properties?.hashed_token) {
+        console.error("LINE generateLink failed:", linkErr?.message)
         return redirectWithError(base, returnTo, "link_failed")
       }
 
-      // แปลง action link → token_hash redirect สำหรับ App Router
       const confirmUrl = new URL(`${base}/api/auth/confirm`)
       confirmUrl.searchParams.set("token_hash", linkData.properties.hashed_token)
       confirmUrl.searchParams.set("type", "magiclink")
