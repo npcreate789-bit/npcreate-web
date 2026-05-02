@@ -40,12 +40,11 @@ const DRAFT_KEY = "npc_contact_draft"
 
 interface Props {
   hasSubmitted: boolean
-  lineOaHref:   string
   lineSession:  LineSession | null
   isMember:     boolean
 }
 
-export function ContactForm({ hasSubmitted, lineOaHref, lineSession, isMember }: Props) {
+export function ContactForm({ hasSubmitted, lineSession, isMember }: Props) {
   const [justSubmitted, setJustSubmitted] = useState(false)
   const [apiError, setApiError]           = useState<string | null>(null)
 
@@ -82,7 +81,8 @@ export function ContactForm({ hasSubmitted, lineOaHref, lineSession, isMember }:
         }),
       })
       if (!res.ok) {
-        setApiError("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง")
+        const body = await res.json().catch(() => null)
+        setApiError(body?.error ?? "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง")
         return
       }
       setJustSubmitted(true)
@@ -101,19 +101,10 @@ export function ContactForm({ hasSubmitted, lineOaHref, lineSession, isMember }:
         <h3 className="font-display font-bold text-white text-xl mb-2">
           {justSubmitted ? "ส่งข้อมูลเรียบร้อยแล้ว!" : "คุณเคยส่งข้อมูลไว้แล้ว"}
         </h3>
-        <p className="text-slate-400 text-sm leading-relaxed mb-8 max-w-sm mx-auto">
+        <p className="text-slate-400 text-sm leading-relaxed max-w-sm mx-auto">
           ทีมงานได้รับข้อมูลของคุณแล้ว และจะติดต่อกลับภายใน 1 ชั่วโมง
           ในเวลาทำการ 9:00–20:00 น.
         </p>
-        <a
-          href={lineOaHref}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center justify-center gap-2.5 bg-[#06C755] hover:bg-[#05a847] text-white font-semibold px-8 py-3.5 rounded-xl transition-colors"
-        >
-          <LineIcon size={20} />
-          ทักหาเราผ่าน Line OA เลย
-        </a>
 
         {!isMember && (
           <div className="mt-6 pt-6 border-t border-white/5">
@@ -127,7 +118,7 @@ export function ContactForm({ hasSubmitted, lineOaHref, lineSession, isMember }:
           </div>
         )}
 
-        <p className="text-slate-600 text-xs mt-3">
+        <p className="text-slate-600 text-xs mt-4">
           หรือรอทีมงานติดต่อกลับผ่านเบอร์โทรที่กรอกไว้
         </p>
       </div>
@@ -200,49 +191,26 @@ export function ContactForm({ hasSubmitted, lineOaHref, lineSession, isMember }:
         />
       </Field>
 
-      {/* LINE Connect — บังคับ */}
-      <div className={cn(
-        "rounded-xl border p-4 space-y-3 transition-colors",
-        lineSession
-          ? "border-[#06C755]/30 bg-[#06C755]/5"
-          : "border-[#06C755]/40 bg-[#06C755]/5"
-      )}>
-        <div className="flex items-center justify-between">
-          <p className="text-white text-sm font-semibold">ยืนยันตัวตนด้วย LINE</p>
-          <span className="text-[#F59E0B] text-xs font-medium">จำเป็น</span>
+      {/* LINE Connect — แสดงเฉพาะเมื่อยังไม่ได้ connect */}
+      {!lineSession && (
+        <div className="rounded-xl border border-[#06C755]/40 bg-[#06C755]/5 p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-white text-sm font-semibold">ยืนยันตัวตนด้วย LINE</p>
+            <span className="text-[#F59E0B] text-xs font-medium">จำเป็น</span>
+          </div>
+          <button
+            type="button"
+            onClick={handleLineConnect}
+            className="flex items-center justify-center gap-2.5 w-full bg-[#06C755] hover:bg-[#05a847] text-white text-sm font-semibold px-4 py-3 rounded-xl transition-colors"
+          >
+            <LineIcon size={18} />
+            เข้าสู่ระบบ / สมัครสมาชิกด้วย LINE
+          </button>
+          <p className="text-slate-500 text-xs text-center">
+            ระบบจะสร้างบัญชีสมาชิกให้อัตโนมัติ หากยังไม่มีบัญชี
+          </p>
         </div>
-
-        {lineSession ? (
-          /* connected */
-          <div className="flex items-center gap-3 bg-[#06C755]/10 border border-[#06C755]/20 rounded-xl px-3 py-2.5">
-            {lineSession.pictureUrl && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={lineSession.pictureUrl} alt="" className="w-8 h-8 rounded-full flex-shrink-0" />
-            )}
-            <div className="min-w-0 flex-1">
-              <p className="text-[#06C755] text-sm font-semibold truncate">{lineSession.displayName}</p>
-              <p className="text-[#06C755]/60 text-xs">
-                {isMember ? "จากโปรไฟล์สมาชิก ✓" : "เชื่อมต่อ LINE แล้ว ✓"}
-              </p>
-            </div>
-          </div>
-        ) : (
-          /* ยังไม่ได้ connect */
-          <div className="space-y-2">
-            <button
-              type="button"
-              onClick={handleLineConnect}
-              className="flex items-center justify-center gap-2.5 w-full bg-[#06C755] hover:bg-[#05a847] text-white text-sm font-semibold px-4 py-3 rounded-xl transition-colors"
-            >
-              <LineIcon size={18} />
-              เข้าสู่ระบบ / สมัครสมาชิกด้วย LINE
-            </button>
-            <p className="text-slate-500 text-xs text-center">
-              ระบบจะสร้างบัญชีสมาชิกให้อัตโนมัติ หากยังไม่มีบัญชี
-            </p>
-          </div>
-        )}
-      </div>
+      )}
 
       <button
         type="submit"

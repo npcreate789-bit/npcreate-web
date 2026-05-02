@@ -82,7 +82,7 @@ export default async function ContactPage() {
 
         <div className="grid lg:grid-cols-[1fr_1.6fr] gap-8 items-start">
           <ContactInfo lineHref={lineOaHref} />
-          <ContactForm hasSubmitted={hasSubmitted} lineOaHref={lineOaHref} lineSession={lineSession} isMember={isMember} />
+          <ContactForm hasSubmitted={hasSubmitted} lineSession={lineSession} isMember={isMember} />
         </div>
       </div>
     </main>
