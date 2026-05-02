@@ -8,10 +8,8 @@ import { Loader2, Mail, KeyRound, Lock, Eye, EyeOff, ChevronDown, ChevronUp } fr
 import { cn } from "@/lib/utils"
 import { LineIcon } from "@/components/auth/LineIcon"
 
-// LINE OA ID extracted from env (client-safe public value)
-const LINE_OA_URL   = process.env.NEXT_PUBLIC_LINE_OA_URL ?? "https://line.me/R/ti/p/@npcreate"
-// Pre-fill "login" message — opens LINE app to OA chat
-const LINE_OA_LOGIN = LINE_OA_URL.replace("/ti/p/", "/oaMessage/") + "?text=login"
+// LINE OA URL — opens the OA chat in LINE app (for mobile magic link flow)
+const LINE_OA_URL = process.env.NEXT_PUBLIC_LINE_OA_URL ?? "https://line.me/R/ti/p/@npcreate"
 
 // ─── OTP Login Flow ──────────────────────────────────────────────────────────
 
@@ -144,32 +142,34 @@ export function MemberLoginFlow() {
   return (
     <div className="bg-[#1C0D0D] border border-white/5 rounded-2xl p-8 space-y-5">
 
-      {/* ── ตัวเลือกที่ 1: LINE OA Magic Link (แนะนำสำหรับมือถือ) ── */}
+      {/* ── LINE OAuth — ปุ่มหลัก (ใช้ได้ทุก device) ── */}
       <div className="space-y-2">
         <a
-          href={LINE_OA_LOGIN}
+          href={lineOauthHref}
           className="w-full flex items-center justify-center gap-2.5 bg-[#06C755] hover:bg-[#05a847] text-white font-semibold py-3 rounded-xl transition-colors text-sm"
         >
           <LineIcon size={18} />
           เข้าสู่ระบบด้วย LINE
         </a>
-        <p className="text-center text-slate-600 text-xs leading-relaxed">
-          เปิด LINE app → แตะส่ง → รับลิงก์เข้าระบบทันที
-          <br />
-          <span className="text-slate-700">แนะนำสำหรับมือถือ · ไม่ต้องพิมพ์รหัสผ่าน</span>
-        </p>
       </div>
 
-      {/* ── ตัวเลือกที่ 2: LINE OAuth (เว็บ / คอมพิวเตอร์) ── */}
-      <div className="space-y-2">
+      {/* ── LINE OA Magic Link — option สำหรับมือถือ ── */}
+      <div className="rounded-xl border border-white/5 bg-white/[0.02] px-4 py-3 space-y-1.5">
+        <p className="text-slate-400 text-xs font-medium">มือถือ — เข้าสู่ระบบผ่าน LINE OA</p>
+        <p className="text-slate-600 text-xs leading-relaxed">
+          เปิด LINE OA แล้วส่งข้อความ{" "}
+          <span className="text-slate-300 font-mono bg-white/5 px-1.5 py-0.5 rounded">login</span>
+          {" "}→ ระบบส่งลิงก์เข้าระบบให้ทันที
+        </p>
         <a
-          href={lineOauthHref}
-          className="w-full flex items-center justify-center gap-2.5 border border-[#06C755]/40 text-[#06C755] hover:bg-[#06C755]/10 font-medium py-2.5 rounded-xl transition-colors text-sm"
+          href={LINE_OA_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 text-[#06C755] text-xs hover:text-[#05a847] transition-colors"
         >
-          <LineIcon size={16} />
-          เข้าสู่ระบบด้วย LINE (เว็บ/คอม)
+          <LineIcon size={12} />
+          เปิด LINE OA
         </a>
-        <p className="text-center text-slate-700 text-xs">สำหรับคอมพิวเตอร์หรือเบราเซอร์</p>
       </div>
 
       {/* ── Divider ── */}
@@ -179,7 +179,7 @@ export function MemberLoginFlow() {
         <div className="flex-1 h-px bg-white/10" />
       </div>
 
-      {/* ── ตัวเลือกที่ 3: อีเมล (ซ่อนอยู่ — กด expand) ── */}
+      {/* ── อีเมล (ซ่อนอยู่ — กด expand) ── */}
       <div>
         <button
           type="button"
