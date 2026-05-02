@@ -329,27 +329,50 @@ function PasswordRegisterFlow() {
 // ─── Main Component ──────────────────────────────────────────────────────────
 
 export function RegisterFlow() {
-  const [method, setMethod] = useState<Method>("password")
+  const [method, setMethod]       = useState<Method>("password")
+  const [showEmail, setShowEmail] = useState(false)
 
   return (
-    <div className="bg-[#1C0D0D] border border-white/5 rounded-2xl p-8 space-y-6">
+    <div className="bg-[#1C0D0D] border border-white/5 rounded-2xl p-8 space-y-5">
 
-      {/* LINE register — primary CTA */}
-      <LineLoginButton label="สมัครสมาชิกด้วย LINE" next="/member" />
-
-      <Divider label="หรือสมัครด้วยอีเมล" />
-
-      {/* Method toggle */}
-      <div className="flex rounded-xl bg-white/5 p-1 gap-1">
-        <MethodTab active={method === "password"} onClick={() => setMethod("password")}>
-          <Lock size={13} /> รหัสผ่าน
-        </MethodTab>
-        <MethodTab active={method === "otp"} onClick={() => setMethod("otp")}>
-          <Mail size={13} /> OTP (Gmail)
-        </MethodTab>
+      {/* LINE — primary */}
+      <div className="space-y-2">
+        <LineLoginButton label="สมัครสมาชิกด้วย LINE" next="/member" />
+        <p className="text-center text-slate-600 text-xs leading-relaxed">
+          สมัครและเข้าสู่ระบบด้วย LINE account
+        </p>
       </div>
 
-      {method === "password" ? <PasswordRegisterFlow /> : <OtpRegisterFlow />}
+      <Divider label="หรือ" />
+
+      {/* Email — collapsible */}
+      <div>
+        <button
+          type="button"
+          onClick={() => setShowEmail(v => !v)}
+          className="w-full flex items-center justify-between px-4 py-2.5 border border-white/10 rounded-xl text-slate-400 hover:text-slate-200 hover:border-white/20 transition-colors text-sm"
+        >
+          <span className="flex items-center gap-2">
+            <Mail size={14} />
+            สมัครด้วยอีเมล
+          </span>
+          <span className="text-xs">{showEmail ? "▲" : "▼"}</span>
+        </button>
+
+        {showEmail && (
+          <div className="mt-4 space-y-4">
+            <div className="flex rounded-xl bg-white/5 p-1 gap-1">
+              <MethodTab active={method === "password"} onClick={() => setMethod("password")}>
+                <Lock size={13} /> รหัสผ่าน
+              </MethodTab>
+              <MethodTab active={method === "otp"} onClick={() => setMethod("otp")}>
+                <Mail size={13} /> OTP (Gmail)
+              </MethodTab>
+            </div>
+            {method === "password" ? <PasswordRegisterFlow /> : <OtpRegisterFlow />}
+          </div>
+        )}
+      </div>
     </div>
   )
 }

@@ -4,11 +4,14 @@ import { useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
-import { Loader2, Mail, KeyRound, Lock, Eye, EyeOff } from "lucide-react"
+import { Loader2, Mail, KeyRound, Lock, Eye, EyeOff, ChevronDown, ChevronUp } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { LineLoginButton } from "@/components/auth/LineLoginButton"
+import { LineIcon } from "@/components/auth/LineIcon"
 
-type Method = "otp" | "password"
+// LINE OA ID extracted from env (client-safe public value)
+const LINE_OA_URL   = process.env.NEXT_PUBLIC_LINE_OA_URL ?? "https://line.me/R/ti/p/@npcreate"
+// Pre-fill "login" message — opens LINE app to OA chat
+const LINE_OA_LOGIN = LINE_OA_URL.replace("/ti/p/", "/oaMessage/") + "?text=login"
 
 // ─── OTP Login Flow ──────────────────────────────────────────────────────────
 
@@ -29,7 +32,7 @@ function OtpLoginFlow({ next }: { next: string }) {
       if (error) throw error
       setStep("otp")
     } catch (err) {
-      setError(err instanceof Error ? err.message : "ส่ง OTP ไม่สำเร็จ กรุณาตรวจสอบ email")
+      setError(err instanceof Error ? err.message : "ไม่พบบัญชีที่ใช้ email นี้")
     } finally { setLoading(false) }
   }
 
@@ -47,42 +50,29 @@ function OtpLoginFlow({ next }: { next: string }) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {error && <ErrorBox msg={error} />}
-
-      {step === "email" && (
-        <form onSubmit={sendOtp} className="space-y-4">
-          <div className="flex items-center gap-2 mb-1">
-            <Mail size={15} className="text-[#DC2626]" />
-            <span className="text-white font-semibold text-sm">Gmail ของคุณ</span>
-          </div>
+      {step === "email" ? (
+        <form onSubmit={sendOtp} className="space-y-3">
           <input type="email" value={email}
             onChange={(e) => { setEmail(e.target.value); setError(null) }}
             placeholder="example@gmail.com" required autoFocus className={inputCls()} />
-          <button type="submit" disabled={loading || !email} className={btnCls()}>
-            {loading ? <><Loader2 size={14} className="animate-spin" /> กำลังส่ง OTP...</> : "ส่ง OTP"}
+          <button type="submit" disabled={loading || !email} className={btnCls("outline")}>
+            {loading ? <><Loader2 size={14} className="animate-spin" /> กำลังส่ง OTP...</> : "ส่ง OTP ไปที่ Gmail"}
           </button>
         </form>
-      )}
-
-      {step === "otp" && (
-        <form onSubmit={verifyOtp} className="space-y-4">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <KeyRound size={15} className="text-[#DC2626]" />
-              <span className="text-white font-semibold text-sm">กรอก OTP</span>
-            </div>
-            <p className="text-slate-500 text-xs mb-4">ส่งรหัส 6 หลักไปที่ <span className="text-slate-300">{email}</span></p>
-            <input type="text" value={otp} inputMode="numeric" maxLength={6}
-              onChange={(e) => { setOtp(e.target.value.replace(/\D/g, "")); setError(null) }}
-              placeholder="000000" required autoFocus
-              className={cn(inputCls(), "text-center text-2xl tracking-[0.5em] font-mono")} />
-          </div>
-          <button type="submit" disabled={loading || otp.length < 6} className={btnCls()}>
-            {loading ? <><Loader2 size={14} className="animate-spin" /> กำลังยืนยัน...</> : "เข้าสู่ระบบ"}
+      ) : (
+        <form onSubmit={verifyOtp} className="space-y-3">
+          <p className="text-slate-500 text-xs">ส่ง OTP 6 หลักไปที่ <span className="text-slate-300">{email}</span></p>
+          <input type="text" value={otp} inputMode="numeric" maxLength={6}
+            onChange={(e) => { setOtp(e.target.value.replace(/\D/g, "")); setError(null) }}
+            placeholder="000000" required autoFocus
+            className={cn(inputCls(), "text-center text-2xl tracking-[0.5em] font-mono")} />
+          <button type="submit" disabled={loading || otp.length < 6} className={btnCls("outline")}>
+            {loading ? <><Loader2 size={14} className="animate-spin" /> กำลังยืนยัน...</> : "ยืนยัน OTP"}
           </button>
           <button type="button" onClick={() => { setStep("email"); setOtp(""); setError(null) }}
-            className="w-full text-slate-500 hover:text-slate-300 text-sm transition-colors">
+            className="w-full text-slate-500 hover:text-slate-300 text-xs transition-colors">
             ← เปลี่ยน email
           </button>
         </form>
@@ -115,18 +105,11 @@ function PasswordLoginFlow({ next }: { next: string }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-3">
       {error && <ErrorBox msg={error} />}
-
-      <div className="flex items-center gap-2 mb-1">
-        <Lock size={15} className="text-[#DC2626]" />
-        <span className="text-white font-semibold text-sm">อีเมลและรหัสผ่าน</span>
-      </div>
-
       <input type="email" value={email}
         onChange={(e) => { setEmail(e.target.value); setError(null) }}
         placeholder="example@gmail.com" required autoFocus className={inputCls()} />
-
       <div className="relative">
         <input type={showPass ? "text" : "password"} value={password}
           onChange={(e) => { setPassword(e.target.value); setError(null) }}
@@ -136,14 +119,11 @@ function PasswordLoginFlow({ next }: { next: string }) {
           {showPass ? <EyeOff size={15} /> : <Eye size={15} />}
         </button>
       </div>
-
-      <button type="submit" disabled={loading || !email || !password} className={btnCls()}>
+      <button type="submit" disabled={loading || !email || !password} className={btnCls("outline")}>
         {loading ? <><Loader2 size={14} className="animate-spin" /> กำลังเข้าสู่ระบบ...</> : "เข้าสู่ระบบ"}
       </button>
-
       <div className="text-center">
-        <Link href="/member/forgot-password"
-          className="text-slate-500 hover:text-slate-300 text-xs transition-colors">
+        <Link href="/member/forgot-password" className="text-slate-500 hover:text-slate-300 text-xs transition-colors">
           ลืมรหัสผ่าน?
         </Link>
       </div>
@@ -154,32 +134,84 @@ function PasswordLoginFlow({ next }: { next: string }) {
 // ─── Main Component ──────────────────────────────────────────────────────────
 
 export function MemberLoginFlow() {
-  const searchParams = useSearchParams()
-  const next = searchParams.get("next") ?? "/member"
-  const [method, setMethod] = useState<Method>("password")
+  const searchParams   = useSearchParams()
+  const next           = searchParams.get("next") ?? "/member"
+  const [showEmail, setShowEmail] = useState(false)
+  const [method, setMethod]       = useState<"password" | "otp">("password")
+
+  const lineOauthHref = `/api/auth/line?mode=member&returnTo=${encodeURIComponent(next)}`
 
   return (
-    <div className="bg-[#1C0D0D] border border-white/5 rounded-2xl p-8 space-y-6">
+    <div className="bg-[#1C0D0D] border border-white/5 rounded-2xl p-8 space-y-5">
 
-      {/* LINE login — primary CTA */}
-      <LineLoginButton label="เข้าสู่ระบบด้วย LINE" next={next} />
-
-      <Divider label="หรือเข้าสู่ระบบด้วยอีเมล" />
-
-      {/* Method toggle */}
-      <div className="flex rounded-xl bg-white/5 p-1 gap-1">
-        <MethodTab active={method === "password"} onClick={() => setMethod("password")}>
-          <Lock size={13} /> รหัสผ่าน
-        </MethodTab>
-        <MethodTab active={method === "otp"} onClick={() => setMethod("otp")}>
-          <Mail size={13} /> OTP (Gmail)
-        </MethodTab>
+      {/* ── ตัวเลือกที่ 1: LINE OA Magic Link (แนะนำสำหรับมือถือ) ── */}
+      <div className="space-y-2">
+        <a
+          href={LINE_OA_LOGIN}
+          className="w-full flex items-center justify-center gap-2.5 bg-[#06C755] hover:bg-[#05a847] text-white font-semibold py-3 rounded-xl transition-colors text-sm"
+        >
+          <LineIcon size={18} />
+          เข้าสู่ระบบด้วย LINE
+        </a>
+        <p className="text-center text-slate-600 text-xs leading-relaxed">
+          เปิด LINE app → แตะส่ง → รับลิงก์เข้าระบบทันที
+          <br />
+          <span className="text-slate-700">แนะนำสำหรับมือถือ · ไม่ต้องพิมพ์รหัสผ่าน</span>
+        </p>
       </div>
 
-      {method === "password"
-        ? <PasswordLoginFlow next={next} />
-        : <OtpLoginFlow next={next} />
-      }
+      {/* ── ตัวเลือกที่ 2: LINE OAuth (เว็บ / คอมพิวเตอร์) ── */}
+      <div className="space-y-2">
+        <a
+          href={lineOauthHref}
+          className="w-full flex items-center justify-center gap-2.5 border border-[#06C755]/40 text-[#06C755] hover:bg-[#06C755]/10 font-medium py-2.5 rounded-xl transition-colors text-sm"
+        >
+          <LineIcon size={16} />
+          เข้าสู่ระบบด้วย LINE (เว็บ/คอม)
+        </a>
+        <p className="text-center text-slate-700 text-xs">สำหรับคอมพิวเตอร์หรือเบราเซอร์</p>
+      </div>
+
+      {/* ── Divider ── */}
+      <div className="flex items-center gap-3">
+        <div className="flex-1 h-px bg-white/10" />
+        <span className="text-slate-700 text-xs">หรือ</span>
+        <div className="flex-1 h-px bg-white/10" />
+      </div>
+
+      {/* ── ตัวเลือกที่ 3: อีเมล (ซ่อนอยู่ — กด expand) ── */}
+      <div>
+        <button
+          type="button"
+          onClick={() => setShowEmail(v => !v)}
+          className="w-full flex items-center justify-between px-4 py-2.5 border border-white/10 rounded-xl text-slate-400 hover:text-slate-200 hover:border-white/20 transition-colors text-sm"
+        >
+          <span className="flex items-center gap-2">
+            <Mail size={14} />
+            เข้าสู่ระบบด้วยอีเมล
+          </span>
+          {showEmail ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+        </button>
+
+        {showEmail && (
+          <div className="mt-4 space-y-4">
+            {/* Method toggle */}
+            <div className="flex rounded-xl bg-white/5 p-1 gap-1">
+              <MethodTab active={method === "password"} onClick={() => setMethod("password")}>
+                <Lock size={12} /> รหัสผ่าน
+              </MethodTab>
+              <MethodTab active={method === "otp"} onClick={() => setMethod("otp")}>
+                <Mail size={12} /> OTP (Gmail)
+              </MethodTab>
+            </div>
+            {method === "password"
+              ? <PasswordLoginFlow next={next} />
+              : <OtpLoginFlow next={next} />
+            }
+          </div>
+        )}
+      </div>
+
     </div>
   )
 }
@@ -200,16 +232,6 @@ function MethodTab({ active, onClick, children }: {
   )
 }
 
-function Divider({ label }: { label: string }) {
-  return (
-    <div className="flex items-center gap-3">
-      <div className="flex-1 h-px bg-white/10" />
-      <span className="text-slate-600 text-xs">{label}</span>
-      <div className="flex-1 h-px bg-white/10" />
-    </div>
-  )
-}
-
 function ErrorBox({ msg }: { msg: string }) {
   return (
     <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm px-4 py-3 rounded-xl">
@@ -225,6 +247,9 @@ function inputCls() {
   )
 }
 
-function btnCls() {
+function btnCls(variant: "solid" | "outline" = "solid") {
+  if (variant === "outline") {
+    return "w-full inline-flex items-center justify-center gap-2 border border-white/15 hover:border-white/30 disabled:opacity-50 text-white font-medium py-2.5 rounded-xl transition-colors text-sm"
+  }
   return "w-full inline-flex items-center justify-center gap-2 bg-[#DC2626] hover:bg-[#B91C1C] disabled:opacity-50 text-white font-semibold py-3 rounded-xl transition-colors text-sm"
 }
