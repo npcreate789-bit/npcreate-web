@@ -142,7 +142,7 @@ export function MemberLoginFlow() {
   return (
     <div className="bg-[#1C0D0D] border border-white/5 rounded-2xl p-8 space-y-5">
 
-      {/* ── LINE OAuth — ปุ่มหลัก (ใช้ได้ทุก device) ── */}
+      {/* ── LINE OAuth — ปุ่มหลัก ── */}
       <div className="space-y-2">
         <a
           href={lineOauthHref}
@@ -151,21 +151,27 @@ export function MemberLoginFlow() {
           <LineIcon size={18} />
           เข้าสู่ระบบด้วย LINE
         </a>
+        <p className="text-center text-slate-600 text-xs leading-relaxed">
+          มือถือ: กด <strong className="text-slate-500">เปิดด้วย LINE</strong> บนหน้าที่เปิดขึ้น → กด <strong className="text-slate-500">อนุญาต</strong>
+        </p>
       </div>
 
-      {/* ── LINE OA Magic Link — option สำหรับมือถือ ── */}
-      <div className="rounded-xl border border-white/5 bg-white/[0.02] px-4 py-3 space-y-1.5">
-        <p className="text-slate-400 text-xs font-medium">มือถือ — เข้าสู่ระบบผ่าน LINE OA</p>
-        <p className="text-slate-600 text-xs leading-relaxed">
-          เปิด LINE OA แล้วส่งข้อความ{" "}
-          <span className="text-slate-300 font-mono bg-white/5 px-1.5 py-0.5 rounded">login</span>
-          {" "}→ ระบบส่งลิงก์เข้าระบบให้ทันที
-        </p>
+      {/* ── LINE OA Magic Link — ไม่ต้องผ่านเบราเซอร์ ── */}
+      <div className="rounded-xl border border-[#06C755]/15 bg-[#06C755]/[0.04] px-4 py-3 space-y-2">
+        <div className="flex items-center gap-2">
+          <LineIcon size={13} />
+          <p className="text-slate-300 text-xs font-semibold">รับลิงก์เข้าระบบผ่าน LINE (ไม่ต้องกรอกอะไร)</p>
+        </div>
+        <ol className="text-slate-500 text-xs space-y-0.5 list-decimal list-inside leading-relaxed">
+          <li>กดเปิด LINE OA ด้านล่าง</li>
+          <li>ส่งข้อความ <span className="text-slate-300 font-mono bg-white/5 px-1 py-0.5 rounded">login</span></li>
+          <li>แตะลิงก์ที่ได้รับ → เข้าระบบทันที</li>
+        </ol>
         <a
           href={LINE_OA_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 text-[#06C755] text-xs hover:text-[#05a847] transition-colors"
+          className="inline-flex items-center gap-1.5 bg-[#06C755] text-white text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-[#05a847] transition-colors"
         >
           <LineIcon size={12} />
           เปิด LINE OA
