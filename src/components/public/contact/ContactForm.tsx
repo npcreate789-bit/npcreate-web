@@ -1,11 +1,17 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { cn } from "@/lib/utils"
-import { CheckCircle2, Loader2 } from "lucide-react"
+import { createClient } from "@/lib/supabase/client"
+import {
+  CheckCircle2, Loader2, Mail, Eye, EyeOff, ChevronDown, ChevronUp,
+} from "lucide-react"
+
+// ─── Schema ──────────────────────────────────────────────────────────────────
 
 const schema = z.object({
   name:        z.string().min(2, "กรุณากรอกชื่อ-นามสกุล"),
@@ -36,7 +42,7 @@ const serviceOptions = [
 
 type LineSession = { userId: string; displayName: string; pictureUrl: string }
 
-const DRAFT_KEY = "npc_contact_draft"
+// ─── Props ───────────────────────────────────────────────────────────────────
 
 interface Props {
   hasSubmitted: boolean
@@ -44,27 +50,136 @@ interface Props {
   isMember:     boolean
 }
 
+// ─── Login Prompt — แสดงเมื่อยังไม่ได้ login ─────────────────────────────────
+
+function LoginPrompt() {
+  const router = useRouter()
+  const [showEmail, setShowEmail] = useState(false)
+  const [email, setEmail]         = useState("")
+  const [password, setPassword]   = useState("")
+  const [showPass, setShowPass]   = useState(false)
+  const [loading, setLoading]     = useState(false)
+  const [error, setError]         = useState<string | null>(null)
+
+  const lineHref = "/api/auth/line?mode=member&returnTo=/contact"
+
+  async function handleLogin(e: React.FormEvent) {
+    e.preventDefault()
+    setError(null); setLoading(true)
+    try {
+      const supabase = createClient()
+      const { error: authErr } = await supabase.auth.signInWithPassword({ email, password })
+      if (authErr) throw authErr
+      router.refresh()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "อีเมลหรือรหัสผ่านไม่ถูกต้อง")
+    } finally { setLoading(false) }
+  }
+
+  return (
+    <div className="bg-[#1C0D0D] border border-white/5 rounded-2xl p-6 sm:p-8 space-y-5">
+
+      {/* Header */}
+      <div className="text-center space-y-1.5">
+        <p className="text-white font-semibold text-base">กรุณาเข้าสู่ระบบก่อนส่งข้อมูล</p>
+        <p className="text-slate-500 text-sm">เพื่อให้ทีมงานติดต่อกลับได้อย่างถูกต้อง</p>
+      </div>
+
+      {/* LINE */}
+      <div className="space-y-2">
+        <a
+          href={lineHref}
+          className="w-full flex items-center justify-center gap-2.5 bg-[#06C755] hover:bg-[#05a847] active:bg-[#048a3c] text-white font-semibold py-3.5 rounded-xl transition-colors text-sm"
+        >
+          <LineIcon size={18} />
+          เข้าสู่ระบบด้วย LINE
+        </a>
+        <p className="text-center text-slate-600 text-xs">
+          📱 มือถือ: กด <strong className="text-slate-500">เปิดด้วย LINE</strong> → กด <strong className="text-slate-500">อนุญาต</strong>
+        </p>
+      </div>
+
+      {/* Divider */}
+      <div className="flex items-center gap-3">
+        <div className="flex-1 h-px bg-white/10" />
+        <span className="text-slate-700 text-xs">หรือ</span>
+        <div className="flex-1 h-px bg-white/10" />
+      </div>
+
+      {/* Email toggle */}
+      <div>
+        <button
+          type="button"
+          onClick={() => setShowEmail(v => !v)}
+          className="w-full flex items-center justify-between px-4 py-2.5 border border-white/10 rounded-xl text-slate-400 hover:text-slate-200 hover:border-white/20 transition-colors text-sm"
+        >
+          <span className="flex items-center gap-2">
+            <Mail size={14} />
+            เข้าสู่ระบบด้วยอีเมล
+          </span>
+          {showEmail ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+        </button>
+
+        {showEmail && (
+          <form onSubmit={handleLogin} className="mt-3 space-y-3">
+            {error && <ErrorBox msg={error} />}
+            <input
+              type="email" value={email} autoFocus
+              onChange={e => { setEmail(e.target.value); setError(null) }}
+              placeholder="example@gmail.com" required
+              className={inputClass(false)}
+            />
+            <div className="relative">
+              <input
+                type={showPass ? "text" : "password"} value={password}
+                onChange={e => { setPassword(e.target.value); setError(null) }}
+                placeholder="รหัสผ่าน" required
+                className={cn(inputClass(false), "pr-10")}
+              />
+              <button
+                type="button" onClick={() => setShowPass(v => !v)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"
+              >
+                {showPass ? <EyeOff size={15} /> : <Eye size={15} />}
+              </button>
+            </div>
+            <button
+              type="submit" disabled={loading || !email || !password}
+              className="w-full inline-flex items-center justify-center gap-2 border border-white/15 hover:border-white/30 disabled:opacity-50 text-white font-medium py-2.5 rounded-xl transition-colors text-sm"
+            >
+              {loading
+                ? <><Loader2 size={14} className="animate-spin" /> กำลังเข้าสู่ระบบ...</>
+                : "เข้าสู่ระบบ"
+              }
+            </button>
+            <div className="text-center">
+              <a href="/member/forgot-password" className="text-slate-500 hover:text-slate-300 text-xs transition-colors">
+                ลืมรหัสผ่าน?
+              </a>
+            </div>
+          </form>
+        )}
+      </div>
+
+      <p className="text-center text-slate-600 text-xs">
+        ยังไม่มีบัญชี?{" "}
+        <a href="/register" className="text-slate-400 hover:text-white underline transition-colors">
+          สมัครสมาชิกฟรี
+        </a>
+      </p>
+    </div>
+  )
+}
+
+// ─── Main Component ───────────────────────────────────────────────────────────
+
 export function ContactForm({ hasSubmitted, lineSession, isMember }: Props) {
   const [justSubmitted, setJustSubmitted] = useState(false)
   const [apiError, setApiError]           = useState<string | null>(null)
 
-  const { register, handleSubmit, reset, getValues, formState: { errors, isSubmitting } } = useForm<FormData>({
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
   })
-
-  // หลังจาก LINE OAuth redirect กลับมา — restore ฟอร์มจาก sessionStorage
-  useEffect(() => {
-    const raw = sessionStorage.getItem(DRAFT_KEY)
-    if (raw) {
-      try { reset(JSON.parse(raw)) } catch {}
-      sessionStorage.removeItem(DRAFT_KEY)
-    }
-  }, [reset])
-
-  const handleLineConnect = () => {
-    sessionStorage.setItem(DRAFT_KEY, JSON.stringify(getValues()))
-    window.location.href = "/api/auth/line?mode=member&returnTo=/contact"
-  }
 
   const onSubmit = async (data: FormData) => {
     setApiError(null)
@@ -91,7 +206,7 @@ export function ContactForm({ hasSubmitted, lineSession, isMember }: Props) {
     }
   }
 
-  // ─── เคยส่งแล้ว หรือ เพิ่งส่งสำเร็จ ──────────────────────
+  // ── Success state ────────────────────────────────────────────────────────────
   if (hasSubmitted || justSubmitted) {
     return (
       <div className="bg-[#1C0D0D] border border-white/5 rounded-2xl p-8 sm:p-10 text-center">
@@ -105,19 +220,6 @@ export function ContactForm({ hasSubmitted, lineSession, isMember }: Props) {
           ทีมงานได้รับข้อมูลของคุณแล้ว และจะติดต่อกลับภายใน 1 ชั่วโมง
           ในเวลาทำการ 9:00–20:00 น.
         </p>
-
-        {!isMember && (
-          <div className="mt-6 pt-6 border-t border-white/5">
-            <p className="text-slate-400 text-sm mb-3">สมัครสมาชิกเพื่อติดตามสถานะและรับสิทธิ์พิเศษ</p>
-            <a
-              href="/register"
-              className="inline-flex items-center justify-center gap-2 border border-white/10 hover:border-white/20 text-slate-300 hover:text-white text-sm font-medium px-6 py-2.5 rounded-xl transition-colors"
-            >
-              สมัครสมาชิกฟรี →
-            </a>
-          </div>
-        )}
-
         <p className="text-slate-600 text-xs mt-4">
           หรือรอทีมงานติดต่อกลับผ่านเบอร์โทรที่กรอกไว้
         </p>
@@ -125,17 +227,18 @@ export function ContactForm({ hasSubmitted, lineSession, isMember }: Props) {
     )
   }
 
-  // ─── ฟอร์มหลัก ────────────────────────────────────────────
+  // ── ยังไม่ได้ login → แสดง Login Prompt ─────────────────────────────────────
+  if (!isMember) {
+    return <LoginPrompt />
+  }
+
+  // ── Login แล้ว → แสดงฟอร์ม ──────────────────────────────────────────────────
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
       className="bg-[#1C0D0D] border border-white/5 rounded-2xl p-6 sm:p-8 space-y-5"
     >
-      {apiError && (
-        <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm px-4 py-3 rounded-xl">
-          {apiError}
-        </div>
-      )}
+      {apiError && <ErrorBox msg={apiError} />}
 
       <div className="grid sm:grid-cols-2 gap-5">
         <Field label="ชื่อ-นามสกุล" error={errors.name?.message} required>
@@ -167,7 +270,7 @@ export function ContactForm({ hasSubmitted, lineSession, isMember }: Props) {
       <Field label="ยอดขายปัจจุบัน (GMV/เดือน)" error={errors.monthly_gmv?.message} required>
         <select {...register("monthly_gmv")} className={inputClass(!!errors.monthly_gmv)}>
           <option value="">— เลือกยอดขายปัจจุบัน —</option>
-          {gmvOptions.map((o) => (
+          {gmvOptions.map(o => (
             <option key={o.value} value={o.value}>{o.label}</option>
           ))}
         </select>
@@ -176,7 +279,7 @@ export function ContactForm({ hasSubmitted, lineSession, isMember }: Props) {
       <Field label="บริการที่สนใจ" error={errors.service?.message} required>
         <select {...register("service")} className={inputClass(!!errors.service)}>
           <option value="">— เลือกบริการ —</option>
-          {serviceOptions.map((o) => (
+          {serviceOptions.map(o => (
             <option key={o.value} value={o.value}>{o.label}</option>
           ))}
         </select>
@@ -191,42 +294,15 @@ export function ContactForm({ hasSubmitted, lineSession, isMember }: Props) {
         />
       </Field>
 
-      {/* LINE Connect — แสดงเฉพาะเมื่อยังไม่ได้ connect */}
-      {!lineSession && (
-        <div className="rounded-xl border border-[#06C755]/40 bg-[#06C755]/5 p-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <p className="text-white text-sm font-semibold">ยืนยันตัวตนด้วย LINE</p>
-            <span className="text-[#F59E0B] text-xs font-medium">จำเป็น</span>
-          </div>
-          <button
-            type="button"
-            onClick={handleLineConnect}
-            className="flex items-center justify-center gap-2.5 w-full bg-[#06C755] hover:bg-[#05a847] text-white text-sm font-semibold px-4 py-3 rounded-xl transition-colors"
-          >
-            <LineIcon size={18} />
-            เข้าสู่ระบบ / สมัครสมาชิกด้วย LINE
-          </button>
-          <p className="text-slate-500 text-xs text-center">
-            ระบบจะสร้างบัญชีสมาชิกให้อัตโนมัติ หากยังไม่มีบัญชี
-          </p>
-        </div>
-      )}
-
       <button
         type="submit"
-        disabled={isSubmitting || !lineSession}
-        className="w-full inline-flex items-center justify-center gap-2 bg-[#DC2626] hover:bg-[#B91C1C] disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold py-3.5 rounded-xl transition-colors"
+        disabled={isSubmitting}
+        className="w-full inline-flex items-center justify-center gap-2 bg-[#DC2626] hover:bg-[#B91C1C] disabled:opacity-50 text-white font-semibold py-3.5 rounded-xl transition-colors"
       >
-        {isSubmitting ? (
-          <>
-            <Loader2 size={16} className="animate-spin" />
-            กำลังส่ง...
-          </>
-        ) : !lineSession ? (
-          "กรุณายืนยันตัวตนด้วย LINE ก่อน"
-        ) : (
-          "ส่งข้อมูลและรอการติดต่อกลับ"
-        )}
+        {isSubmitting
+          ? <><Loader2 size={16} className="animate-spin" /> กำลังส่ง...</>
+          : "ส่งข้อมูลและรอการติดต่อกลับ"
+        }
       </button>
 
       <p className="text-center text-slate-500 text-xs">
@@ -236,9 +312,9 @@ export function ContactForm({ hasSubmitted, lineSession, isMember }: Props) {
   )
 }
 
-function Field({
-  label, error, required, children,
-}: {
+// ─── Shared helpers ───────────────────────────────────────────────────────────
+
+function Field({ label, error, required, children }: {
   label: string; error?: string; required?: boolean; children: React.ReactNode
 }) {
   return (
@@ -249,6 +325,14 @@ function Field({
       </label>
       {children}
       {error && <p className="text-red-400 text-xs">{error}</p>}
+    </div>
+  )
+}
+
+function ErrorBox({ msg }: { msg: string }) {
+  return (
+    <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm px-4 py-3 rounded-xl">
+      {msg}
     </div>
   )
 }
