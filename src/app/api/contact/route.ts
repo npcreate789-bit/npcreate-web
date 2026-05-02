@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { createClient } from "@/lib/supabase/server"
 
 const VALID_GMV     = ["ยังไม่เปิดร้าน", "น้อยกว่า 50K", "50K-200K", "200K-1M", "1M+"] as const
 const VALID_SERVICE = ["ยิงแอด GMV Max", "วางกลยุทธ์ TikTok Shop", "Content & Creative", "ทั้งหมด", "ยังไม่แน่ใจ"] as const
@@ -132,6 +133,11 @@ export async function POST(req: NextRequest) {
 
   const data = result.data
 
+  // ดึง user จาก session (ถ้า login อยู่) เพื่อบันทึก member_id
+  const userSupabase = await createClient()
+  const { data: { user } } = await userSupabase.auth.getUser()
+  const memberId = user?.id ?? null
+
   // ใช้ admin client เพื่อ bypass RLS — server-side route ไม่ต้องพึ่ง user session
   const supabase = createAdminClient()
 
@@ -144,6 +150,7 @@ export async function POST(req: NextRequest) {
     message:      data.message ?? null,
     line_user_id: data.line_user_id ?? null,
     display_name: data.display_name ?? null,
+    member_id:    memberId,
   })
 
   if (dbError) {

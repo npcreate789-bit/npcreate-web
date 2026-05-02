@@ -8,7 +8,7 @@ import { z } from "zod"
 import { cn } from "@/lib/utils"
 import { createClient } from "@/lib/supabase/client"
 import {
-  CheckCircle2, Loader2, Mail, Eye, EyeOff, ChevronDown, ChevronUp,
+  CheckCircle2, Loader2, Mail, Eye, EyeOff, ChevronDown, ChevronUp, MessageCircle, RotateCcw,
 } from "lucide-react"
 
 // ─── Schema ──────────────────────────────────────────────────────────────────
@@ -48,6 +48,7 @@ interface Props {
   hasSubmitted: boolean
   lineSession:  LineSession | null
   isMember:     boolean
+  lineOaHref:   string
 }
 
 // ─── Login Prompt — แสดงเมื่อยังไม่ได้ login ─────────────────────────────────
@@ -173,8 +174,9 @@ function LoginPrompt() {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export function ContactForm({ hasSubmitted, lineSession, isMember }: Props) {
+export function ContactForm({ hasSubmitted, lineSession, isMember, lineOaHref }: Props) {
   const [justSubmitted, setJustSubmitted] = useState(false)
+  // allowResubmit ใช้สำหรับ anonymous user เท่านั้น (member จะ unlock อัตโนมัติเมื่อ admin ปิด lead)
   const [allowResubmit, setAllowResubmit] = useState(false)
   const [apiError, setApiError]           = useState<string | null>(null)
 
@@ -209,29 +211,49 @@ export function ContactForm({ hasSubmitted, lineSession, isMember }: Props) {
   }
 
   // ── Success state ────────────────────────────────────────────────────────────
+  // member: แสดงตอน lead ยัง active (new/contacted) — form จะโผล่เองเมื่อ admin ปิด lead
+  // anonymous: แสดงตลอดหลังส่ง (cookie) — มีปุ่ม resubmit เป็น fallback
   if ((hasSubmitted || justSubmitted) && !allowResubmit) {
     return (
-      <div className="bg-[#1C0D0D] border border-white/5 rounded-2xl p-8 sm:p-10 text-center">
-        <div className="w-16 h-16 bg-[#DC2626]/10 rounded-full flex items-center justify-center mx-auto mb-5">
-          <CheckCircle2 size={32} className="text-[#DC2626]" />
+      <div className="bg-[#1C0D0D] border border-white/5 rounded-2xl p-8 sm:p-10 text-center space-y-5">
+        <div>
+          <div className="w-16 h-16 bg-[#DC2626]/10 rounded-full flex items-center justify-center mx-auto mb-5">
+            <CheckCircle2 size={32} className="text-[#DC2626]" />
+          </div>
+          <h3 className="font-display font-bold text-white text-xl mb-2">
+            {justSubmitted ? "ส่งข้อมูลเรียบร้อยแล้ว!" : "คุณเคยส่งข้อมูลไว้แล้ว"}
+          </h3>
+          <p className="text-slate-400 text-sm leading-relaxed max-w-sm mx-auto">
+            ทีมงานได้รับข้อมูลของคุณแล้ว และจะติดต่อกลับภายใน 1 ชั่วโมง
+            ในเวลาทำการ 9:00–20:00 น.
+          </p>
         </div>
-        <h3 className="font-display font-bold text-white text-xl mb-2">
-          {justSubmitted ? "ส่งข้อมูลเรียบร้อยแล้ว!" : "คุณเคยส่งข้อมูลไว้แล้ว"}
-        </h3>
-        <p className="text-slate-400 text-sm leading-relaxed max-w-sm mx-auto">
-          ทีมงานได้รับข้อมูลของคุณแล้ว และจะติดต่อกลับภายใน 1 ชั่วโมง
-          ในเวลาทำการ 9:00–20:00 น.
-        </p>
-        <p className="text-slate-600 text-xs mt-4">
-          หรือรอทีมงานติดต่อกลับผ่านเบอร์โทรที่กรอกไว้
-        </p>
-        <button
-          type="button"
-          onClick={() => { setAllowResubmit(true); reset() }}
-          className="mt-6 text-slate-500 hover:text-slate-300 text-xs underline underline-offset-2 transition-colors"
+
+        {/* ปุ่มหลัก — ทักไลน์ได้เลย */}
+        <a
+          href={lineOaHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-full flex items-center justify-center gap-2.5 bg-[#06C755] hover:bg-[#05a847] active:bg-[#048a3c] text-white font-semibold py-3.5 rounded-xl transition-colors text-sm"
         >
-          ต้องการส่งข้อมูลใหม่อีกครั้ง
-        </button>
+          <MessageCircle size={17} />
+          ทักหาทีมงานผ่าน LINE OA
+        </a>
+        <p className="text-slate-600 text-xs">
+          หรือรอทีมงานโทรกลับที่เบอร์ที่กรอกไว้
+        </p>
+
+        {/* anonymous เท่านั้น: ปุ่ม resubmit (member unlock อัตโนมัติเมื่อ admin ปิด lead) */}
+        {!isMember && (
+          <button
+            type="button"
+            onClick={() => { setAllowResubmit(true); reset() }}
+            className="flex items-center gap-1.5 mx-auto text-slate-600 hover:text-slate-400 text-xs transition-colors"
+          >
+            <RotateCcw size={11} />
+            ต้องการส่งข้อมูลใหม่อีกครั้ง
+          </button>
+        )}
       </div>
     )
   }

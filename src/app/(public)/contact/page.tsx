@@ -85,7 +85,7 @@ export default async function ContactPage() {
         </div>
 
         {/* Form — ต่อจาก header โดยตรง */}
-        <ContactForm hasSubmitted={hasSubmitted} lineSession={lineSession} isMember={isMember} />
+        <ContactForm hasSubmitted={hasSubmitted} lineSession={lineSession} isMember={isMember} lineOaHref={lineOaHref} />
 
         {/* Info cards — ด้านล่างฟอร์ม */}
         <div className="mt-10">
