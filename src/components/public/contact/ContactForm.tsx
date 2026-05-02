@@ -175,9 +175,10 @@ function LoginPrompt() {
 
 export function ContactForm({ hasSubmitted, lineSession, isMember }: Props) {
   const [justSubmitted, setJustSubmitted] = useState(false)
+  const [allowResubmit, setAllowResubmit] = useState(false)
   const [apiError, setApiError]           = useState<string | null>(null)
 
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({
+  const { register, handleSubmit, formState: { errors, isSubmitting }, reset } = useForm<FormData>({
     resolver: zodResolver(schema),
   })
 
@@ -201,13 +202,14 @@ export function ContactForm({ hasSubmitted, lineSession, isMember }: Props) {
         return
       }
       setJustSubmitted(true)
+      setAllowResubmit(false)
     } catch {
       setApiError("ไม่สามารถส่งข้อมูลได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต")
     }
   }
 
   // ── Success state ────────────────────────────────────────────────────────────
-  if (hasSubmitted || justSubmitted) {
+  if ((hasSubmitted || justSubmitted) && !allowResubmit) {
     return (
       <div className="bg-[#1C0D0D] border border-white/5 rounded-2xl p-8 sm:p-10 text-center">
         <div className="w-16 h-16 bg-[#DC2626]/10 rounded-full flex items-center justify-center mx-auto mb-5">
@@ -223,6 +225,13 @@ export function ContactForm({ hasSubmitted, lineSession, isMember }: Props) {
         <p className="text-slate-600 text-xs mt-4">
           หรือรอทีมงานติดต่อกลับผ่านเบอร์โทรที่กรอกไว้
         </p>
+        <button
+          type="button"
+          onClick={() => { setAllowResubmit(true); reset() }}
+          className="mt-6 text-slate-500 hover:text-slate-300 text-xs underline underline-offset-2 transition-colors"
+        >
+          ต้องการส่งข้อมูลใหม่อีกครั้ง
+        </button>
       </div>
     )
   }
