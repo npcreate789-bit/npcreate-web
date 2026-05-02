@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
 import { Loader2, Mail, KeyRound, User, Lock, Eye, EyeOff } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -10,6 +11,20 @@ import { LineLoginButton } from "@/components/auth/LineLoginButton"
 type Method = "otp" | "password"
 type OtpStep = "email" | "otp" | "profile"
 type PasswordStep = "account" | "profile" | "done"
+
+async function checkEmailExists(email: string): Promise<boolean> {
+  try {
+    const res = await fetch("/api/auth/check-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    })
+    const data = await res.json()
+    return data?.exists === true
+  } catch {
+    return false
+  }
+}
 
 // ─── OTP Register Flow ───────────────────────────────────────────────────────
 
@@ -30,6 +45,11 @@ function OtpRegisterFlow() {
     e.preventDefault()
     setError(null); setLoading(true)
     try {
+      const alreadyExists = await checkEmailExists(email)
+      if (alreadyExists) {
+        setError("__duplicate__")
+        return
+      }
       const supabase = createClient()
       const { error } = await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: true } })
       if (error) throw error
@@ -167,10 +187,15 @@ function PasswordRegisterFlow() {
     return true
   }
 
-  function nextStep(e: React.FormEvent) {
+  async function nextStep(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
     if (!validateAccount()) return
+    setLoading(true)
+    try {
+      const alreadyExists = await checkEmailExists(email)
+      if (alreadyExists) { setError("__duplicate__"); return }
+    } finally { setLoading(false) }
     setStep("profile")
   }
 
@@ -197,7 +222,12 @@ function PasswordRegisterFlow() {
         setStep("done")
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "สมัครสมาชิกไม่สำเร็จ")
+      const msg = err instanceof Error ? err.message : ""
+      if (msg.toLowerCase().includes("already registered") || msg.toLowerCase().includes("already been registered")) {
+        setError("__duplicate__")
+      } else {
+        setError(msg || "สมัครสมาชิกไม่สำเร็จ")
+      }
     } finally { setLoading(false) }
   }
 
@@ -374,6 +404,17 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 function ErrorBox({ msg }: { msg: string }) {
+  if (msg === "__duplicate__") {
+    return (
+      <div className="bg-amber-500/10 border border-amber-500/30 text-amber-400 text-sm px-4 py-3 rounded-xl text-center leading-relaxed">
+        อีเมลนี้มีบัญชีอยู่แล้ว{" "}
+        <Link href="/member/login" className="underline underline-offset-2 hover:text-amber-300 transition-colors font-medium">
+          เข้าสู่ระบบ
+        </Link>{" "}
+        แทน
+      </div>
+    )
+  }
   return (
     <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm px-4 py-3 rounded-xl">
       {msg}
