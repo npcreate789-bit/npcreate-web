@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
-import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 
 const VALID_GMV     = ["ยังไม่เปิดร้าน", "น้อยกว่า 50K", "50K-200K", "200K-1M", "1M+"] as const
 const VALID_SERVICE = ["ยิงแอด GMV Max", "วางกลยุทธ์ TikTok Shop", "Content & Creative", "ทั้งหมด", "ยังไม่แน่ใจ"] as const
@@ -132,11 +132,9 @@ export async function POST(req: NextRequest) {
 
   const data = result.data
 
-  const supabase = await createClient()
+  // ใช้ admin client เพื่อ bypass RLS — server-side route ไม่ต้องพึ่ง user session
+  const supabase = createAdminClient()
 
-  // ── 1. Insert core data ──────────────────────────────────────────────────────
-  // ไม่ใส่ member_id ใน insert หลัก เพราะ column นี้เพิ่มโดย migration แยก
-  // และ anon role ไม่มี SELECT policy บน leads → .select().single() จะ fail
   const { error: dbError } = await supabase.from("leads").insert({
     name:         data.name,
     phone:        data.phone,
