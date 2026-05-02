@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { revalidatePath } from "next/cache"
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
@@ -27,7 +28,7 @@ const statusLabels: Record<LeadStatus, string> = {
 
 async function updateLeadStatus(id: string, status: LeadStatus) {
   "use server"
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   await supabase.from("leads").update({ status }).eq("id", id)
   revalidatePath("/admin/leads")
 }
