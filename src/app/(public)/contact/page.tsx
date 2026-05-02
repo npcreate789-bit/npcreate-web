@@ -71,19 +71,27 @@ export default async function ContactPage() {
 
   return (
     <main className="min-h-screen bg-[#0A0808] pt-24 pb-24">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6">
-        <div className="text-center max-w-xl mx-auto mb-16">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6">
+
+        {/* Header */}
+        <div className="text-center mb-8">
           <span className="text-[#DC2626] text-sm font-semibold uppercase tracking-widest">ติดต่อเรา</span>
           <h1 className="font-display font-bold text-4xl sm:text-5xl text-white mt-3 mb-4">ปรึกษาฟรี วันนี้</h1>
           <p className="text-slate-400 text-lg leading-relaxed">
             บอกเราเกี่ยวกับ shop ของคุณ แล้วเราจะวิเคราะห์และเสนอแนวทางที่เหมาะสมที่สุดให้ฟรี
+            <br />
+            <span className="text-slate-500 text-base">เราพร้อมให้คำปรึกษาฟรีโดยไม่มีข้อผูกมัด</span>
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-[1fr_1.6fr] gap-8 items-start">
+        {/* Form — ต่อจาก header โดยตรง */}
+        <ContactForm hasSubmitted={hasSubmitted} lineSession={lineSession} isMember={isMember} />
+
+        {/* Info cards — ด้านล่างฟอร์ม */}
+        <div className="mt-10">
           <ContactInfo lineHref={lineOaHref} />
-          <ContactForm hasSubmitted={hasSubmitted} lineSession={lineSession} isMember={isMember} />
         </div>
+
       </div>
     </main>
   )
