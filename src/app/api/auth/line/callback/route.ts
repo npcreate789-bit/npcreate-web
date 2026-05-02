@@ -95,7 +95,8 @@ export async function GET(req: NextRequest) {
       }
 
       const admin        = createAdminClient()
-      const virtualEmail = `${profile.userId}@line.npcreate.co.th`
+      // Supabase normalizes emails to lowercase — must match or listUsers comparison fails
+      const virtualEmail = `${profile.userId.toLowerCase()}@line.npcreate.co.th`
 
       let userId: string | null = null
 
@@ -126,7 +127,9 @@ export async function GET(req: NextRequest) {
           return redirectWithError(base, returnTo, "create_user_failed")
         }
 
-        const existingAuthUser = userList?.users?.find(u => u.email === virtualEmail)
+        const existingAuthUser = userList?.users?.find(
+          u => u.email?.toLowerCase() === virtualEmail
+        )
 
         if (existingAuthUser) {
           userId = existingAuthUser.id
@@ -157,7 +160,7 @@ export async function GET(req: NextRequest) {
             if (createErr?.status === 422) {
               console.error("LINE createUser 422: user may already exist, retrying listUsers")
               const { data: retryList } = await admin.auth.admin.listUsers({ perPage: 1000 })
-              const retryUser = retryList?.users?.find(u => u.email === virtualEmail)
+              const retryUser = retryList?.users?.find(u => u.email?.toLowerCase() === virtualEmail)
               if (retryUser) {
                 userId = retryUser.id
                 await admin.from("profiles").update({
