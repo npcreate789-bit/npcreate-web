@@ -151,7 +151,7 @@ export async function POST(req: NextRequest) {
   })
 
   if (dbError) {
-    console.error("leads insert failed:", dbError)
+    console.error("leads insert failed:", dbError.code, dbError.message, dbError.details)
     return NextResponse.json({ error: "บันทึกข้อมูลไม่สำเร็จ กรุณาลองใหม่" }, { status: 500 })
   }
 
