@@ -132,12 +132,11 @@ export async function POST(req: NextRequest) {
 
   const data = result.data
 
-  // Get authenticated user (for member_id linkage)
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  const memberId = user?.id ?? null
 
-  // ── 1. บันทึกลง DB ก่อน — ถ้าล้มเหลวให้ return error ทันที (ไม่ set cookie) ──
+  // ── 1. Insert core data ──────────────────────────────────────────────────────
+  // ไม่ใส่ member_id ใน insert หลัก เพราะ column นี้เพิ่มโดย migration แยก
+  // และ anon role ไม่มี SELECT policy บน leads → .select().single() จะ fail
   const { error: dbError } = await supabase.from("leads").insert({
     name:         data.name,
     phone:        data.phone,
@@ -147,7 +146,6 @@ export async function POST(req: NextRequest) {
     message:      data.message ?? null,
     line_user_id: data.line_user_id ?? null,
     display_name: data.display_name ?? null,
-    member_id:    memberId,
   })
 
   if (dbError) {
