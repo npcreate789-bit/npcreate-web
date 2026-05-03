@@ -105,4 +105,9 @@ body {
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 4rem; /* offset fixed navbar (h-16) for anchor links */
+  overflow-x: hidden; /* prevent iOS Safari from zooming out when content overflows */
+}
+
+body {
+  overflow-x: hidden;
 }

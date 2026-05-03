@@ -66,9 +66,9 @@ export default async function MemberPage() {
 
         {/* Header */}
         <div className="flex items-start justify-between gap-4 flex-wrap">
-          <div>
+          <div className="min-w-0">
             <h1 className="font-display font-bold text-white text-2xl">พอร์ทัลสมาชิก</h1>
-            <p className="text-slate-400 text-sm mt-0.5">ยินดีต้อนรับ, {profile.full_name || "สมาชิก"}</p>
+            <p className="text-slate-400 text-sm mt-0.5 truncate">ยินดีต้อนรับ, {profile.full_name || "สมาชิก"}</p>
           </div>
           <MemberLogout />
         </div>
@@ -101,9 +101,9 @@ export default async function MemberPage() {
                   <span className="text-xs bg-slate-500/10 text-slate-500 px-2.5 py-0.5 rounded-full">ระงับ</span>
                 )}
               </div>
-              <p className="text-[#F59E0B] font-mono font-bold text-sm mt-1">{profile.user_code}</p>
+              <p className="text-[#F59E0B] font-mono font-bold text-sm mt-1 truncate">{profile.user_code}</p>
               {displayEmail && (
-                <p className="text-slate-500 text-xs mt-0.5">{displayEmail}</p>
+                <p className="text-slate-500 text-xs mt-0.5 truncate">{displayEmail}</p>
               )}
             </div>
           </div>
@@ -201,9 +201,9 @@ export default async function MemberPage() {
 
 function InfoItem({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
   return (
-    <div>
-      <p className="text-slate-500 text-[10px] font-medium uppercase tracking-widest">{label}</p>
-      <p className={`text-sm font-medium mt-0.5 ${highlight ? "text-[#06C755]" : "text-white"}`}>{value}</p>
+    <div className="min-w-0">
+      <p className="text-slate-500 text-[10px] font-medium uppercase tracking-widest truncate">{label}</p>
+      <p className={`text-sm font-medium mt-0.5 truncate ${highlight ? "text-[#06C755]" : "text-white"}`}>{value}</p>
     </div>
   )
 }
