@@ -4,6 +4,7 @@ import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
+import { toast } from "sonner"
 import {
   Loader2, Mail, KeyRound, User, Lock, Eye, EyeOff,
   Store, TrendingUp, ChevronRight,
@@ -14,7 +15,7 @@ import { saveRoleAndInfo, type RoleInfoInput } from "../actions"
 
 type Method = "otp" | "password"
 type OtpStep = "email" | "otp" | "profile" | "role" | "role_info"
-type PasswordStep = "account" | "profile" | "role" | "role_info" | "done"
+type PasswordStep = "account" | "profile" | "role" | "role_info" | "otp"
 type RoleChoice = "seller" | "affiliate" | null
 
 async function checkEmailExists(email: string): Promise<boolean> {
@@ -352,7 +353,10 @@ function PasswordRegisterFlow() {
   const [role, setRole]               = useState<RoleChoice>(null)
   const [loading, setLoading]         = useState(false)
   const [error, setError]             = useState<string | null>(null)
-  const [pendingEmail, setPendingEmail] = useState("")
+  const [signupOtp, setSignupOtp]     = useState("")
+  const [pendingRoleInfo, setPendingRoleInfo] = useState<{
+    storeName?: string; storeTiktokUrl?: string; tiktokChannelUrl?: string
+  } | null>(null)
   const [pending, startTransition]    = useTransition()
 
   const steps: PasswordStep[] = ["account", "profile", "role", "role_info"]
@@ -417,9 +421,9 @@ function PasswordRegisterFlow() {
           router.refresh()
         })
       } else {
-        // Email confirmation required — show done screen
-        setPendingEmail(email)
-        setStep("done")
+        // Email confirmation required — show OTP input
+        setPendingRoleInfo(data)
+        setStep("otp")
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : ""
@@ -431,23 +435,77 @@ function PasswordRegisterFlow() {
     } finally { setLoading(false) }
   }
 
-  if (step === "done") {
+  async function verifySignupOtp(e: React.FormEvent) {
+    e.preventDefault()
+    setError(null); setLoading(true)
+    try {
+      const supabase = createClient()
+      const { error: otpErr } = await supabase.auth.verifyOtp({
+        email, token: signupOtp, type: "signup",
+      })
+      if (otpErr) throw otpErr
+
+      if (!role || !pendingRoleInfo) throw new Error("ข้อมูลไม่ครบ กรุณาลองสมัครใหม่")
+      const input: RoleInfoInput = role === "seller"
+        ? { role: "seller", store_name: pendingRoleInfo.storeName ?? "", store_tiktok_url: pendingRoleInfo.storeTiktokUrl }
+        : { role: "affiliate", tiktok_channel_url: pendingRoleInfo.tiktokChannelUrl }
+
+      const result = await saveRoleAndInfo(input)
+      if ("error" in result) { setError(result.error); return }
+      router.push(result.redirectTo)
+      router.refresh()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "OTP ไม่ถูกต้องหรือหมดอายุ")
+    } finally { setLoading(false) }
+  }
+
+  async function resendSignupOtp() {
+    setError(null); setLoading(true)
+    try {
+      const supabase = createClient()
+      const { error } = await supabase.auth.resend({ email, type: "signup" })
+      if (error) throw error
+      toast.success("ส่ง OTP ใหม่แล้ว ตรวจสอบ inbox ของคุณ")
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "ส่งใหม่ไม่สำเร็จ")
+    } finally { setLoading(false) }
+  }
+
+  if (step === "otp") {
     return (
-      <div className="text-center space-y-4 py-4">
-        <div className="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto">
-          <Mail size={28} className="text-emerald-400" />
-        </div>
-        <h2 className="text-white font-semibold text-base">ยืนยัน Email ของคุณ</h2>
-        <p className="text-slate-400 text-sm leading-relaxed">
-          ส่งลิงก์ยืนยันไปที่<br />
-          <span className="text-white font-medium">{pendingEmail}</span><br />
-          กรุณาคลิกลิงก์ในอีเมลเพื่อเปิดใช้งานบัญชี
-        </p>
-        <p className="text-slate-600 text-xs">ตรวจสอบโฟลเดอร์ Spam หากไม่พบอีเมล</p>
-        <p className="text-slate-600 text-xs mt-2">
-          เมื่อยืนยันแล้ว ระบบจะให้เลือกประเภทบัญชีของคุณ
-        </p>
-      </div>
+      <form onSubmit={verifySignupOtp} className="space-y-4">
+        <StepHeader
+          icon={<KeyRound size={15} className="text-[#DC2626]" />}
+          title="ยืนยัน Email"
+          desc={<>ส่งรหัส 6 หลักไปที่ <span className="text-slate-300">{email}</span></>}
+        />
+        <input
+          type="text"
+          value={signupOtp}
+          inputMode="numeric"
+          maxLength={6}
+          onChange={e => { setSignupOtp(e.target.value.replace(/\D/g, "")); setError(null) }}
+          placeholder="000000"
+          required
+          autoFocus
+          className={cn(inputCls(), "text-center text-2xl tracking-[0.5em] font-mono")}
+        />
+        {error && <ErrorBox msg={error} />}
+        <button type="submit" disabled={loading || signupOtp.length < 6} className={btnCls()}>
+          {loading
+            ? <><Loader2 size={14} className="animate-spin" /> กำลังยืนยัน...</>
+            : "ยืนยัน OTP"}
+        </button>
+        <button
+          type="button"
+          onClick={resendSignupOtp}
+          disabled={loading}
+          className="w-full text-slate-500 hover:text-slate-300 text-sm transition-colors disabled:opacity-50"
+        >
+          ส่ง OTP ใหม่
+        </button>
+        <p className="text-slate-600 text-xs text-center">ตรวจสอบโฟลเดอร์ Spam หากไม่พบอีเมล</p>
+      </form>
     )
   }
 
