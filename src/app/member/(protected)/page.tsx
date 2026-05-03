@@ -61,7 +61,7 @@ export default async function MemberPage() {
   const hasActiveLead = myLeads.some(l => l.status === "new" || l.status === "contacted")
 
   return (
-    <div className="min-h-screen bg-[#0A0808] pt-24 pb-16 overflow-x-hidden">
+    <div className="min-h-screen bg-[#0A0808] pt-10 pb-16 overflow-x-hidden">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 space-y-6">
 
         {/* Header */}
