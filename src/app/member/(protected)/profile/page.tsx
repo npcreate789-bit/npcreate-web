@@ -20,7 +20,7 @@ export default async function MemberProfilePage() {
   const isLineOnly = user.email?.endsWith("@line.npcreate.co.th") ?? false
 
   return (
-    <div className="min-h-screen bg-[#0A0808] pt-24 pb-16">
+    <div className="min-h-screen bg-[#0A0808] pt-10 pb-16">
       <div className="max-w-xl mx-auto px-4 sm:px-6 space-y-6">
         <div>
           <h1 className="font-display font-bold text-white text-2xl">แก้ไขโปรไฟล์</h1>

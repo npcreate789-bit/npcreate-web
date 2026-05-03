@@ -173,21 +173,6 @@ export default async function MemberPage() {
           </div>
         </div>
 
-        {/* Admin panel shortcut */}
-        {profile.role === "admin" && (
-          <Link href="/admin"
-            className="flex items-center gap-4 bg-[#DC2626]/5 border border-[#DC2626]/20 hover:border-[#DC2626]/40 hover:bg-[#DC2626]/10 rounded-2xl p-5 transition-colors group">
-            <div className="w-10 h-10 bg-[#DC2626]/10 rounded-xl flex items-center justify-center shrink-0">
-              <LayoutDashboard size={18} className="text-[#DC2626]" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="font-semibold text-white text-sm group-hover:text-[#FCA5A5] transition-colors">จัดการหลังบ้าน</p>
-              <p className="text-slate-500 text-xs mt-0.5 truncate">Admin Panel — จัดการผลงาน บริการ สมาชิก และการตั้งค่า</p>
-            </div>
-            <ChevronRight size={15} className="text-slate-600 shrink-0 group-hover:text-slate-400 transition-colors" />
-          </Link>
-        )}
-
         {/* Lead history — ด้านล่างสุด */}
         {myLeads.length > 0 ? (
           <div className="bg-[#1C0D0D] border border-white/5 rounded-2xl p-5 sm:p-6 space-y-4">
@@ -239,10 +224,27 @@ export default async function MemberPage() {
             </div>
             <p className="text-slate-500 text-sm">ยังไม่มีประวัติการติดต่อ</p>
             <Link href="/contact"
-              className="inline-flex items-center gap-1.5 mt-3 text-sm text-[#DC2626] hover:text-[#FCA5A5] transition-colors font-medium">
-              ปรึกษาฟรีได้เลย <ChevronRight size={14} />
+              className="inline-flex items-center gap-2 mt-4 bg-[#DC2626]/10 hover:bg-[#DC2626]/20 border border-[#DC2626]/20 hover:border-[#DC2626]/40 text-[#DC2626] hover:text-[#FCA5A5] transition-colors font-semibold text-sm px-4 py-2.5 rounded-xl">
+              <MessageCircle size={15} />
+              ปรึกษาฟรีได้เลย
+              <ChevronRight size={14} />
             </Link>
           </div>
+        )}
+
+        {/* Admin panel shortcut — ด้านล่างสุด */}
+        {profile.role === "admin" && (
+          <Link href="/admin"
+            className="flex items-center gap-4 bg-[#DC2626]/5 border border-[#DC2626]/20 hover:border-[#DC2626]/40 hover:bg-[#DC2626]/10 rounded-2xl p-5 transition-colors group">
+            <div className="w-10 h-10 bg-[#DC2626]/10 rounded-xl flex items-center justify-center shrink-0">
+              <LayoutDashboard size={18} className="text-[#DC2626]" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="font-semibold text-white text-sm group-hover:text-[#FCA5A5] transition-colors">จัดการหลังบ้าน</p>
+              <p className="text-slate-500 text-xs mt-0.5 truncate">Admin Panel — จัดการผลงาน บริการ สมาชิก และการตั้งค่า</p>
+            </div>
+            <ChevronRight size={15} className="text-slate-600 shrink-0 group-hover:text-slate-400 transition-colors" />
+          </Link>
         )}
 
       </div>
