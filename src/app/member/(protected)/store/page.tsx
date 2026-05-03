@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import {
-  Package, Megaphone, Users, MousePointerClick,
+  Package, Megaphone, Users, Clock,
   Plus, ChevronRight, CheckCircle2, ExternalLink,
   Store as StoreIcon,
 } from "lucide-react"
@@ -75,12 +75,28 @@ export default async function StoreDashboardPage() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <StatCard icon={<Package size={16} className="text-indigo-400" />} label="สินค้า (active)" value={`${stats.activeProducts}/${stats.totalProducts}`} color="bg-indigo-500/10" />
           <StatCard icon={<Megaphone size={16} className="text-[#F59E0B]" />} label="แคมเปญ active" value={stats.activeCampaigns} color="bg-[#F59E0B]/10" />
-          <StatCard icon={<Users size={16} className="text-[#DC2626]" />} label="Affiliate ดึงสินค้า" value={stats.totalPulls} color="bg-[#DC2626]/10" />
-          <StatCard icon={<MousePointerClick size={16} className="text-emerald-400" />} label="คลิกทั้งหมด" value={stats.totalClicks} color="bg-emerald-500/10" />
+          <StatCard icon={<Users size={16} className="text-[#DC2626]" />} label="Affiliate ทั้งหมด" value={stats.totalPulls} color="bg-[#DC2626]/10" />
+          <StatCard icon={<Clock size={16} className="text-amber-400" />} label="รอพิจารณา" value={stats.pendingPulls} color="bg-amber-500/10" />
         </div>
 
         {/* Quick actions */}
-        <div className="grid sm:grid-cols-2 gap-4">
+        <div className="grid sm:grid-cols-3 gap-4">
+          <Link href="/member/store/pulls"
+            className="group flex items-center gap-4 bg-[#1C0D0D] border border-white/5 hover:border-[#DC2626]/30 hover:bg-[#DC2626]/5 rounded-2xl p-5 transition-colors">
+            <div className="w-10 h-10 bg-[#DC2626]/10 rounded-xl flex items-center justify-center shrink-0">
+              <Users size={18} className="text-[#DC2626]" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="font-semibold text-white text-sm group-hover:text-[#FCA5A5] transition-colors">Affiliate</p>
+              <p className="text-slate-500 text-xs mt-0.5">
+                {stats.pendingPulls > 0 ? (
+                  <span className="text-amber-400">{stats.pendingPulls} รอพิจารณา</span>
+                ) : `${stats.totalPulls} รายการ`}
+              </p>
+            </div>
+            <ChevronRight size={15} className="text-slate-600 shrink-0 group-hover:text-slate-400 transition-colors" />
+          </Link>
+
           <Link href="/member/store/products"
             className="group flex items-center gap-4 bg-[#1C0D0D] border border-white/5 hover:border-indigo-500/30 hover:bg-indigo-500/5 rounded-2xl p-5 transition-colors">
             <div className="w-10 h-10 bg-indigo-500/10 rounded-xl flex items-center justify-center shrink-0">
@@ -99,7 +115,7 @@ export default async function StoreDashboardPage() {
               <Megaphone size={18} className="text-[#F59E0B]" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="font-semibold text-white text-sm group-hover:text-[#F59E0B] transition-colors">จัดการแคมเปญ</p>
+              <p className="font-semibold text-white text-sm group-hover:text-[#F59E0B] transition-colors">แคมเปญ</p>
               <p className="text-slate-500 text-xs mt-0.5">{stats.activeCampaigns} active</p>
             </div>
             <ChevronRight size={15} className="text-slate-600 shrink-0 group-hover:text-[#F59E0B] transition-colors" />

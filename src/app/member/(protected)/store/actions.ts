@@ -64,19 +64,32 @@ export async function updateStore(id: string, data: {
 
 export async function getStoreDashboardStats(storeId: string) {
   const { supabase } = await getSellerUser()
-  const [products, campaigns, pulls] = await Promise.all([
-    supabase.from("products").select("id, is_active", { count: "exact" }).eq("store_id", storeId),
-    supabase.from("campaigns").select("id, is_active", { count: "exact" }).eq("store_id", storeId),
-    supabase.from("affiliate_pulls")
-      .select("id, total_clicks, product_id, products!inner(store_id)")
-      .eq("products.store_id", storeId),
+
+  const [productsRes, campaignsRes] = await Promise.all([
+    supabase.from("products").select("id, is_active").eq("store_id", storeId),
+    supabase.from("campaigns").select("id, is_active").eq("store_id", storeId),
   ])
 
-  const totalProducts = products.count ?? 0
-  const activeProducts = (products.data ?? []).filter(p => p.is_active).length
-  const activeCampaigns = (campaigns.data ?? []).filter(c => c.is_active).length
-  const totalPulls = pulls.data?.length ?? 0
-  const totalClicks = (pulls.data ?? []).reduce((sum, p) => sum + (p.total_clicks ?? 0), 0)
+  const productIds = (productsRes.data ?? []).map(p => p.id)
+  const activeProducts = (productsRes.data ?? []).filter(p => p.is_active).length
+  const activeCampaigns = (campaignsRes.data ?? []).filter(c => c.is_active).length
 
-  return { totalProducts, activeProducts, activeCampaigns, totalPulls, totalClicks }
+  let totalPulls = 0
+  let pendingPulls = 0
+  if (productIds.length > 0) {
+    const { data: pulls } = await supabase
+      .from("affiliate_pulls")
+      .select("id, sample_status")
+      .in("product_id", productIds)
+    totalPulls = pulls?.length ?? 0
+    pendingPulls = (pulls ?? []).filter(p => p.sample_status === "pending").length
+  }
+
+  return {
+    totalProducts: productsRes.data?.length ?? 0,
+    activeProducts,
+    activeCampaigns,
+    totalPulls,
+    pendingPulls,
+  }
 }
