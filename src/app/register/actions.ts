@@ -18,47 +18,53 @@ const roleInfoSchema = z.discriminatedUnion("role", [sellerSchema, affiliateSche
 
 export type RoleInfoInput = z.infer<typeof roleInfoSchema>
 
-export async function saveRoleAndInfo(input: RoleInfoInput): Promise<{ redirectTo: string }> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error("ไม่ได้เข้าสู่ระบบ")
+export async function saveRoleAndInfo(
+  input: RoleInfoInput,
+): Promise<{ redirectTo: string } | { error: string }> {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: "ไม่ได้เข้าสู่ระบบ" }
 
-  const parsed = roleInfoSchema.safeParse(input)
-  if (!parsed.success) throw new Error(parsed.error.issues[0]?.message ?? "ข้อมูลไม่ถูกต้อง")
+    const parsed = roleInfoSchema.safeParse(input)
+    if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "ข้อมูลไม่ถูกต้อง" }
 
-  const data = parsed.data
+    const data = parsed.data
 
-  if (data.role === "affiliate") {
-    const { error } = await supabase
+    if (data.role === "affiliate") {
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          role: "affiliate",
+          role_confirmed: true,
+          tiktok_channel_url: data.tiktok_channel_url?.trim() || null,
+        })
+        .eq("id", user.id)
+      if (error) return { error: error.message }
+      return { redirectTo: "/marketplace" }
+    }
+
+    // Seller: update profile + upsert store
+    const { error: profileError } = await supabase
       .from("profiles")
-      .update({
-        role: "affiliate",
-        role_confirmed: true,
-        tiktok_channel_url: data.tiktok_channel_url?.trim() || null,
-      })
+      .update({ role: "seller", role_confirmed: true })
       .eq("id", user.id)
-    if (error) throw new Error(error.message)
-    return { redirectTo: "/marketplace" }
+    if (profileError) return { error: profileError.message }
+
+    const { error: storeError } = await supabase
+      .from("stores")
+      .upsert(
+        {
+          seller_id: user.id,
+          name: data.store_name,
+          tiktok_shop_url: data.store_tiktok_url?.trim() || null,
+        },
+        { onConflict: "seller_id" },
+      )
+    if (storeError) return { error: storeError.message }
+
+    return { redirectTo: "/member/store" }
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "เกิดข้อผิดพลาด กรุณาลองใหม่" }
   }
-
-  // Seller: update profile + upsert store
-  const { error: profileError } = await supabase
-    .from("profiles")
-    .update({ role: "seller", role_confirmed: true })
-    .eq("id", user.id)
-  if (profileError) throw new Error(profileError.message)
-
-  const { error: storeError } = await supabase
-    .from("stores")
-    .upsert(
-      {
-        seller_id: user.id,
-        name: data.store_name,
-        tiktok_shop_url: data.store_tiktok_url?.trim() || null,
-      },
-      { onConflict: "seller_id" }
-    )
-  if (storeError) throw new Error(storeError.message)
-
-  return { redirectTo: "/member/store" }
 }

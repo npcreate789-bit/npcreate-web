@@ -247,12 +247,10 @@ function OtpRegisterFlow() {
       : { role: "affiliate", tiktok_channel_url: data.tiktokChannelUrl }
 
     startTransition(async () => {
-      try {
-        const { redirectTo } = await saveRoleAndInfo(input)
-        router.push(redirectTo); router.refresh()
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "บันทึกข้อมูลไม่สำเร็จ")
-      }
+      const result = await saveRoleAndInfo(input)
+      if ("error" in result) { setError(result.error); return }
+      router.push(result.redirectTo)
+      router.refresh()
     })
   }
 
@@ -413,12 +411,10 @@ function PasswordRegisterFlow() {
           : { role: "affiliate", tiktok_channel_url: data.tiktokChannelUrl }
 
         startTransition(async () => {
-          try {
-            const { redirectTo } = await saveRoleAndInfo(input)
-            router.push(redirectTo); router.refresh()
-          } catch (err) {
-            setError(err instanceof Error ? err.message : "บันทึกข้อมูลไม่สำเร็จ")
-          }
+          const result = await saveRoleAndInfo(input)
+          if ("error" in result) { setError(result.error); return }
+          router.push(result.redirectTo)
+          router.refresh()
         })
       } else {
         // Email confirmation required — show done screen

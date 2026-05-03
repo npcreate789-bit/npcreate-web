@@ -34,12 +34,10 @@ export default function SetupRolePage() {
       : { role: "affiliate", tiktok_channel_url: tiktokChannelUrl }
 
     start(async () => {
-      try {
-        const { redirectTo } = await saveRoleAndInfo(input)
-        router.push(redirectTo); router.refresh()
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "บันทึกข้อมูลไม่สำเร็จ")
-      }
+      const result = await saveRoleAndInfo(input)
+      if ("error" in result) { setError(result.error); return }
+      router.push(result.redirectTo)
+      router.refresh()
     })
   }
 

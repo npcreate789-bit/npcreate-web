@@ -9,7 +9,7 @@ export default async function MemberProtectedLayout({ children }: { children: Re
   // Redirect unconfirmed role to setup-role (skip if already on setup-role)
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role_confirmed, is_active")
+    .select("is_active")
     .eq("id", user.id)
     .maybeSingle()
 
@@ -17,6 +17,3 @@ export default async function MemberProtectedLayout({ children }: { children: Re
 
   return <>{children}</>
 }
-
-// Allow setup-role page to be exempt from the role_confirmed check
-// by handling it in the page itself (no infinite redirect)
