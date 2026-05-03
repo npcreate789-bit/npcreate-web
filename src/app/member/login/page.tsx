@@ -39,7 +39,7 @@ export default async function MemberLoginPage({
             NP<span className="text-[#DC2626]">Create</span>
           </Link>
           <h1 className="font-display font-bold text-white text-xl mt-4">เข้าสู่ระบบสมาชิก</h1>
-          <p className="text-slate-400 text-sm mt-1">เข้าสู่ระบบด้วยรหัสผ่าน หรือ Gmail OTP</p>
+          <p className="text-slate-400 text-sm mt-1">เข้าสู่ระบบด้วย LINE หรืออีเมล</p>
         </div>
 
         {errorMessage && (

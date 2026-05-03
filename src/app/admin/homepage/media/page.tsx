@@ -3,6 +3,7 @@ import Link from "next/link"
 import { Plus } from "lucide-react"
 import type { HeroMedia } from "@/types/database"
 import { HeroMediaRowActions } from "./_components/HeroMediaRowActions"
+import { cn } from "@/lib/utils"
 
 export default async function HeroMediaPage() {
   const supabase = await createClient()
@@ -108,6 +109,3 @@ export default async function HeroMediaPage() {
   )
 }
 
-function cn(...classes: (string | boolean | undefined)[]) {
-  return classes.filter(Boolean).join(" ")
-}

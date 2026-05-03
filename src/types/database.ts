@@ -95,6 +95,7 @@ export type Lead = {
   display_name: string | null
   picture_url: string | null
   line_id: string | null
+  member_id: string | null
   name: string
   phone: string
   brand: string

@@ -3,10 +3,7 @@ import Link from "next/link"
 import { Plus } from "lucide-react"
 import type { PromoBanner } from "@/types/database"
 import { PromoBannerRowActions } from "./_components/PromoBannerRowActions"
-
-function cn(...classes: (string | boolean | undefined)[]) {
-  return classes.filter(Boolean).join(" ")
-}
+import { cn } from "@/lib/utils"
 
 export default async function PromoBannersPage() {
   const supabase = await createClient()
