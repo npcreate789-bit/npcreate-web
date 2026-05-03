@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react"
 import { usePathname } from "next/navigation"
 import { Loader2, CheckCircle2, Plus, AlertTriangle } from "lucide-react"
+import { toast } from "sonner"
 import { pullProduct } from "../actions"
 import { RegisterPromptModal } from "./RegisterPromptModal"
 
@@ -20,28 +21,27 @@ export function PullButton({
   hasTiktok: boolean
 }) {
   const pathname = usePathname()
-  const [pulled, setPulled]           = useState(initialPulled)
-  const [showModal, setShowModal]     = useState(false)
-  const [showTiktokWarn, setShowTiktokWarn] = useState(false)
-  const [error, setError]             = useState<string | null>(null)
-  const [pending, start]              = useTransition()
+  const [pulled, setPulled]                   = useState(initialPulled)
+  const [showModal, setShowModal]             = useState(false)
+  const [showTiktokWarn, setShowTiktokWarn]   = useState(false)
+  const [pending, start]                      = useTransition()
 
   function handleClick() {
     if (!isLoggedIn) { setShowModal(true); return }
-    if (!isAffiliate) { setError("เฉพาะสมาชิก Affiliate เท่านั้น"); return }
+    if (!isAffiliate) { toast.error("เฉพาะสมาชิก Affiliate เท่านั้น"); return }
     if (!hasTiktok && !showTiktokWarn) { setShowTiktokWarn(true); return }
     setShowTiktokWarn(false)
     doPull()
   }
 
   function doPull() {
-    setError(null)
     start(async () => {
       const result = await pullProduct(productId)
       if ("error" in result) {
-        setError(result.error)
+        toast.error(result.error)
       } else {
         setPulled(true)
+        toast.success("ดึงสินค้าแล้ว! ดูได้ที่ สินค้าของฉัน")
       }
     })
   }
@@ -78,10 +78,6 @@ export function PullButton({
             ? <><Loader2 size={15} className="animate-spin" /> กำลังดึง...</>
             : <><Plus size={15} /> {showTiktokWarn ? "ดึงสินค้าต่อไป" : "ดึงสินค้า"}</>}
         </button>
-
-        {error && (
-          <p className="text-red-400 text-xs text-center">{error}</p>
-        )}
       </div>
 
       {showModal && (

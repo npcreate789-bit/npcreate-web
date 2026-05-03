@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { Loader2, User, Phone, Hash, Save } from "lucide-react"
+import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { updateProfile } from "../actions"
 import type { Profile } from "@/types/database"
@@ -12,22 +13,18 @@ export function ProfileForm({ profile }: { profile: Profile }) {
   const [fullName, setFullName] = useState(profile.full_name)
   const [phone, setPhone]       = useState(profile.phone)
   const [lineId, setLineId]     = useState(profile.line_id)
-  const [status, setStatus]     = useState<"idle" | "ok" | "error">("idle")
-  const [errorMsg, setErrorMsg] = useState("")
   const [pending, start]        = useTransition()
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!fullName.trim()) { setErrorMsg("กรุณากรอกชื่อ-สกุล"); setStatus("error"); return }
-    setStatus("idle")
+    if (!fullName.trim()) { toast.error("กรุณากรอกชื่อ-สกุล"); return }
     start(async () => {
       try {
         await updateProfile({ full_name: fullName, phone, line_id: lineId })
-        setStatus("ok")
+        toast.success("บันทึกสำเร็จ")
         router.push("/member")
       } catch (err) {
-        setErrorMsg(err instanceof Error ? err.message : "เกิดข้อผิดพลาด")
-        setStatus("error")
+        toast.error(err instanceof Error ? err.message : "เกิดข้อผิดพลาด")
       }
     })
   }
@@ -41,22 +38,11 @@ export function ProfileForm({ profile }: { profile: Profile }) {
         <h2 className="text-white font-semibold text-sm">ข้อมูลส่วนตัว</h2>
       </div>
 
-      {status === "ok" && (
-        <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm px-4 py-3 rounded-xl flex items-center gap-2">
-          <Save size={14} /> บันทึกสำเร็จ
-        </div>
-      )}
-      {status === "error" && (
-        <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm px-4 py-3 rounded-xl">
-          {errorMsg}
-        </div>
-      )}
-
       <div className="space-y-4">
         <Field label="ชื่อ-สกุล *" icon={<User size={13} className="text-slate-500" />}>
           <input
             value={fullName}
-            onChange={(e) => { setFullName(e.target.value); setStatus("idle") }}
+            onChange={e => setFullName(e.target.value)}
             placeholder="ชื่อ นามสกุล"
             required
             className={inputClass()}
@@ -65,7 +51,7 @@ export function ProfileForm({ profile }: { profile: Profile }) {
         <Field label="เบอร์โทรศัพท์" icon={<Phone size={13} className="text-slate-500" />}>
           <input
             value={phone}
-            onChange={(e) => { setPhone(e.target.value); setStatus("idle") }}
+            onChange={e => setPhone(e.target.value)}
             placeholder="08x-xxx-xxxx"
             type="tel"
             className={inputClass()}
@@ -74,7 +60,7 @@ export function ProfileForm({ profile }: { profile: Profile }) {
         <Field label="LINE ID" icon={<Hash size={13} className="text-slate-500" />}>
           <input
             value={lineId}
-            onChange={(e) => { setLineId(e.target.value); setStatus("idle") }}
+            onChange={e => setLineId(e.target.value)}
             placeholder="@yourlineid"
             className={inputClass()}
           />

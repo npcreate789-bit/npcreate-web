@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react"
 import { Loader2, Save, MapPin } from "lucide-react"
+import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { updateAddress } from "../actions"
 import type { Profile } from "@/types/database"
@@ -26,27 +27,21 @@ export function AddressForm({ profile }: { profile: AddressData }) {
     address_province:    profile.address_province    ?? "",
     address_postcode:    profile.address_postcode    ?? "",
   })
-  const [status, setStatus] = useState<"idle" | "ok" | "error">("idle")
-  const [errorMsg, setErrorMsg] = useState("")
   const [pending, start] = useTransition()
 
   function set(key: keyof typeof form) {
-    return (e: React.ChangeEvent<HTMLInputElement>) => {
+    return (e: React.ChangeEvent<HTMLInputElement>) =>
       setForm(f => ({ ...f, [key]: e.target.value }))
-      setStatus("idle")
-    }
   }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setStatus("idle")
     start(async () => {
       try {
         await updateAddress(form)
-        setStatus("ok")
+        toast.success("บันทึกที่อยู่สำเร็จ")
       } catch (err) {
-        setErrorMsg(err instanceof Error ? err.message : "เกิดข้อผิดพลาด")
-        setStatus("error")
+        toast.error(err instanceof Error ? err.message : "เกิดข้อผิดพลาด")
       }
     })
   }
@@ -73,83 +68,35 @@ export function AddressForm({ profile }: { profile: AddressData }) {
         ที่อยู่นี้ใช้สำหรับให้ Seller ส่งสินค้าตัวอย่างเมื่อคุณได้รับการอนุมัติ
       </p>
 
-      {status === "ok" && (
-        <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm px-4 py-3 rounded-xl flex items-center gap-2">
-          <Save size={14} /> บันทึกที่อยู่สำเร็จ
-        </div>
-      )}
-      {status === "error" && (
-        <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm px-4 py-3 rounded-xl">
-          {errorMsg}
-        </div>
-      )}
-
       <div className="space-y-3">
         <div className="grid sm:grid-cols-2 gap-3">
           <Field label="ชื่อผู้รับ">
-            <input
-              value={form.address_name}
-              onChange={set("address_name")}
-              placeholder="ชื่อ นามสกุล"
-              className={inputClass()}
-            />
+            <input value={form.address_name} onChange={set("address_name")} placeholder="ชื่อ นามสกุล" className={inputClass()} />
           </Field>
           <Field label="เบอร์โทรผู้รับ">
-            <input
-              type="tel"
-              value={form.address_phone}
-              onChange={set("address_phone")}
-              placeholder="08x-xxx-xxxx"
-              className={inputClass()}
-            />
+            <input type="tel" value={form.address_phone} onChange={set("address_phone")} placeholder="08x-xxx-xxxx" className={inputClass()} />
           </Field>
         </div>
 
         <Field label="ที่อยู่ (บ้านเลขที่ ถนน ซอย)">
-          <input
-            value={form.address_line1}
-            onChange={set("address_line1")}
-            placeholder="เช่น 123 ถ.สุขุมวิท ซ.5"
-            className={inputClass()}
-          />
+          <input value={form.address_line1} onChange={set("address_line1")} placeholder="เช่น 123 ถ.สุขุมวิท ซ.5" className={inputClass()} />
         </Field>
 
         <div className="grid sm:grid-cols-2 gap-3">
           <Field label="แขวง/ตำบล">
-            <input
-              value={form.address_subdistrict}
-              onChange={set("address_subdistrict")}
-              placeholder="เช่น คลองเตย"
-              className={inputClass()}
-            />
+            <input value={form.address_subdistrict} onChange={set("address_subdistrict")} placeholder="เช่น คลองเตย" className={inputClass()} />
           </Field>
           <Field label="เขต/อำเภอ">
-            <input
-              value={form.address_district}
-              onChange={set("address_district")}
-              placeholder="เช่น คลองเตย"
-              className={inputClass()}
-            />
+            <input value={form.address_district} onChange={set("address_district")} placeholder="เช่น คลองเตย" className={inputClass()} />
           </Field>
         </div>
 
         <div className="grid sm:grid-cols-2 gap-3">
           <Field label="จังหวัด">
-            <input
-              value={form.address_province}
-              onChange={set("address_province")}
-              placeholder="เช่น กรุงเทพมหานคร"
-              className={inputClass()}
-            />
+            <input value={form.address_province} onChange={set("address_province")} placeholder="เช่น กรุงเทพมหานคร" className={inputClass()} />
           </Field>
           <Field label="รหัสไปรษณีย์">
-            <input
-              value={form.address_postcode}
-              onChange={set("address_postcode")}
-              placeholder="เช่น 10110"
-              maxLength={5}
-              className={inputClass()}
-            />
+            <input value={form.address_postcode} onChange={set("address_postcode")} placeholder="เช่น 10110" maxLength={5} className={inputClass()} />
           </Field>
         </div>
       </div>

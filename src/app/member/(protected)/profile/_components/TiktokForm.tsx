@@ -2,25 +2,22 @@
 
 import { useState, useTransition } from "react"
 import { Loader2, Save, ExternalLink } from "lucide-react"
+import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { updateTiktokUrl } from "../actions"
 
 export function TiktokForm({ currentUrl }: { currentUrl: string | null }) {
   const [url, setUrl] = useState(currentUrl ?? "")
-  const [status, setStatus] = useState<"idle" | "ok" | "error">("idle")
-  const [errorMsg, setErrorMsg] = useState("")
   const [pending, start] = useTransition()
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setStatus("idle")
     start(async () => {
       try {
         await updateTiktokUrl(url)
-        setStatus("ok")
+        toast.success("บันทึก TikTok URL แล้ว")
       } catch (err) {
-        setErrorMsg(err instanceof Error ? err.message : "เกิดข้อผิดพลาด")
-        setStatus("error")
+        toast.error(err instanceof Error ? err.message : "เกิดข้อผิดพลาด")
       }
     })
   }
@@ -38,23 +35,12 @@ export function TiktokForm({ currentUrl }: { currentUrl: string | null }) {
         ใส่ลิงก์ช่อง TikTok เพื่อให้ Seller เห็นและพิจารณาส่งสินค้าตัวอย่างให้คุณ
       </p>
 
-      {status === "ok" && (
-        <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm px-4 py-3 rounded-xl flex items-center gap-2">
-          <Save size={14} /> บันทึกสำเร็จ
-        </div>
-      )}
-      {status === "error" && (
-        <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm px-4 py-3 rounded-xl">
-          {errorMsg}
-        </div>
-      )}
-
       <div className="space-y-1.5">
         <label className="text-slate-300 text-xs font-medium">URL ช่อง TikTok</label>
         <input
           type="url"
           value={url}
-          onChange={e => { setUrl(e.target.value); setStatus("idle") }}
+          onChange={e => setUrl(e.target.value)}
           placeholder="https://www.tiktok.com/@yourusername"
           className={cn(
             "w-full bg-[#0A0808] border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm",

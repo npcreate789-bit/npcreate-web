@@ -1,11 +1,13 @@
 import { createClient } from "@/lib/supabase/server"
 import Link from "next/link"
-import { Plus, Package, ShoppingBag } from "lucide-react"
+import { Plus, Package, ShoppingBag, ChevronLeft, ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { ProductRowActions } from "./_components/ProductRowActions"
 import type { Product, Store } from "@/types/database"
 
 type ProductRow = Product & { store: Pick<Store, "id" | "name" | "is_verified"> | null }
+
+const PAGE_SIZE = 20
 
 const stockColor: Record<string, string> = {
   in_stock:     "bg-emerald-500/10 text-emerald-400",
@@ -19,25 +21,41 @@ const stockLabel: Record<string, string> = {
 export default async function AdminMarketplacePage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; store?: string }>
+  searchParams: Promise<{ q?: string; store?: string; page?: string }>
 }) {
-  const { q, store } = await searchParams
+  const { q, store, page: pageParam } = await searchParams
+  const page = Math.max(1, parseInt(pageParam ?? "1", 10))
+  const from = (page - 1) * PAGE_SIZE
+  const to   = from + PAGE_SIZE - 1
+
   const supabase = await createClient()
 
   let query = supabase
     .from("products")
-    .select("*, store:stores(id, name, is_verified)")
+    .select("*, store:stores(id, name, is_verified)", { count: "exact" })
     .order("created_at", { ascending: false })
+    .range(from, to)
 
   if (q) query = query.ilike("name", `%${q}%`)
   if (store) query = query.eq("store_id", store)
 
-  const [{ data: products }, { data: stores }] = await Promise.all([
+  const [{ data: products, count }, { data: stores }] = await Promise.all([
     query,
     supabase.from("stores").select("id, name").order("name"),
   ])
 
   const rows = (products ?? []) as ProductRow[]
+  const total = count ?? 0
+  const totalPages = Math.ceil(total / PAGE_SIZE)
+
+  function pageHref(p: number) {
+    const params = new URLSearchParams()
+    if (q) params.set("q", q)
+    if (store) params.set("store", store)
+    if (p > 1) params.set("page", String(p))
+    const qs = params.toString()
+    return `/admin/marketplace${qs ? `?${qs}` : ""}`
+  }
 
   return (
     <div className="space-y-6 max-w-5xl">
@@ -92,9 +110,8 @@ export default async function AdminMarketplacePage({
 
       {/* Stats */}
       <div className="flex items-center gap-4 text-xs text-slate-500">
-        <span>{rows.length} สินค้า</span>
-        <span>เปิดขาย {rows.filter(p => p.is_active).length}</span>
-        <span>ปิดอยู่ {rows.filter(p => !p.is_active).length}</span>
+        <span>{total} สินค้า</span>
+        {totalPages > 1 && <span>หน้า {page}/{totalPages}</span>}
       </div>
 
       {/* Table */}
@@ -195,6 +212,37 @@ export default async function AdminMarketplacePage({
           </div>
         )}
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2">
+          <Link
+            href={pageHref(page - 1)}
+            aria-disabled={page <= 1}
+            className={cn(
+              "inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm transition-colors",
+              page <= 1
+                ? "pointer-events-none text-slate-600"
+                : "text-slate-400 hover:text-white hover:bg-white/5"
+            )}
+          >
+            <ChevronLeft size={14} /> ก่อนหน้า
+          </Link>
+          <span className="text-slate-500 text-xs">หน้า {page} / {totalPages}</span>
+          <Link
+            href={pageHref(page + 1)}
+            aria-disabled={page >= totalPages}
+            className={cn(
+              "inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm transition-colors",
+              page >= totalPages
+                ? "pointer-events-none text-slate-600"
+                : "text-slate-400 hover:text-white hover:bg-white/5"
+            )}
+          >
+            ถัดไป <ChevronRight size={14} />
+          </Link>
+        </div>
+      )}
     </div>
   )
 }

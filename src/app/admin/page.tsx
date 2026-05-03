@@ -1,14 +1,16 @@
 import { createClient } from "@/lib/supabase/server"
-import { Users, Briefcase, MessageSquare } from "lucide-react"
+import { Users, Briefcase, MessageSquare, ShoppingBag } from "lucide-react"
 import Link from "next/link"
 import type { Lead } from "@/types/database"
 
 async function getStats(supabase: Awaited<ReturnType<typeof createClient>>) {
-  const [leadsTotal, leadsNew, portfolios, services] = await Promise.all([
+  const [leadsTotal, leadsNew, portfolios, services, products, affiliates] = await Promise.all([
     supabase.from("leads").select("id", { count: "exact", head: true }),
     supabase.from("leads").select("id", { count: "exact", head: true }).eq("status", "new"),
     supabase.from("portfolios").select("id", { count: "exact", head: true }).eq("is_published", true),
     supabase.from("services").select("id", { count: "exact", head: true }).eq("is_active", true),
+    supabase.from("products").select("id", { count: "exact", head: true }).eq("is_active", true),
+    supabase.from("profiles").select("id", { count: "exact", head: true }).eq("role", "affiliate").eq("is_active", true),
   ])
 
   return {
@@ -16,6 +18,8 @@ async function getStats(supabase: Awaited<ReturnType<typeof createClient>>) {
     leadsNew: leadsNew.count ?? 0,
     portfolios: portfolios.count ?? 0,
     services: services.count ?? 0,
+    products: products.count ?? 0,
+    affiliates: affiliates.count ?? 0,
   }
 }
 
@@ -34,6 +38,8 @@ export default async function AdminDashboard() {
     { label: "Leads ใหม่", value: stats.leadsNew, icon: Users, color: "text-[#F59E0B]", bg: "bg-[#F59E0B]/10", href: "/admin/leads?status=new" },
     { label: "Portfolio (เผยแพร่)", value: stats.portfolios, icon: Briefcase, color: "text-[#DC2626]", bg: "bg-[#DC2626]/10", href: "/admin/portfolios" },
     { label: "บริการ (เปิดใช้)", value: stats.services, icon: MessageSquare, color: "text-[#FCA5A5]", bg: "bg-[#FCA5A5]/10", href: "/admin/services" },
+    { label: "สินค้า Marketplace", value: stats.products, icon: ShoppingBag, color: "text-emerald-400", bg: "bg-emerald-500/10", href: "/admin/marketplace" },
+    { label: "Affiliate (active)", value: stats.affiliates, icon: Users, color: "text-sky-400", bg: "bg-sky-500/10", href: "/admin/members?role=affiliate" },
   ]
 
   return (
@@ -44,7 +50,7 @@ export default async function AdminDashboard() {
       </div>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
         {statCards.map((card) => {
           const Icon = card.icon
           return (

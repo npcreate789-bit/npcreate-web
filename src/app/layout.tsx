@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { Inter, Plus_Jakarta_Sans, Noto_Sans_Thai } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { SpeedInsights } from "@vercel/speed-insights/next"
+import { Toaster } from "sonner"
 import "./globals.css"
 import { OrganizationJsonLd } from "@/components/JsonLd"
 
@@ -50,6 +51,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body className={`${inter.variable} ${jakarta.variable} ${notoThai.variable} font-sans antialiased bg-[#0A0808]`}>
         <OrganizationJsonLd />
         {children}
+        <Toaster position="bottom-center" theme="dark" richColors duration={3000} />
         <Analytics />
         <SpeedInsights />
       </body>
