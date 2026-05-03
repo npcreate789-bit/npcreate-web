@@ -193,7 +193,7 @@ export default async function MemberPage() {
 
         {profile.role === "affiliate" && (
           <div className="grid sm:grid-cols-2 gap-3">
-            <Link href="/member/marketplace"
+            <Link href="/marketplace"
               className="group flex items-center gap-3 bg-[#F59E0B]/5 border border-[#F59E0B]/20 hover:border-[#F59E0B]/40 hover:bg-[#F59E0B]/10 rounded-2xl p-4 sm:p-5 transition-colors">
               <div className="w-10 h-10 bg-[#F59E0B]/10 rounded-xl flex items-center justify-center shrink-0">
                 <ShoppingBag size={18} className="text-[#F59E0B]" />
@@ -211,7 +211,7 @@ export default async function MemberPage() {
               </div>
               <div className="min-w-0 flex-1">
                 <p className="font-semibold text-white text-sm group-hover:text-[#FCA5A5] transition-colors">สินค้าของฉัน</p>
-                <p className="text-slate-500 text-xs mt-0.5">ลิงก์ติดตามและยอดคลิก</p>
+                <p className="text-slate-500 text-xs mt-0.5">สินค้าที่ดึงมาแล้ว สถานะตัวอย่าง</p>
               </div>
               <ChevronRight size={15} className="text-slate-600 shrink-0 group-hover:text-slate-400 transition-colors" />
             </Link>

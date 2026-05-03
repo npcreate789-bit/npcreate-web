@@ -21,6 +21,49 @@ export async function updateProfile(data: { full_name: string; phone: string; li
   revalidatePath("/member/profile")
 }
 
+export async function updateTiktokUrl(url: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error("ไม่ได้เข้าสู่ระบบ")
+  const { error } = await supabase
+    .from("profiles")
+    .update({ tiktok_channel_url: url.trim() || null, updated_at: new Date().toISOString() })
+    .eq("id", user.id)
+  if (error) throw new Error(error.message)
+  revalidatePath("/member")
+  revalidatePath("/member/profile")
+  revalidatePath("/marketplace")
+}
+
+export async function updateAddress(data: {
+  address_name: string
+  address_phone: string
+  address_line1: string
+  address_subdistrict: string
+  address_district: string
+  address_province: string
+  address_postcode: string
+}) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error("ไม่ได้เข้าสู่ระบบ")
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      address_name:        data.address_name.trim()        || null,
+      address_phone:       data.address_phone.trim()       || null,
+      address_line1:       data.address_line1.trim()       || null,
+      address_subdistrict: data.address_subdistrict.trim() || null,
+      address_district:    data.address_district.trim()    || null,
+      address_province:    data.address_province.trim()    || null,
+      address_postcode:    data.address_postcode.trim()    || null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", user.id)
+  if (error) throw new Error(error.message)
+  revalidatePath("/member/profile")
+}
+
 export async function updateAvatarUrl(url: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

@@ -7,6 +7,8 @@ import { ProfileForm } from "./_components/ProfileForm"
 import { ChangePasswordForm } from "./_components/ChangePasswordForm"
 import { LineSection } from "./_components/LineSection"
 import { AvatarUpload } from "./_components/AvatarUpload"
+import { TiktokForm } from "./_components/TiktokForm"
+import { AddressForm } from "./_components/AddressForm"
 import { cn } from "@/lib/utils"
 
 const roleLabel: Record<string, string> = {
@@ -124,8 +126,18 @@ export default async function MemberProfilePage() {
           lineDisplayName={profile.line_display_name ?? null}
         />
 
-        {/* Profile edit form — อยู่ด้านล่าง */}
+        {/* Profile edit form */}
         <ProfileForm profile={profile} />
+
+        {/* Affiliate-only: TikTok channel URL */}
+        {profile.role === "affiliate" && (
+          <TiktokForm currentUrl={profile.tiktok_channel_url} />
+        )}
+
+        {/* Affiliate-only: delivery address for sample products */}
+        {profile.role === "affiliate" && (
+          <AddressForm profile={profile} />
+        )}
 
         {/* Change password — ล่างสุด (email users only) */}
         {!isLineOnly && <ChangePasswordForm />}
