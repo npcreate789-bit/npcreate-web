@@ -10,10 +10,10 @@ export async function GET(
   const userAgent = request.headers.get("user-agent") ?? undefined
 
   // Fire-and-forget click tracking
-  supabase.rpc("increment_pull_clicks", {
+  void supabase.rpc("increment_pull_clicks", {
     p_pull_code: code,
     p_user_agent: userAgent,
-  }).then(() => {}).catch(() => {})
+  })
 
   // Look up the product URL
   const { data } = await supabase

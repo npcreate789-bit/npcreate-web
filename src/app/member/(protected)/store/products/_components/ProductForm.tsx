@@ -129,7 +129,7 @@ export function ProductForm({ product }: { product?: Product }) {
         </Field>
         <div className="grid sm:grid-cols-2 gap-4">
           <Field label="สถานะสต็อก">
-            <select value={stockStatus} onChange={e => setStockStatus(e.target.value)} className={inputCls()}>
+            <select value={stockStatus} onChange={e => setStockStatus(e.target.value as "in_stock" | "low_stock" | "out_of_stock")} className={inputCls()}>
               {STOCK_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
             </select>
           </Field>
