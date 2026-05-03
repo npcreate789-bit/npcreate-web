@@ -16,7 +16,7 @@ export default async function MarketplacePage() {
     getMyPulledProducts(),
   ])
 
-  const pulledMap = new Map(myPulls.map(p => [p.product_id, p.pull_code]))
+  const pulledSet = new Set(myPulls.map(p => p.product_id))
 
   return (
     <div className="min-h-screen bg-[#0A0808] pt-10 pb-16">
@@ -52,7 +52,7 @@ export default async function MarketplacePage() {
             </h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
               {featuredProducts.map(p => (
-                <ProductCard key={p.id} product={p} pullCode={pulledMap.get(p.id)} />
+                <ProductCard key={p.id} product={p} pullCode={pulledSet.has(p.id) ? "pulled" : undefined} />
               ))}
             </div>
           </section>

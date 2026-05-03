@@ -19,7 +19,7 @@ export default async function StoreDetailPage({ params }: { params: Promise<{ st
   if (!detail) notFound()
 
   const { store, products, activeCampaigns } = detail
-  const pulledMap = new Map(myPulls.map(p => [p.product_id, p.pull_code]))
+  const pulledSet = new Set(myPulls.map(p => p.product_id))
   const storeProducts = products.map(p => ({ ...p, store: { id: store.id, name: store.name, logo_url: store.logo_url, is_verified: store.is_verified } }))
 
   return (
@@ -106,7 +106,7 @@ export default async function StoreDetailPage({ params }: { params: Promise<{ st
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
               {storeProducts.map((p: Product & { store: { id: string; name: string; logo_url: string | null; is_verified: boolean } }) => (
-                <ProductCard key={p.id} product={p} pullCode={pulledMap.get(p.id)} />
+                <ProductCard key={p.id} product={p} pullCode={pulledSet.has(p.id) ? "pulled" : undefined} />
               ))}
             </div>
           )}

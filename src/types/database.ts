@@ -136,6 +136,33 @@ export type UserRole = 'admin' | 'affiliate' | 'seller'
 
 export type StockStatus = 'in_stock' | 'low_stock' | 'out_of_stock'
 
+export type SampleStatus = 'pending' | 'approved' | 'sent' | 'rejected'
+
+export type Profile = {
+  id: string
+  user_code: string
+  full_name: string
+  phone: string
+  line_id: string
+  line_user_id: string | null
+  line_display_name: string | null
+  role: UserRole
+  role_confirmed: boolean
+  avatar_url: string | null
+  is_active: boolean
+  tiktok_channel_url: string | null
+  address_name: string | null
+  address_phone: string | null
+  address_line1: string | null
+  address_subdistrict: string | null
+  address_district: string | null
+  address_province: string | null
+  address_postcode: string | null
+  created_at: string
+  updated_at: string
+  email?: string
+}
+
 export type Store = {
   id: string
   seller_id: string
@@ -164,6 +191,9 @@ export type Product = {
   stock_status: StockStatus
   is_active: boolean
   monthly_sales_est: number
+  caption_suggestions: string | null
+  forbidden_words: string | null
+  promotion_text: string | null
   created_at: string
   updated_at: string
 }
@@ -188,23 +218,7 @@ export type AffiliatePull = {
   id: string
   affiliate_id: string
   product_id: string
-  pull_code: string
-  total_clicks: number
+  sample_status: SampleStatus
+  seller_note: string | null
   created_at: string
-}
-
-export type Profile = {
-  id: string
-  user_code: string
-  full_name: string
-  phone: string
-  line_id: string
-  line_user_id: string | null
-  line_display_name: string | null
-  role: UserRole
-  avatar_url: string | null
-  is_active: boolean
-  created_at: string
-  updated_at: string
-  email?: string
 }
