@@ -397,12 +397,8 @@ function PasswordRegisterFlow() {
     setError(null); setLoading(true)
     try {
       const supabase = createClient()
-      // ส่ง OTP ผ่าน Magic Link template (เหมือน OTP tab) แทน signUp ที่ใช้ Confirm signup template
-      const { error: otpError } = await supabase.auth.signInWithOtp({
-        email,
-        options: { shouldCreateUser: true },
-      })
-      if (otpError) throw otpError
+      const { error: signUpErr } = await supabase.auth.signUp({ email, password })
+      if (signUpErr) throw signUpErr
       setPendingRoleInfo(data)
       setStep("otp")
     } catch (err) {
@@ -416,61 +412,29 @@ function PasswordRegisterFlow() {
     try {
       const supabase = createClient()
 
-      toast.info("กำลังยืนยัน OTP...")
-      console.log("[OTP] verifyOtp →", { email, token: signupOtp, tokenLen: signupOtp.length, type: "email" })
-
       const { data: otpData, error: otpErr } = await supabase.auth.verifyOtp({
-        email, token: signupOtp, type: "email",
+        email, token: signupOtp, type: "signup",
       })
-      console.log("[OTP] verifyOtp result →", { user: otpData?.user?.id, error: otpErr })
+      if (otpErr) throw otpErr
+      if (!otpData?.user) throw new Error("ยืนยัน OTP ไม่สำเร็จ กรุณาลองใหม่")
 
-      if (otpErr) {
-        const errMsg = otpErr.message || otpErr.name || JSON.stringify(otpErr)
-        toast.error(`verifyOtp error: ${errMsg}`)
-        throw new Error(errMsg)
-      }
-      if (!otpData?.user) {
-        toast.error("verifyOtp: ไม่ได้รับ user กลับมา")
-        throw new Error("ยืนยัน OTP ไม่สำเร็จ")
-      }
-
-      toast.info("OTP ผ่าน — กำลังตั้งรหัสผ่าน...")
-
-      const { error: passErr } = await supabase.auth.updateUser({
-        password,
-        data: { full_name: fullName.trim() },
-      })
-      if (passErr) throw passErr
-
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        await supabase.from("profiles")
-          .update({ full_name: fullName.trim(), phone: phone.trim() })
-          .eq("id", user.id)
-      }
+      await supabase.from("profiles")
+        .update({ full_name: fullName.trim(), phone: phone.trim() })
+        .eq("id", otpData.user.id)
 
       if (!role || !pendingRoleInfo) throw new Error("ข้อมูลไม่ครบ กรุณาลองสมัครใหม่")
       const input: RoleInfoInput = role === "seller"
         ? { role: "seller", store_name: pendingRoleInfo.storeName ?? "", store_tiktok_url: pendingRoleInfo.storeTiktokUrl }
         : { role: "affiliate", tiktok_channel_url: pendingRoleInfo.tiktokChannelUrl }
 
-      toast.info("กำลังบันทึก role...")
-
       const result = await saveRoleAndInfo(input)
-      if ("error" in result) {
-        toast.error(`saveRoleAndInfo error: ${result.error}`)
-        setError(result.error)
-        return
-      }
+      if ("error" in result) { setError(result.error); return }
       router.push(result.redirectTo)
       router.refresh()
     } catch (err) {
-      const msg = err instanceof Error
-        ? err.message
-        : (typeof err === "object" ? JSON.stringify(err) : "OTP ไม่ถูกต้องหรือหมดอายุ")
-      const display = msg || "เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ"
-      setError(display)
-      toast.error(display)
+      const msg = err instanceof Error ? err.message : "OTP ไม่ถูกต้องหรือหมดอายุ"
+      setError(msg)
+      toast.error(msg)
     } finally { setLoading(false) }
   }
 
@@ -478,10 +442,7 @@ function PasswordRegisterFlow() {
     setError(null); setLoading(true)
     try {
       const supabase = createClient()
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: { shouldCreateUser: false },
-      })
+      const { error } = await supabase.auth.resend({ email, type: "signup" })
       if (error) throw error
       toast.success("ส่ง OTP ใหม่แล้ว ตรวจสอบ inbox ของคุณ")
     } catch (err) {
