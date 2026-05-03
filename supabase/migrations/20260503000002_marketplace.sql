@@ -2,7 +2,7 @@
 -- Tables: stores, products, campaigns, affiliate_pulls, link_clicks
 -- Depends on: is_admin() from 20260430000007, handle_updated_at() from 20260429000001
 
--- ─── Role helpers ──────────────────────────────────────────────────────────────
+-- ─── Role helpers (no table deps) ─────────────────────────────────────────────
 CREATE OR REPLACE FUNCTION is_seller()
 RETURNS boolean LANGUAGE sql SECURITY DEFINER STABLE SET search_path = public AS $$
   SELECT EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'seller')
@@ -11,22 +11,6 @@ $$;
 CREATE OR REPLACE FUNCTION is_affiliate()
 RETURNS boolean LANGUAGE sql SECURITY DEFINER STABLE SET search_path = public AS $$
   SELECT EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'affiliate')
-$$;
-
--- Checks if the current user owns the given store
-CREATE OR REPLACE FUNCTION owns_store(p_store_id uuid)
-RETURNS boolean LANGUAGE sql SECURITY DEFINER STABLE SET search_path = public AS $$
-  SELECT EXISTS (SELECT 1 FROM stores WHERE id = p_store_id AND seller_id = auth.uid())
-$$;
-
--- Checks if a product belongs to a store owned by the current user
-CREATE OR REPLACE FUNCTION owns_product_store(p_product_id uuid)
-RETURNS boolean LANGUAGE sql SECURITY DEFINER STABLE SET search_path = public AS $$
-  SELECT EXISTS (
-    SELECT 1 FROM products p
-    JOIN stores s ON p.store_id = s.id
-    WHERE p.id = p_product_id AND s.seller_id = auth.uid()
-  )
 $$;
 
 -- ─── stores ────────────────────────────────────────────────────────────────────
@@ -50,6 +34,12 @@ CREATE TRIGGER set_stores_updated_at
   FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
 
 ALTER TABLE stores ENABLE ROW LEVEL SECURITY;
+
+-- owns_store: defined AFTER stores table exists
+CREATE OR REPLACE FUNCTION owns_store(p_store_id uuid)
+RETURNS boolean LANGUAGE sql SECURITY DEFINER STABLE SET search_path = public AS $$
+  SELECT EXISTS (SELECT 1 FROM stores WHERE id = p_store_id AND seller_id = auth.uid())
+$$;
 
 CREATE POLICY "stores_anon_read" ON stores
   FOR SELECT TO anon USING (is_active = true);
@@ -102,6 +92,16 @@ CREATE TRIGGER set_products_updated_at
   FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
 
 ALTER TABLE products ENABLE ROW LEVEL SECURITY;
+
+-- owns_product_store: defined AFTER both stores and products tables exist
+CREATE OR REPLACE FUNCTION owns_product_store(p_product_id uuid)
+RETURNS boolean LANGUAGE sql SECURITY DEFINER STABLE SET search_path = public AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM products p
+    JOIN stores s ON p.store_id = s.id
+    WHERE p.id = p_product_id AND s.seller_id = auth.uid()
+  )
+$$;
 
 CREATE POLICY "products_anon_read" ON products
   FOR SELECT TO anon USING (is_active = true);

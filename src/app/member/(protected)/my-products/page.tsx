@@ -67,7 +67,7 @@ export default async function MyProductsPage() {
                       {/* Stats */}
                       <div className="flex items-center gap-3 pt-0.5">
                         <span className="text-slate-600 text-xs flex items-center gap-1">
-                          <TrendingUp size={10} /> {pull.click_count.toLocaleString()} คลิก
+                          <TrendingUp size={10} /> {pull.total_clicks.toLocaleString()} คลิก
                         </span>
                         <span className="text-white font-semibold text-xs">฿{product.price.toLocaleString()}</span>
                         {product.tiktok_product_url && (
