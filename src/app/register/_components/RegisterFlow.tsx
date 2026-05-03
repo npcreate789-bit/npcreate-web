@@ -18,6 +18,11 @@ type OtpStep = "email" | "otp" | "profile" | "role" | "role_info"
 type PasswordStep = "account" | "profile" | "role" | "role_info" | "otp"
 type RoleChoice = "seller" | "affiliate" | null
 
+function isRateLimitError(err: unknown): boolean {
+  const msg = (err instanceof Error ? err.message : String(err)).toLowerCase()
+  return msg.includes("rate limit") || msg.includes("email rate limit") || msg.includes("too many requests")
+}
+
 async function checkEmailExists(email: string): Promise<boolean> {
   try {
     const res = await fetch("/api/auth/check-email", {
@@ -193,7 +198,7 @@ function OtpRegisterFlow() {
       if (error) throw error
       setStep("otp")
     } catch (err) {
-      setError(err instanceof Error ? err.message : "ส่ง OTP ไม่สำเร็จ")
+      setError(isRateLimitError(err) ? "__rate_limit__" : (err instanceof Error ? err.message : "ส่ง OTP ไม่สำเร็จ"))
     } finally { setLoading(false) }
   }
 
@@ -399,7 +404,7 @@ function PasswordRegisterFlow() {
       setPendingRoleInfo(data)
       setStep("otp")
     } catch (err) {
-      setError(err instanceof Error ? err.message : "ส่ง OTP ไม่สำเร็จ")
+      setError(isRateLimitError(err) ? "__rate_limit__" : (err instanceof Error ? err.message : "ส่ง OTP ไม่สำเร็จ"))
     } finally { setLoading(false) }
   }
 
@@ -456,7 +461,7 @@ function PasswordRegisterFlow() {
       if (error) throw error
       toast.success("ส่ง OTP ใหม่แล้ว ตรวจสอบ inbox ของคุณ")
     } catch (err) {
-      setError(err instanceof Error ? err.message : "ส่งใหม่ไม่สำเร็จ")
+      setError(isRateLimitError(err) ? "__rate_limit__" : (err instanceof Error ? err.message : "ส่งใหม่ไม่สำเร็จ"))
     } finally { setLoading(false) }
   }
 
@@ -711,6 +716,16 @@ function ErrorBox({ msg }: { msg: string }) {
           เข้าสู่ระบบ
         </Link>{" "}
         แทน
+      </div>
+    )
+  }
+  if (msg === "__rate_limit__") {
+    return (
+      <div className="bg-amber-500/10 border border-amber-500/30 text-amber-300 text-sm px-4 py-3 rounded-xl leading-relaxed space-y-2">
+        <p className="font-semibold">ระบบอีเมลเกินโควต้าชั่วคราว</p>
+        <p className="text-amber-400/80 text-xs">
+          กรุณารอ 1 ชั่วโมงแล้วลองใหม่ หรือสมัครผ่าน LINE ด้านบนได้เลย (แนะนำ)
+        </p>
       </div>
     )
   }
