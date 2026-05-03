@@ -207,7 +207,7 @@ function OtpRegisterFlow() {
     setError(null); setLoading(true)
     try {
       const supabase = createClient()
-      const { data, error } = await supabase.auth.verifyOtp({ email, token: otp, type: "email" })
+      const { data, error } = await supabase.auth.verifyOtp({ email, token: otp, type: "signup" })
       if (error) throw error
       if (data.user) {
         const { data: profile } = await supabase
@@ -416,7 +416,7 @@ function PasswordRegisterFlow() {
 
       // 1. ยืนยัน OTP (type: "email" ตรงกับ signInWithOtp)
       const { error: otpErr } = await supabase.auth.verifyOtp({
-        email, token: signupOtp, type: "email",
+        email, token: signupOtp, type: "signup",
       })
       if (otpErr) throw otpErr
 
