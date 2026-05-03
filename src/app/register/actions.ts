@@ -37,6 +37,7 @@ export async function saveRoleAndInfo(
         .update({
           role: "affiliate",
           role_confirmed: true,
+          is_active: true,
           tiktok_channel_url: data.tiktok_channel_url?.trim() || null,
         })
         .eq("id", user.id)
@@ -47,7 +48,7 @@ export async function saveRoleAndInfo(
     // Seller: update profile + upsert store
     const { error: profileError } = await supabase
       .from("profiles")
-      .update({ role: "seller", role_confirmed: true })
+      .update({ role: "seller", role_confirmed: true, is_active: true })
       .eq("id", user.id)
     if (profileError) return { error: profileError.message }
 
