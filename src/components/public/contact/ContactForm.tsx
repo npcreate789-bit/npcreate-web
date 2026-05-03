@@ -370,7 +370,7 @@ function ErrorBox({ msg }: { msg: string }) {
 
 function inputClass(hasError: boolean) {
   return cn(
-    "w-full bg-[#0A0808] border rounded-xl px-4 py-2.5 text-white text-sm placeholder:text-slate-500",
+    "w-full bg-[#0A0808] border rounded-xl px-4 py-2.5 text-white text-base placeholder:text-slate-500",
     "focus:outline-none focus:ring-2 transition-colors appearance-none",
     hasError
       ? "border-red-500/50 focus:ring-red-500/30"
