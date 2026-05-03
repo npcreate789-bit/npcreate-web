@@ -418,10 +418,19 @@ function PasswordRegisterFlow() {
 
       toast.info("กำลังยืนยัน OTP...")
 
-      const { error: otpErr } = await supabase.auth.verifyOtp({
+      const { data: otpData, error: otpErr } = await supabase.auth.verifyOtp({
         email, token: signupOtp, type: "email",
       })
-      if (otpErr) throw otpErr
+
+      if (otpErr) {
+        const errMsg = otpErr.message || otpErr.name || JSON.stringify(otpErr)
+        toast.error(`verifyOtp error: ${errMsg}`)
+        throw new Error(errMsg)
+      }
+      if (!otpData?.user) {
+        toast.error("verifyOtp: ไม่ได้รับ user กลับมา")
+        throw new Error("ยืนยัน OTP ไม่สำเร็จ")
+      }
 
       toast.info("OTP ผ่าน — กำลังตั้งรหัสผ่าน...")
 
@@ -454,9 +463,12 @@ function PasswordRegisterFlow() {
       router.push(result.redirectTo)
       router.refresh()
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "OTP ไม่ถูกต้องหรือหมดอายุ"
-      setError(msg)
-      toast.error(msg)
+      const msg = err instanceof Error
+        ? err.message
+        : (typeof err === "object" ? JSON.stringify(err) : "OTP ไม่ถูกต้องหรือหมดอายุ")
+      const display = msg || "เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ"
+      setError(display)
+      toast.error(display)
     } finally { setLoading(false) }
   }
 
