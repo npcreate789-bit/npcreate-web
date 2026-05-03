@@ -61,7 +61,7 @@ export default async function MemberPage() {
   const hasActiveLead = myLeads.some(l => l.status === "new" || l.status === "contacted")
 
   return (
-    <div className="min-h-screen bg-[#0A0808] pt-24 pb-16">
+    <div className="min-h-screen bg-[#0A0808] pt-24 pb-16 overflow-x-hidden">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 space-y-6">
 
         {/* Header */}
@@ -188,9 +188,9 @@ export default async function MemberPage() {
             <div className="w-10 h-10 bg-[#DC2626]/10 rounded-xl flex items-center justify-center shrink-0">
               <LayoutDashboard size={18} className="text-[#DC2626]" />
             </div>
-            <div>
+            <div className="min-w-0 flex-1">
               <p className="font-semibold text-white text-sm group-hover:text-[#FCA5A5] transition-colors">จัดการหลังบ้าน</p>
-              <p className="text-slate-500 text-xs mt-0.5">Admin Panel — จัดการผลงาน บริการ สมาชิก และการตั้งค่า</p>
+              <p className="text-slate-500 text-xs mt-0.5 truncate">Admin Panel — จัดการผลงาน บริการ สมาชิก และการตั้งค่า</p>
             </div>
           </Link>
         )}
