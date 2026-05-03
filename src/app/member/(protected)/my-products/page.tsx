@@ -1,0 +1,91 @@
+import { redirect } from "next/navigation"
+import Link from "next/link"
+import { Package, TrendingUp, ExternalLink, ShoppingBag } from "lucide-react"
+import { createClient } from "@/lib/supabase/server"
+import { getMyPulledProducts } from "../marketplace/actions"
+import { CopyLinkButton } from "./_components/CopyLinkButton"
+
+export default async function MyProductsPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect("/member/login")
+
+  const pulls = await getMyPulledProducts()
+  const origin = process.env.NEXT_PUBLIC_SITE_URL ?? "https://npcreate.co.th"
+
+  return (
+    <div className="min-h-screen bg-[#0A0808] pt-10 pb-16">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 space-y-5">
+
+        <div>
+          <h1 className="font-display font-bold text-white text-xl flex items-center gap-2">
+            <Package size={20} className="text-[#DC2626]" /> สินค้าของฉัน
+          </h1>
+          <p className="text-slate-500 text-xs mt-1">{pulls.length} สินค้าที่ดึงมาแล้ว</p>
+        </div>
+
+        {pulls.length === 0 ? (
+          <div className="bg-[#1C0D0D] border border-white/5 rounded-2xl py-20 text-center space-y-3">
+            <Package size={36} className="text-slate-700 mx-auto" />
+            <p className="text-slate-500 text-sm">ยังไม่มีสินค้าที่ดึงมา</p>
+            <Link href="/member/marketplace"
+              className="inline-flex items-center gap-1.5 text-[#DC2626] hover:text-[#FCA5A5] text-sm transition-colors">
+              <ShoppingBag size={14} /> ไป Marketplace
+            </Link>
+          </div>
+        ) : (
+          <div className="bg-[#1C0D0D] border border-white/5 rounded-2xl overflow-hidden">
+            <div className="divide-y divide-white/5">
+              {pulls.map(pull => {
+                const trackingUrl = `${origin}/go/${pull.pull_code}`
+                const product = pull.product
+                return (
+                  <div key={pull.id} className="p-4 flex gap-3">
+                    {/* Thumbnail */}
+                    <div className="w-14 h-14 rounded-xl overflow-hidden bg-white/[0.03] shrink-0 flex items-center justify-center">
+                      {product.image_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <Package size={18} className="text-slate-700" />
+                      )}
+                    </div>
+
+                    {/* Info */}
+                    <div className="min-w-0 flex-1 space-y-1.5">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="text-white font-semibold text-sm truncate">{product.name}</p>
+                          <p className="text-slate-500 text-xs truncate">{product.store.name}</p>
+                        </div>
+                        <span className="text-[#F59E0B] font-bold text-sm shrink-0">{product.commission_rate}%</span>
+                      </div>
+
+                      {/* Tracking URL */}
+                      <CopyLinkButton url={trackingUrl} code={pull.pull_code} />
+
+                      {/* Stats */}
+                      <div className="flex items-center gap-3 pt-0.5">
+                        <span className="text-slate-600 text-xs flex items-center gap-1">
+                          <TrendingUp size={10} /> {pull.click_count.toLocaleString()} คลิก
+                        </span>
+                        <span className="text-white font-semibold text-xs">฿{product.price.toLocaleString()}</span>
+                        {product.tiktok_product_url && (
+                          <a href={product.tiktok_product_url} target="_blank" rel="noopener noreferrer"
+                            className="text-[#F59E0B] hover:text-[#FCD34D] transition-colors ml-auto">
+                            <ExternalLink size={13} />
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+      </div>
+    </div>
+  )
+}

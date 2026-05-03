@@ -134,6 +134,65 @@ export type HeroMedia = {
 
 export type UserRole = 'admin' | 'affiliate' | 'seller'
 
+export type StockStatus = 'in_stock' | 'low_stock' | 'out_of_stock'
+
+export type Store = {
+  id: string
+  seller_id: string
+  name: string
+  description: string | null
+  logo_url: string | null
+  category: string
+  tiktok_shop_url: string | null
+  is_active: boolean
+  is_verified: boolean
+  created_at: string
+  updated_at: string
+}
+
+export type Product = {
+  id: string
+  store_id: string
+  name: string
+  description: string | null
+  price: number
+  original_price: number | null
+  commission_rate: number
+  image_url: string | null
+  tiktok_product_url: string | null
+  tags: string[]
+  stock_status: StockStatus
+  is_active: boolean
+  monthly_sales_est: number
+  created_at: string
+  updated_at: string
+}
+
+export type Campaign = {
+  id: string
+  store_id: string
+  title: string
+  description: string | null
+  special_commission_rate: number | null
+  starts_at: string
+  ends_at: string
+  product_ids: string[]
+  script: string | null
+  banner_url: string | null
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export type AffiliatePull = {
+  id: string
+  affiliate_id: string
+  product_id: string
+  pull_code: string
+  total_clicks: number
+  created_at: string
+}
+
 export type Profile = {
   id: string
   user_code: string

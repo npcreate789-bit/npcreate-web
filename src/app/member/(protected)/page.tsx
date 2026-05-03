@@ -4,7 +4,7 @@ import Link from "next/link"
 import {
   LayoutDashboard, FileText, Home, UserCog,
   Phone, MessageCircle, CalendarDays, ChevronRight,
-  TrendingUp, Clock, CheckCircle2,
+  TrendingUp, Clock, CheckCircle2, Store, ShoppingBag, Package,
 } from "lucide-react"
 import type { Profile, Lead } from "@/types/database"
 import { MemberLogout } from "./_components/MemberLogout"
@@ -172,6 +172,48 @@ export default async function MemberPage() {
             </div>
           </div>
         </div>
+
+        {/* Role-specific shortcuts */}
+        {profile.role === "seller" && (
+          <Link href="/member/store"
+            className="group flex items-center gap-3 bg-emerald-500/5 border border-emerald-500/20 hover:border-emerald-500/40 hover:bg-emerald-500/10 rounded-2xl p-4 sm:p-5 transition-colors">
+            <div className="w-10 h-10 bg-emerald-500/10 rounded-xl flex items-center justify-center shrink-0">
+              <Store size={18} className="text-emerald-400" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="font-semibold text-white text-sm group-hover:text-emerald-400 transition-colors">จัดการร้านค้า</p>
+              <p className="text-slate-500 text-xs mt-0.5">เพิ่มสินค้า แคมเปญ ดูยอดคลิก</p>
+            </div>
+            <ChevronRight size={15} className="text-slate-600 shrink-0 group-hover:text-slate-400 transition-colors" />
+          </Link>
+        )}
+
+        {profile.role === "affiliate" && (
+          <div className="grid sm:grid-cols-2 gap-3">
+            <Link href="/member/marketplace"
+              className="group flex items-center gap-3 bg-[#F59E0B]/5 border border-[#F59E0B]/20 hover:border-[#F59E0B]/40 hover:bg-[#F59E0B]/10 rounded-2xl p-4 sm:p-5 transition-colors">
+              <div className="w-10 h-10 bg-[#F59E0B]/10 rounded-xl flex items-center justify-center shrink-0">
+                <ShoppingBag size={18} className="text-[#F59E0B]" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold text-white text-sm group-hover:text-[#F59E0B] transition-colors">Marketplace</p>
+                <p className="text-slate-500 text-xs mt-0.5">เลือกสินค้าเพื่อโปรโมท</p>
+              </div>
+              <ChevronRight size={15} className="text-slate-600 shrink-0 group-hover:text-slate-400 transition-colors" />
+            </Link>
+            <Link href="/member/my-products"
+              className="group flex items-center gap-3 bg-[#1C0D0D] border border-white/5 hover:border-white/15 rounded-2xl p-4 sm:p-5 transition-colors">
+              <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center shrink-0">
+                <Package size={18} className="text-slate-400 group-hover:text-white transition-colors" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold text-white text-sm group-hover:text-[#FCA5A5] transition-colors">สินค้าของฉัน</p>
+                <p className="text-slate-500 text-xs mt-0.5">ลิงก์ติดตามและยอดคลิก</p>
+              </div>
+              <ChevronRight size={15} className="text-slate-600 shrink-0 group-hover:text-slate-400 transition-colors" />
+            </Link>
+          </div>
+        )}
 
         {/* Lead history — ด้านล่างสุด */}
         {myLeads.length > 0 ? (
