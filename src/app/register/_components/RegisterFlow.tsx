@@ -218,7 +218,9 @@ function OtpRegisterFlow() {
       }
       setStep("profile")
     } catch (err) {
-      setError(err instanceof Error ? err.message : "OTP ไม่ถูกต้องหรือหมดอายุ")
+      const msg = err instanceof Error ? err.message : "OTP ไม่ถูกต้องหรือหมดอายุ"
+      setError(msg)
+      toast.error(msg)
     } finally { setLoading(false) }
   }
 
@@ -414,20 +416,21 @@ function PasswordRegisterFlow() {
     try {
       const supabase = createClient()
 
-      // 1. ยืนยัน OTP (type: "email" ตรงกับ signInWithOtp)
+      toast.info("กำลังยืนยัน OTP...")
+
       const { error: otpErr } = await supabase.auth.verifyOtp({
         email, token: signupOtp, type: "email",
       })
       if (otpErr) throw otpErr
 
-      // 2. ตั้งรหัสผ่านบน account ที่ verified แล้ว
+      toast.info("OTP ผ่าน — กำลังตั้งรหัสผ่าน...")
+
       const { error: passErr } = await supabase.auth.updateUser({
         password,
         data: { full_name: fullName.trim() },
       })
       if (passErr) throw passErr
 
-      // 3. อัปเดต profile (ชื่อ + เบอร์)
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
         await supabase.from("profiles")
@@ -435,18 +438,25 @@ function PasswordRegisterFlow() {
           .eq("id", user.id)
       }
 
-      // 4. บันทึก role + store/TikTok
       if (!role || !pendingRoleInfo) throw new Error("ข้อมูลไม่ครบ กรุณาลองสมัครใหม่")
       const input: RoleInfoInput = role === "seller"
         ? { role: "seller", store_name: pendingRoleInfo.storeName ?? "", store_tiktok_url: pendingRoleInfo.storeTiktokUrl }
         : { role: "affiliate", tiktok_channel_url: pendingRoleInfo.tiktokChannelUrl }
 
+      toast.info("กำลังบันทึก role...")
+
       const result = await saveRoleAndInfo(input)
-      if ("error" in result) { setError(result.error); return }
+      if ("error" in result) {
+        toast.error(`saveRoleAndInfo error: ${result.error}`)
+        setError(result.error)
+        return
+      }
       router.push(result.redirectTo)
       router.refresh()
     } catch (err) {
-      setError(err instanceof Error ? err.message : "OTP ไม่ถูกต้องหรือหมดอายุ")
+      const msg = err instanceof Error ? err.message : "OTP ไม่ถูกต้องหรือหมดอายุ"
+      setError(msg)
+      toast.error(msg)
     } finally { setLoading(false) }
   }
 
