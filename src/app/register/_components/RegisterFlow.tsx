@@ -357,8 +357,6 @@ function PasswordRegisterFlow() {
   const [pendingRoleInfo, setPendingRoleInfo] = useState<{
     storeName?: string; storeTiktokUrl?: string; tiktokChannelUrl?: string
   } | null>(null)
-  const [pending, startTransition]    = useTransition()
-
   const steps: PasswordStep[] = ["account", "profile", "role", "role_info"]
   const stepLabels = ["บัญชี", "โปรไฟล์", "ประเภท", "ข้อมูล"]
   const stepIdx = steps.indexOf(step)
@@ -390,48 +388,18 @@ function PasswordRegisterFlow() {
   async function handleRoleInfoSubmit(data: { storeName?: string; storeTiktokUrl?: string; tiktokChannelUrl?: string }) {
     if (!role) return
     setError(null); setLoading(true)
-
     try {
       const supabase = createClient()
-      // Sign up user
-      const { data: authData, error: signUpError } = await supabase.auth.signUp({
+      // ส่ง OTP ผ่าน Magic Link template (เหมือน OTP tab) แทน signUp ที่ใช้ Confirm signup template
+      const { error: otpError } = await supabase.auth.signInWithOtp({
         email,
-        password,
-        options: { data: { full_name: fullName.trim() } },
+        options: { shouldCreateUser: true },
       })
-      if (signUpError) throw signUpError
-
-      // Update profile with name + phone
-      if (authData.user) {
-        await supabase.from("profiles")
-          .update({ full_name: fullName.trim(), phone: phone.trim() })
-          .eq("id", authData.user.id)
-      }
-
-      if (authData.session) {
-        // Session available → save role immediately
-        const input: RoleInfoInput = role === "seller"
-          ? { role: "seller", store_name: data.storeName ?? "", store_tiktok_url: data.storeTiktokUrl }
-          : { role: "affiliate", tiktok_channel_url: data.tiktokChannelUrl }
-
-        startTransition(async () => {
-          const result = await saveRoleAndInfo(input)
-          if ("error" in result) { setError(result.error); return }
-          router.push(result.redirectTo)
-          router.refresh()
-        })
-      } else {
-        // Email confirmation required — show OTP input
-        setPendingRoleInfo(data)
-        setStep("otp")
-      }
+      if (otpError) throw otpError
+      setPendingRoleInfo(data)
+      setStep("otp")
     } catch (err) {
-      const msg = err instanceof Error ? err.message : ""
-      if (msg.toLowerCase().includes("already registered") || msg.toLowerCase().includes("already been registered")) {
-        setError("__duplicate__")
-      } else {
-        setError(msg || "สมัครสมาชิกไม่สำเร็จ")
-      }
+      setError(err instanceof Error ? err.message : "ส่ง OTP ไม่สำเร็จ")
     } finally { setLoading(false) }
   }
 
@@ -440,11 +408,29 @@ function PasswordRegisterFlow() {
     setError(null); setLoading(true)
     try {
       const supabase = createClient()
+
+      // 1. ยืนยัน OTP (type: "email" ตรงกับ signInWithOtp)
       const { error: otpErr } = await supabase.auth.verifyOtp({
-        email, token: signupOtp, type: "signup",
+        email, token: signupOtp, type: "email",
       })
       if (otpErr) throw otpErr
 
+      // 2. ตั้งรหัสผ่านบน account ที่ verified แล้ว
+      const { error: passErr } = await supabase.auth.updateUser({
+        password,
+        data: { full_name: fullName.trim() },
+      })
+      if (passErr) throw passErr
+
+      // 3. อัปเดต profile (ชื่อ + เบอร์)
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        await supabase.from("profiles")
+          .update({ full_name: fullName.trim(), phone: phone.trim() })
+          .eq("id", user.id)
+      }
+
+      // 4. บันทึก role + store/TikTok
       if (!role || !pendingRoleInfo) throw new Error("ข้อมูลไม่ครบ กรุณาลองสมัครใหม่")
       const input: RoleInfoInput = role === "seller"
         ? { role: "seller", store_name: pendingRoleInfo.storeName ?? "", store_tiktok_url: pendingRoleInfo.storeTiktokUrl }
@@ -463,7 +449,10 @@ function PasswordRegisterFlow() {
     setError(null); setLoading(true)
     try {
       const supabase = createClient()
-      const { error } = await supabase.auth.resend({ email, type: "signup" })
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: { shouldCreateUser: false },
+      })
       if (error) throw error
       toast.success("ส่ง OTP ใหม่แล้ว ตรวจสอบ inbox ของคุณ")
     } catch (err) {
@@ -586,7 +575,7 @@ function PasswordRegisterFlow() {
         <RoleInfoForm
           role={role}
           onSubmit={handleRoleInfoSubmit}
-          loading={loading || pending}
+          loading={loading}
           error={error}
         />
       )}
