@@ -417,10 +417,12 @@ function PasswordRegisterFlow() {
       const supabase = createClient()
 
       toast.info("กำลังยืนยัน OTP...")
+      console.log("[OTP] verifyOtp →", { email, token: signupOtp, tokenLen: signupOtp.length, type: "email" })
 
       const { data: otpData, error: otpErr } = await supabase.auth.verifyOtp({
         email, token: signupOtp, type: "email",
       })
+      console.log("[OTP] verifyOtp result →", { user: otpData?.user?.id, error: otpErr })
 
       if (otpErr) {
         const errMsg = otpErr.message || otpErr.name || JSON.stringify(otpErr)
