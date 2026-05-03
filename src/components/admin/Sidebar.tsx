@@ -5,7 +5,7 @@ import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import {
   LayoutDashboard, Users, Briefcase, Star, Settings,
-  LogOut, Menu, X, MessageSquare, Home, UserCircle, FileText,
+  LogOut, Menu, X, MessageSquare, Home, UserCircle, FileText, ShoppingBag,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { createClient } from "@/lib/supabase/client"
@@ -18,8 +18,9 @@ const navItems = [
   { href: "/admin/services",  label: "บริการ",     icon: MessageSquare },
   { href: "/admin/testimonials", label: "รีวิว",  icon: Star },
   { href: "/admin/about",      label: "เกี่ยวกับเรา", icon: FileText },
-  { href: "/admin/members",    label: "สมาชิก",   icon: UserCircle },
-  { href: "/admin/settings",  label: "ตั้งค่า",   icon: Settings },
+  { href: "/admin/marketplace", label: "Marketplace", icon: ShoppingBag },
+  { href: "/admin/members",    label: "สมาชิก",      icon: UserCircle },
+  { href: "/admin/settings",   label: "ตั้งค่า",     icon: Settings },
 ]
 
 function NavLinks({
