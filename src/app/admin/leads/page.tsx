@@ -1,10 +1,10 @@
 import { createClient } from "@/lib/supabase/server"
-import { createAdminClient } from "@/lib/supabase/admin"
+import { requireAdmin } from "@/lib/auth"
 import { revalidatePath } from "next/cache"
 import Link from "next/link"
 import { ArrowLeft, Store, GraduationCap } from "lucide-react"
 import type { Lead, LeadStatus, LeadType } from "@/types/database"
-import { cn } from "@/lib/utils"
+import { cn, safeUrl } from "@/lib/utils"
 import { LinePushButton } from "./_components/LinePushButton"
 
 const statusTabs: { value: LeadStatus | "all"; label: string }[] = [
@@ -42,8 +42,11 @@ const leadTypeLabels: Record<LeadType, string> = {
 
 async function updateLeadStatus(id: string, status: LeadStatus) {
   "use server"
-  const supabase = createAdminClient()
-  await supabase.from("leads").update({ status }).eq("id", id)
+  const VALID_STATUSES: LeadStatus[] = ["new", "contacted", "closed"]
+  if (!VALID_STATUSES.includes(status)) throw new Error("สถานะไม่ถูกต้อง")
+  const { supabase } = await requireAdmin()
+  const { error } = await supabase.from("leads").update({ status }).eq("id", id)
+  if (error) throw new Error(error.message)
   revalidatePath("/admin/leads")
 }
 
@@ -199,9 +202,9 @@ export default async function LeadsPage({
                           </>
                         ) : (
                           <>
-                            {lead.tiktok_url ? (
+                            {safeUrl(lead.tiktok_url) ? (
                               <a
-                                href={lead.tiktok_url}
+                                href={safeUrl(lead.tiktok_url)}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-[#F59E0B] text-xs hover:underline truncate block max-w-[180px]"

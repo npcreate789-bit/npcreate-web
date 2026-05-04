@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react"
 import { Loader2, Save, ExternalLink, Music } from "lucide-react"
 import { toast } from "sonner"
-import { cn } from "@/lib/utils"
+import { cn, safeUrl } from "@/lib/utils"
 import { updateTiktokUrl } from "../actions"
 
 export function TiktokForm({ currentUrl }: { currentUrl: string | null }) {
@@ -47,9 +47,9 @@ export function TiktokForm({ currentUrl }: { currentUrl: string | null }) {
             "placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:border-[#DC2626]/50 focus:ring-[#DC2626]/20 transition-colors"
           )}
         />
-        {url && (
+        {safeUrl(url) && (
           <a
-            href={url}
+            href={safeUrl(url)}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1 text-[#F59E0B] text-xs hover:text-[#FCD34D] transition-colors mt-1"

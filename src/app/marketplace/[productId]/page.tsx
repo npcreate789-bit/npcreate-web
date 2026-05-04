@@ -4,7 +4,7 @@ import {
   ChevronRight, Package, Users, BadgeCheck,
   ExternalLink, Lock, TrendingUp, ShoppingBag,
 } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { cn, safeUrl } from "@/lib/utils"
 import { getProductDetail } from "../actions"
 import { PullButton } from "../_components/PullButton"
 
@@ -127,8 +127,8 @@ export default async function ProductDetailPage({
           )}
 
           {/* TikTok Product Link */}
-          {product.tiktok_product_url && (
-            <a href={product.tiktok_product_url} target="_blank" rel="noopener noreferrer"
+          {safeUrl(product.tiktok_product_url) && (
+            <a href={safeUrl(product.tiktok_product_url)} target="_blank" rel="noopener noreferrer"
               className="inline-flex items-center gap-2 text-sm text-[#F59E0B] hover:text-[#FCD34D] transition-colors">
               <ExternalLink size={14} /> ดูสินค้าบน TikTok Shop
             </a>

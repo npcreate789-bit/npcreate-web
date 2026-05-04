@@ -8,7 +8,7 @@ import {
 } from "lucide-react"
 import { getMyStore, getStoreDashboardStats } from "./actions"
 import { StoreSetupForm } from "./_components/StoreSetupForm"
-import { cn } from "@/lib/utils"
+import { cn, safeUrl } from "@/lib/utils"
 
 export default async function StoreDashboardPage() {
   const supabase = await createClient()
@@ -63,8 +63,8 @@ export default async function StoreDashboardPage() {
               <CheckCircle2 size={11} /> ยืนยันแล้ว
             </span>
           )}
-          {store.tiktok_shop_url && (
-            <a href={store.tiktok_shop_url} target="_blank" rel="noopener noreferrer"
+          {safeUrl(store.tiktok_shop_url) && (
+            <a href={safeUrl(store.tiktok_shop_url)} target="_blank" rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-white border border-white/10 hover:border-white/20 px-3 py-1.5 rounded-lg transition-colors shrink-0">
               <ExternalLink size={12} /> TikTok Shop
             </a>

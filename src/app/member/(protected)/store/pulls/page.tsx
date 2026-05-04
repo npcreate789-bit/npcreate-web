@@ -6,7 +6,7 @@ import {
   Video, Radio, Layers,
 } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
-import { cn } from "@/lib/utils"
+import { cn, safeUrl } from "@/lib/utils"
 import { getStorePulls } from "./actions"
 import { getMyStore } from "../actions"
 import { PullActions } from "./_components/PullActions"
@@ -208,9 +208,9 @@ function AffiliateSection({ affiliate }: { affiliate: AffiliateInfo | null }) {
               {affiliate.phone}
             </a>
           )}
-          {affiliate?.tiktok_channel_url && (
+          {safeUrl(affiliate?.tiktok_channel_url) && (
             <a
-              href={affiliate.tiktok_channel_url}
+              href={safeUrl(affiliate?.tiktok_channel_url)}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 text-[#F59E0B] hover:text-[#FCD34D] text-[11px] border border-[#F59E0B]/20 hover:border-[#F59E0B]/40 px-2 py-0.5 rounded-full transition-colors"

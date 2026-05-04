@@ -54,7 +54,10 @@ const affiliateSchema = z.object({
   lead_type:  z.literal("affiliate"),
   name:       z.string().min(2).max(100),
   phone:      z.string().regex(/^0[6-9]\d{8}$/),
-  tiktok_url: z.string().url().max(300).optional().or(z.literal("")),
+  tiktok_url: z.string().max(300).refine(
+    (val) => /^https?:\/\//i.test(val),
+    "TikTok URL ต้องเป็น https://"
+  ).optional().or(z.literal("")),
   service:    z.enum(VALID_AFFILIATE_SERVICE),
   message:    z.string().max(2000).optional(),
   ...lineFields,

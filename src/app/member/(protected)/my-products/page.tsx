@@ -6,7 +6,7 @@ import {
 } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
 import { getMyPulledProducts } from "../marketplace/actions"
-import { cn } from "@/lib/utils"
+import { cn, safeUrl } from "@/lib/utils"
 import type { SampleStatus } from "@/types/database"
 
 const sampleStatusConfig: Record<SampleStatus, { label: string; color: string; icon: React.ReactNode }> = {
@@ -176,8 +176,8 @@ export default async function MyProductsPage() {
                           <ChevronRight size={10} />
                         </Link>
                       )}
-                      {pull.sample_status === "sent" && product.tiktok_product_url && (
-                        <a href={product.tiktok_product_url} target="_blank" rel="noopener noreferrer"
+                      {pull.sample_status === "sent" && safeUrl(product.tiktok_product_url) && (
+                        <a href={safeUrl(product.tiktok_product_url)} target="_blank" rel="noopener noreferrer"
                           className="inline-flex items-center gap-1.5 text-xs bg-[#F59E0B]/10 hover:bg-[#F59E0B]/20 border border-[#F59E0B]/20 hover:border-[#F59E0B]/40 text-[#F59E0B] px-3 py-1.5 rounded-lg transition-colors font-medium">
                           <Rocket size={11} />
                           เริ่มโปรโมท
@@ -200,8 +200,8 @@ export default async function MyProductsPage() {
                       <div className="flex items-center gap-3 pt-0.5">
                         <span className="text-white font-semibold text-xs">฿{product.price.toLocaleString()}</span>
                         <span className="text-slate-600 text-xs">คอม {product.commission_rate}%</span>
-                        {product.tiktok_product_url && pull.sample_status !== "sent" && (
-                          <a href={product.tiktok_product_url} target="_blank" rel="noopener noreferrer"
+                        {safeUrl(product.tiktok_product_url) && pull.sample_status !== "sent" && (
+                          <a href={safeUrl(product.tiktok_product_url)} target="_blank" rel="noopener noreferrer"
                             className="text-slate-600 hover:text-[#F59E0B] transition-colors ml-auto">
                             <ExternalLink size={13} />
                           </a>

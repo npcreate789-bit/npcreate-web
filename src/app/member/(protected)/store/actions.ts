@@ -24,6 +24,12 @@ export async function getMyStore(): Promise<Store | null> {
   return data as Store | null
 }
 
+function validateUrlField(url: string, field: string) {
+  const t = url.trim()
+  if (t && !/^https?:\/\//i.test(t)) throw new Error(`${field} ต้องเป็น https:// หรือ http://`)
+  return t || null
+}
+
 export async function createStore(data: {
   name: string
   description: string
@@ -37,8 +43,8 @@ export async function createStore(data: {
     name: data.name.trim(),
     description: data.description.trim() || null,
     category: data.category,
-    tiktok_shop_url: data.tiktok_shop_url.trim() || null,
-    logo_url: data.logo_url.trim() || null,
+    tiktok_shop_url: validateUrlField(data.tiktok_shop_url, "tiktok_shop_url"),
+    logo_url: validateUrlField(data.logo_url, "logo_url"),
   })
   if (error) throw new Error(error.message)
   revalidatePath("/member/store")
@@ -56,8 +62,8 @@ export async function updateStore(id: string, data: {
     name: data.name.trim(),
     description: data.description.trim() || null,
     category: data.category,
-    tiktok_shop_url: data.tiktok_shop_url.trim() || null,
-    logo_url: data.logo_url.trim() || null,
+    tiktok_shop_url: validateUrlField(data.tiktok_shop_url, "tiktok_shop_url"),
+    logo_url: validateUrlField(data.logo_url, "logo_url"),
     updated_at: new Date().toISOString(),
   }).eq("id", id).eq("seller_id", user.id)
   if (error) throw new Error(error.message)

@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
 import { mergeSiteInfo } from "@/lib/data/site-info"
+import { safeUrl } from "@/lib/utils"
 
 const navLinks = [
   { label: "ผลงาน",       href: "/portfolio" },
@@ -58,23 +59,23 @@ export async function Footer({ lineHref = "/api/auth/line" }: { lineHref?: strin
             {/* Social links */}
             {(info.facebook_url || info.tiktok_url || info.instagram_url || info.youtube_url) && (
               <div className="flex items-center gap-3 mt-4">
-                {info.facebook_url && (
-                  <SocialLink href={info.facebook_url} label="Facebook">
+                {safeUrl(info.facebook_url) && (
+                  <SocialLink href={safeUrl(info.facebook_url)!} label="Facebook">
                     <FacebookIcon />
                   </SocialLink>
                 )}
-                {info.tiktok_url && (
-                  <SocialLink href={info.tiktok_url} label="TikTok">
+                {safeUrl(info.tiktok_url) && (
+                  <SocialLink href={safeUrl(info.tiktok_url)!} label="TikTok">
                     <TikTokIcon />
                   </SocialLink>
                 )}
-                {info.instagram_url && (
-                  <SocialLink href={info.instagram_url} label="Instagram">
+                {safeUrl(info.instagram_url) && (
+                  <SocialLink href={safeUrl(info.instagram_url)!} label="Instagram">
                     <InstagramIcon />
                   </SocialLink>
                 )}
-                {info.youtube_url && (
-                  <SocialLink href={info.youtube_url} label="YouTube">
+                {safeUrl(info.youtube_url) && (
+                  <SocialLink href={safeUrl(info.youtube_url)!} label="YouTube">
                     <YouTubeIcon />
                   </SocialLink>
                 )}
