@@ -60,9 +60,10 @@ export default async function ContactPage() {
 
   // ── Prefill data from profile ─────────────────────────────────────────────────
   const prefill = {
-    fullName:   profile?.full_name   ?? "",
-    phone:      profile?.phone       ?? "",
-    storeName:  store?.name          ?? "",
+    fullName:   profile?.full_name ?? "",
+    // normalize: strip dashes/spaces so it always matches /^0[6-9]\d{8}$/
+    phone:      (profile?.phone ?? "").replace(/[^0-9]/g, ""),
+    storeName:  store?.name ?? "",
     tiktokUrl:  profile?.tiktok_channel_url ?? "",
   }
 
