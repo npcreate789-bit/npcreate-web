@@ -49,7 +49,6 @@ export function CampaignForm({ campaign, products }: { campaign?: Campaign; prod
         if (isEdit && campaign) { await updateCampaign(campaign.id, data) }
         else { await createCampaign(data) }
         router.push("/member/store/campaigns")
-        router.refresh()
       } catch (err) {
         setError(err instanceof Error ? err.message : "เกิดข้อผิดพลาด")
       }
@@ -113,15 +112,20 @@ export function CampaignForm({ campaign, products }: { campaign?: Campaign; prod
         </Field>
         <Field label="URL แบนเนอร์ (รูปโปรโมท)">
           <input value={bannerUrl} onChange={e => setBannerUrl(e.target.value)} placeholder="https://..." className={inputCls()} />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           {bannerUrl && <img src={bannerUrl} alt="" className="mt-2 h-24 object-cover rounded-xl bg-white/5 w-full" onError={e => { (e.target as HTMLImageElement).style.display = "none" }} />}
         </Field>
-        <div className="flex items-center gap-3">
-          <button type="button" onClick={() => setIsActive(v => !v)}
-            className={cn("relative w-12 h-6 rounded-full transition-colors shrink-0", isActive ? "bg-emerald-500" : "bg-white/10")}>
-            <span className={cn("absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform", isActive ? "translate-x-6" : "translate-x-0.5")} />
-          </button>
-          <span className="text-sm text-slate-400">{isActive ? "แคมเปญ active" : "แคมเปญปิด"}</span>
-        </div>
+        <Field label="สถานะแคมเปญ">
+          <div className="flex items-center gap-3 h-[46px]">
+            <button type="button" onClick={() => setIsActive(v => !v)}
+              className={cn("relative w-12 h-6 rounded-full transition-colors shrink-0", isActive ? "bg-emerald-500" : "bg-white/10")}>
+              <span className={cn("absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200", isActive ? "translate-x-6" : "translate-x-0")} />
+            </button>
+            <span className={cn("text-sm font-medium transition-colors", isActive ? "text-emerald-400" : "text-slate-500")}>
+              {isActive ? "แคมเปญ Active" : "แคมเปญปิด"}
+            </span>
+          </div>
+        </Field>
       </div>
 
       <div className="flex items-center gap-3">
