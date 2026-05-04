@@ -40,33 +40,39 @@ export async function getProduct(id: string): Promise<Product | null> {
 }
 
 export type ProductInput = {
-  name: string
-  description: string
-  price: number
-  original_price: number | null
-  commission_rate: number
-  image_url: string
-  tiktok_product_url: string
-  tags: string
-  stock_status: string
-  monthly_sales_est: number
-  is_active: boolean
+  name:                string
+  description:         string
+  price:               number
+  original_price:      number | null
+  commission_rate:     number
+  image_url:           string
+  tiktok_product_url:  string
+  tags:                string
+  stock_status:        string
+  monthly_sales_est:   number
+  is_active:           boolean
+  promotion_text:      string
+  caption_suggestions: string
+  forbidden_words:     string
 }
 
 function parseInput(data: ProductInput, storeId: string) {
   return {
-    store_id: storeId,
-    name: data.name.trim(),
-    description: data.description.trim() || null,
-    price: data.price,
-    original_price: data.original_price ?? null,
-    commission_rate: data.commission_rate,
-    image_url: data.image_url.trim() || null,
-    tiktok_product_url: data.tiktok_product_url.trim() || null,
-    tags: data.tags.split(",").map(t => t.trim()).filter(Boolean),
-    stock_status: data.stock_status,
-    monthly_sales_est: data.monthly_sales_est || 0,
-    is_active: data.is_active,
+    store_id:            storeId,
+    name:                data.name.trim(),
+    description:         data.description.trim() || null,
+    price:               data.price,
+    original_price:      data.original_price ?? null,
+    commission_rate:     data.commission_rate,
+    image_url:           data.image_url.trim() || null,
+    tiktok_product_url:  data.tiktok_product_url.trim() || null,
+    tags:                data.tags.split(",").map(t => t.trim()).filter(Boolean),
+    stock_status:        data.stock_status,
+    monthly_sales_est:   data.monthly_sales_est || 0,
+    is_active:           data.is_active,
+    promotion_text:      data.promotion_text.trim() || null,
+    caption_suggestions: data.caption_suggestions.trim() || null,
+    forbidden_words:     data.forbidden_words.trim() || null,
   }
 }
 
@@ -75,7 +81,7 @@ export async function createProduct(data: ProductInput) {
   const { error } = await supabase.from("products").insert(parseInput(data, storeId))
   if (error) throw new Error(error.message)
   revalidatePath("/member/store/products")
-  revalidatePath("/member/marketplace")
+  revalidatePath("/marketplace")
 }
 
 export async function updateProduct(id: string, data: ProductInput) {
@@ -86,7 +92,7 @@ export async function updateProduct(id: string, data: ProductInput) {
   }).eq("id", id).eq("store_id", storeId)
   if (error) throw new Error(error.message)
   revalidatePath("/member/store/products")
-  revalidatePath("/member/marketplace")
+  revalidatePath("/marketplace")
 }
 
 export async function toggleProductActive(id: string, isActive: boolean) {
@@ -96,7 +102,7 @@ export async function toggleProductActive(id: string, isActive: boolean) {
     .eq("id", id).eq("store_id", storeId)
   if (error) throw new Error(error.message)
   revalidatePath("/member/store/products")
-  revalidatePath("/member/marketplace")
+  revalidatePath("/marketplace")
 }
 
 export async function deleteProduct(id: string) {
@@ -104,5 +110,5 @@ export async function deleteProduct(id: string) {
   const { error } = await supabase.from("products").delete().eq("id", id).eq("store_id", storeId)
   if (error) throw new Error(error.message)
   revalidatePath("/member/store/products")
-  revalidatePath("/member/marketplace")
+  revalidatePath("/marketplace")
 }

@@ -29,6 +29,9 @@ export function ProductForm({ product }: { product?: Product }) {
   const [stockStatus, setStockStatus] = useState(product?.stock_status ?? "in_stock")
   const [monthlySales, setMonthlySales] = useState(product?.monthly_sales_est?.toString() ?? "0")
   const [isActive, setIsActive] = useState(product?.is_active ?? true)
+  const [promotionText, setPromotionText] = useState(product?.promotion_text ?? "")
+  const [captionSuggestions, setCaptionSuggestions] = useState(product?.caption_suggestions ?? "")
+  const [forbiddenWords, setForbiddenWords] = useState(product?.forbidden_words ?? "")
   const [error, setError] = useState<string | null>(null)
   const [pending, start] = useTransition()
 
@@ -52,6 +55,9 @@ export function ProductForm({ product }: { product?: Product }) {
       stock_status: stockStatus,
       monthly_sales_est: Number(monthlySales) || 0,
       is_active: isActive,
+      promotion_text:      promotionText,
+      caption_suggestions: captionSuggestions,
+      forbidden_words:     forbiddenWords,
     }
 
     start(async () => {
@@ -113,6 +119,7 @@ export function ProductForm({ product }: { product?: Product }) {
         <h2 className="text-white font-semibold text-sm">รายละเอียดเพิ่มเติม</h2>
         <Field label="URL รูปสินค้า">
           <input value={imageUrl} onChange={e => setImageUrl(e.target.value)} placeholder="https://..." className={inputCls()} />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           {imageUrl && <img src={imageUrl} alt="" className="mt-2 h-24 w-24 object-cover rounded-xl bg-white/5" onError={e => { (e.target as HTMLImageElement).style.display = "none" }} />}
         </Field>
         <Field label="แท็ก (คั่นด้วยจุลภาค)">
@@ -137,12 +144,25 @@ export function ProductForm({ product }: { product?: Product }) {
             <div className="flex items-center gap-3 h-[46px]">
               <button type="button" onClick={() => setIsActive(v => !v)}
                 className={cn("relative w-12 h-6 rounded-full transition-colors shrink-0", isActive ? "bg-emerald-500" : "bg-white/10")}>
-                <span className={cn("absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform", isActive ? "translate-x-6" : "translate-x-0.5")} />
+                <span className={cn("absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200", isActive ? "translate-x-6" : "translate-x-0")} />
               </button>
               <span className="text-sm text-slate-400">{isActive ? "แสดงอยู่" : "ซ่อนอยู่"}</span>
             </div>
           </Field>
         </div>
+      </div>
+
+      <div className="bg-[#1C0D0D] border border-white/5 rounded-2xl p-5 sm:p-6 space-y-4">
+        <h2 className="text-white font-semibold text-sm">ข้อมูลสำหรับ Affiliate</h2>
+        <Field label="ข้อความโปรโมชัน">
+          <textarea value={promotionText} onChange={e => setPromotionText(e.target.value)} rows={2} placeholder="เช่น ลด 20% เฉพาะ Affiliate ที่ร่วมรายการ..." className={cn(inputCls(), "resize-none")} />
+        </Field>
+        <Field label="แนะนำ Caption">
+          <textarea value={captionSuggestions} onChange={e => setCaptionSuggestions(e.target.value)} rows={3} placeholder="ตัวอย่าง caption สำหรับ Affiliate ใช้ในการทำคอนเทนต์..." className={cn(inputCls(), "resize-none")} />
+        </Field>
+        <Field label="คำต้องห้าม">
+          <textarea value={forbiddenWords} onChange={e => setForbiddenWords(e.target.value)} rows={2} placeholder="คำหรือข้อความที่ห้าม Affiliate ใช้..." className={cn(inputCls(), "resize-none")} />
+        </Field>
       </div>
 
       <div className="flex items-center gap-3">
