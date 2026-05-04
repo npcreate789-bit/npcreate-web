@@ -50,8 +50,8 @@ export default async function MemberPage() {
   const profile = data as Profile | null
   if (!profile) redirect("/register")
 
-  // LINE users who haven't chosen a role yet
-  if (!profile.role_confirmed) redirect("/member/setup-role")
+  // LINE users who haven't chosen a role yet (only redirect if explicitly false, not undefined)
+  if (profile.role_confirmed === false) redirect("/member/setup-role")
 
   let myLeads: Pick<Lead, "id" | "brand" | "service" | "status" | "created_at" | "monthly_gmv">[] = []
   try {
