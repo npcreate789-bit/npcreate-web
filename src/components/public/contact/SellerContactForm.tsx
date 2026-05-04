@@ -9,7 +9,6 @@ import { cn } from "@/lib/utils"
 import { createClient } from "@/lib/supabase/client"
 import {
   CheckCircle2, Loader2, Mail, Eye, EyeOff, ChevronDown, ChevronUp, MessageCircle, RotateCcw,
-  UserCircle2,
 } from "lucide-react"
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
@@ -182,7 +181,6 @@ export function SellerContactForm({ hasSubmitted, lineSession, isMember, lineOaH
     },
   })
 
-  const hasPrefill = !!(prefill.fullName || prefill.phone || prefill.storeName)
 
   const onSubmit = async (data: FormData) => {
     setApiError(null)
@@ -256,32 +254,17 @@ export function SellerContactForm({ hasSubmitted, lineSession, isMember, lineOaH
     >
       {apiError && <ErrorBox msg={apiError} />}
 
-      {hasPrefill && (
-        <div className="flex items-start gap-2.5 px-3.5 py-3 bg-emerald-500/8 border border-emerald-500/20 rounded-xl">
-          <UserCircle2 size={14} className="text-emerald-400 shrink-0 mt-0.5" />
-          <div className="flex-1 min-w-0">
-            <p className="text-emerald-300 text-xs font-medium">ดึงข้อมูลจาก profile ของคุณอัตโนมัติ</p>
-            <p className="text-emerald-400/60 text-xs mt-0.5">
-              {[prefill.fullName && "ชื่อ-นามสกุล", prefill.phone && "เบอร์โทร", prefill.storeName && "ชื่อร้าน"].filter(Boolean).join(" · ")}
-              {" — แก้ไขได้ก่อนกดส่ง"}
-            </p>
-          </div>
-          <a href="/member/profile" className="text-emerald-500 hover:text-emerald-300 text-xs underline shrink-0 transition-colors mt-0.5">
-            แก้ไข
-          </a>
-        </div>
-      )}
 
-      <div className="grid sm:grid-cols-2 gap-5">
-        <Field label="ชื่อ-นามสกุล" error={errors.name?.message} required prefilled={!!prefill.fullName}>
+<div className="grid sm:grid-cols-2 gap-5">
+        <Field label="ชื่อ-นามสกุล" error={errors.name?.message} required>
           <input {...register("name")} placeholder="สมชาย ใจดี" className={inputCls(!!errors.name)} />
         </Field>
-        <Field label="เบอร์โทรศัพท์" error={errors.phone?.message} required prefilled={!!prefill.phone}>
+        <Field label="เบอร์โทรศัพท์" error={errors.phone?.message} required>
           <input {...register("phone")} placeholder="0812345678" inputMode="tel" className={inputCls(!!errors.phone)} />
         </Field>
       </div>
 
-      <Field label="ชื่อแบรนด์ / ร้านค้า TikTok Shop" error={errors.brand?.message} required prefilled={!!prefill.storeName}>
+      <Field label="ชื่อแบรนด์ / ร้านค้า TikTok Shop" error={errors.brand?.message} required>
         <input {...register("brand")} placeholder="เช่น Daily Kitchen, Glow Beauty" className={inputCls(!!errors.brand)} />
       </Field>
 
@@ -327,21 +310,14 @@ export function SellerContactForm({ hasSubmitted, lineSession, isMember, lineOaH
 
 // ─── Shared helpers ───────────────────────────────────────────────────────────
 
-function Field({ label, error, required, prefilled, children }: {
-  label: string; error?: string; required?: boolean; prefilled?: boolean; children: React.ReactNode
+function Field({ label, error, required, children }: {
+  label: string; error?: string; required?: boolean; children: React.ReactNode
 }) {
   return (
     <div className="space-y-1.5">
-      <div className="flex items-center gap-1.5">
-        <label className="text-slate-300 text-sm font-medium">
-          {label}{required && <span className="text-[#F59E0B] ml-1">*</span>}
-        </label>
-        {prefilled && (
-          <span className="text-[10px] text-emerald-400/70 bg-emerald-500/10 px-1.5 py-0.5 rounded-md leading-none">
-            จากโปรไฟล์
-          </span>
-        )}
-      </div>
+      <label className="text-slate-300 text-sm font-medium">
+        {label}{required && <span className="text-[#F59E0B] ml-1">*</span>}
+      </label>
       {children}
       {error && <p className="text-red-400 text-xs">{error}</p>}
     </div>

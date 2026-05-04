@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { cn } from "@/lib/utils"
-import { CheckCircle2, Loader2, MessageCircle, RotateCcw, Music, UserCircle2 } from "lucide-react"
+import { CheckCircle2, Loader2, MessageCircle, RotateCcw, Music } from "lucide-react"
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
 
@@ -53,7 +53,6 @@ export function AffiliateContactForm({ hasSubmitted, lineSession, lineOaHref, pr
     },
   })
 
-  const hasPrefill = !!(prefill.fullName || prefill.phone || prefill.tiktokUrl)
 
   const onSubmit = async (data: FormData) => {
     setApiError(null)
@@ -124,27 +123,12 @@ export function AffiliateContactForm({ hasSubmitted, lineSession, lineOaHref, pr
     >
       {apiError && <ErrorBox msg={apiError} />}
 
-      {hasPrefill && (
-        <div className="flex items-start gap-2.5 px-3.5 py-3 bg-[#F59E0B]/8 border border-[#F59E0B]/20 rounded-xl">
-          <UserCircle2 size={14} className="text-[#F59E0B] shrink-0 mt-0.5" />
-          <div className="flex-1 min-w-0">
-            <p className="text-[#F59E0B] text-xs font-medium">ดึงข้อมูลจาก profile ของคุณอัตโนมัติ</p>
-            <p className="text-[#F59E0B]/60 text-xs mt-0.5">
-              {[prefill.fullName && "ชื่อ-นามสกุล", prefill.phone && "เบอร์โทร", prefill.tiktokUrl && "ลิงก์ TikTok"].filter(Boolean).join(" · ")}
-              {" — แก้ไขได้ก่อนกดส่ง"}
-            </p>
-          </div>
-          <a href="/member/profile" className="text-[#F59E0B] hover:text-amber-300 text-xs underline shrink-0 transition-colors mt-0.5">
-            แก้ไข
-          </a>
-        </div>
-      )}
 
-      <div className="grid sm:grid-cols-2 gap-5">
-        <Field label="ชื่อ-นามสกุล" error={errors.name?.message} required prefilled={!!prefill.fullName}>
+<div className="grid sm:grid-cols-2 gap-5">
+        <Field label="ชื่อ-นามสกุล" error={errors.name?.message} required>
           <input {...register("name")} placeholder="สมชาย ใจดี" className={inputCls(!!errors.name)} />
         </Field>
-        <Field label="เบอร์โทรศัพท์" error={errors.phone?.message} required prefilled={!!prefill.phone}>
+        <Field label="เบอร์โทรศัพท์" error={errors.phone?.message} required>
           <input {...register("phone")} placeholder="0812345678" inputMode="tel" className={inputCls(!!errors.phone)} />
         </Field>
       </div>
@@ -153,7 +137,6 @@ export function AffiliateContactForm({ hasSubmitted, lineSession, lineOaHref, pr
         label="ลิงก์ช่อง TikTok ของคุณ"
         error={errors.tiktok_url?.message}
         hint="ไม่บังคับ — ใส่ถ้ามีช่องอยู่แล้ว"
-        prefilled={!!prefill.tiktokUrl}
       >
         <div className="relative">
           <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500">
@@ -203,22 +186,15 @@ export function AffiliateContactForm({ hasSubmitted, lineSession, lineOaHref, pr
 
 // ─── Shared helpers ───────────────────────────────────────────────────────────
 
-function Field({ label, error, required, hint, prefilled, children }: {
-  label: string; error?: string; required?: boolean; hint?: string; prefilled?: boolean; children: React.ReactNode
+function Field({ label, error, required, hint, children }: {
+  label: string; error?: string; required?: boolean; hint?: string; children: React.ReactNode
 }) {
   return (
     <div className="space-y-1.5">
       <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-1.5">
-          <label className="text-slate-300 text-sm font-medium">
-            {label}{required && <span className="text-[#F59E0B] ml-1">*</span>}
-          </label>
-          {prefilled && (
-            <span className="text-[10px] text-[#F59E0B]/70 bg-[#F59E0B]/10 px-1.5 py-0.5 rounded-md leading-none">
-              จากโปรไฟล์
-            </span>
-          )}
-        </div>
+        <label className="text-slate-300 text-sm font-medium">
+          {label}{required && <span className="text-[#F59E0B] ml-1">*</span>}
+        </label>
         {hint && <span className="text-slate-600 text-xs shrink-0">{hint}</span>}
       </div>
       {children}
