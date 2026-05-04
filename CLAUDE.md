@@ -143,6 +143,29 @@ import { cn } from '@/lib/utils'
 - **Do NOT** install large dependencies without discussion
 - **Do NOT** modify the database schema directly — write migration SQL files
 
+## Form Input Rules (iOS Safari)
+
+**CRITICAL — iOS Safari auto-zoom:** ถ้า `<input>`, `<select>`, หรือ `<textarea>` มี `font-size < 16px` iOS Safari จะ zoom หน้าเข้าอัตโนมัติและฟอร์มล้นจอ
+
+**Rule:** ทุก `<input>`, `<select>`, `<textarea>` ต้องใช้ `text-base` (16px) เสมอ — ห้ามใช้ `text-sm` หรือ `text-xs`
+
+```tsx
+// ✅ CORRECT — ทุก inputCls() function ต้องมี text-base
+function inputCls() {
+  return cn(
+    "w-full bg-[#0A0808] border border-white/10 rounded-xl px-4 py-2.5 text-white text-base",
+    "placeholder:text-slate-600 focus:outline-none focus:ring-2 ...",
+  )
+}
+
+// ❌ WRONG — text-sm (14px) triggers iOS auto-zoom
+function inputCls() {
+  return cn("... text-sm ...")
+}
+```
+
+**Note:** `layout.tsx` มี `viewport: { maximumScale: 1 }` เป็น safety net แต่ `text-base` บน input คือ best practice ที่ถูกต้อง — ใช้ทั้งสองอย่างเสมอ
+
 ## Database Conventions
 
 - All tables use `uuid` primary keys with `gen_random_uuid()`
