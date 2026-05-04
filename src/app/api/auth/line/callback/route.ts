@@ -115,24 +115,26 @@ export async function GET(req: NextRequest) {
       if (existingProfile) {
         userId = existingProfile.id
       } else {
-        // ── 2. หา auth user จาก virtual email (กรณี trigger สร้าง user แต่ profile ยังไม่มี line_user_id) ──
-        const { data: userList, error: listErr } = await admin.auth.admin.listUsers({ perPage: 1000 })
+        // ── 2. หา auth user จาก virtual email ด้วย REST filter (ไม่ดึง user ทั้งหมด) ──
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+        const serviceKey  = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
-        if (listErr) {
-          console.error("LINE login: listUsers failed:", listErr.message, listErr.status)
-          // 401/403 = wrong service role key
-          if (listErr.status === 401 || listErr.status === 403) {
-            return redirectWithError(base, returnTo, "server_config_error")
-          }
-          return redirectWithError(base, returnTo, "create_user_failed")
+        async function findAuthUserByEmail(email: string): Promise<string | null> {
+          const res = await fetch(
+            `${supabaseUrl}/auth/v1/admin/users?filter=${encodeURIComponent(email)}&per_page=1`,
+            { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } },
+          )
+          if (!res.ok) return null
+          const json = await res.json()
+          const found = (json?.users ?? []).find(
+            (u: { id: string; email?: string }) => u.email?.toLowerCase() === email,
+          )
+          return found?.id ?? null
         }
 
-        const existingAuthUser = userList?.users?.find(
-          u => u.email?.toLowerCase() === virtualEmail
-        )
-
-        if (existingAuthUser) {
-          userId = existingAuthUser.id
+        const existingAuthUserId = await findAuthUserByEmail(virtualEmail)
+        if (existingAuthUserId) {
+          userId = existingAuthUserId
           // อัปเดต profile ที่ยังไม่ได้ link LINE
           await admin.from("profiles").update({
             line_user_id:      profile.userId,
@@ -142,9 +144,9 @@ export async function GET(req: NextRequest) {
         } else {
           // ── 3. สร้าง auth user ใหม่ ──
           const { data: newUser, error: createErr } = await admin.auth.admin.createUser({
-            email:          virtualEmail,
-            email_confirm:  true,
-            user_metadata:  {
+            email:         virtualEmail,
+            email_confirm: true,
+            user_metadata: {
               full_name:  profile.displayName,
               avatar_url: profile.pictureUrl,
               provider:   "line",
@@ -152,17 +154,15 @@ export async function GET(req: NextRequest) {
           })
           if (createErr || !newUser?.user) {
             console.error("LINE createUser failed — status:", createErr?.status, "msg:", createErr?.message)
-            // 401/403 = wrong service role key; show clearer error
             if (createErr?.status === 401 || createErr?.status === 403) {
               return redirectWithError(base, returnTo, "server_config_error")
             }
-            // 422 = user already exists despite listUsers not finding them (edge case)
+            // 422 = user already exists (race condition) — retry lookup
             if (createErr?.status === 422) {
-              console.error("LINE createUser 422: user may already exist, retrying listUsers")
-              const { data: retryList } = await admin.auth.admin.listUsers({ perPage: 1000 })
-              const retryUser = retryList?.users?.find(u => u.email?.toLowerCase() === virtualEmail)
-              if (retryUser) {
-                userId = retryUser.id
+              console.error("LINE createUser 422: retrying lookup")
+              const retryId = await findAuthUserByEmail(virtualEmail)
+              if (retryId) {
+                userId = retryId
                 await admin.from("profiles").update({
                   line_user_id:      profile.userId,
                   line_display_name: profile.displayName,
@@ -176,7 +176,6 @@ export async function GET(req: NextRequest) {
             }
           } else {
             userId = newUser.user.id
-            // อัปเดต line fields บน profile ที่ trigger สร้างให้
             await admin.from("profiles").update({
               line_user_id:      profile.userId,
               line_display_name: profile.displayName,
@@ -222,7 +221,7 @@ export async function GET(req: NextRequest) {
       httpOnly: true,
       secure:   process.env.NODE_ENV === "production",
       sameSite: "lax",
-      maxAge:   60 * 60 * 24 * 365,
+      maxAge:   60 * 30,   // 30 นาที — ใช้แค่ช่วงกรอกฟอร์ม
       path:     "/",
     })
     return res

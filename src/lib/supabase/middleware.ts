@@ -31,11 +31,21 @@ export async function updateSession(request: NextRequest) {
   const { pathname } = request.nextUrl
   const isMemberPath   = pathname.startsWith("/member")
   const isPublicMember = MEMBER_PUBLIC_PREFIXES.some(p => pathname.startsWith(p))
+  const isAdminPath    = pathname.startsWith("/admin")
 
   if (!user && isMemberPath && !isPublicMember) {
     const url = request.nextUrl.clone()
     url.pathname = "/member/login"
     url.searchParams.set("next", pathname)
+    return NextResponse.redirect(url)
+  }
+
+  // Admin routes — ป้องกันชั้นที่ 2 (layout.tsx ยังตรวจ role อยู่)
+  // ไม่ส่ง next= เพื่อไม่ให้รู้ว่า path admin มีอะไรบ้าง
+  if (!user && isAdminPath) {
+    const url = request.nextUrl.clone()
+    url.pathname = "/member/login"
+    url.searchParams.delete("next")
     return NextResponse.redirect(url)
   }
 

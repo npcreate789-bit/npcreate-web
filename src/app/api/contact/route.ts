@@ -3,6 +3,17 @@ import { z } from "zod"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
 
+// ─── HTML escape helper (ป้องกัน XSS injection ใน email) ─────────────────────
+
+function e(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;")
+}
+
 // ─── Validation schemas ───────────────────────────────────────────────────────
 
 const VALID_GMV = ["ยังไม่เปิดร้าน", "น้อยกว่า 50K", "50K-200K", "200K-1M", "1M+"] as const
@@ -122,22 +133,22 @@ function buildEmailHtml(data: LeadInput): string {
   const rows = isSeller
     ? [
         ["ประเภท", '<span style="color:#DC2626;font-weight:bold">Seller / Agency</span>'],
-        ["ชื่อ", data.name],
-        ["เบอร์โทร", data.phone],
-        ["แบรนด์", data.brand],
+        ["ชื่อ", e(data.name)],
+        ["เบอร์โทร", e(data.phone)],
+        ["แบรนด์", e(data.brand)],
         ["GMV/เดือน", data.monthly_gmv],
         ["บริการที่สนใจ", data.service],
-        ...(data.display_name ? [["LINE", `<span style="color:#06C755">${data.display_name}</span>`]] : []),
-        ...(data.message ? [["หมายเหตุ", data.message]] : []),
+        ...(data.display_name ? [["LINE", `<span style="color:#06C755">${e(data.display_name)}</span>`]] : []),
+        ...(data.message ? [["หมายเหตุ", e(data.message)]] : []),
       ]
     : [
         ["ประเภท", '<span style="color:#F59E0B;font-weight:bold">Affiliate / คอร์ส</span>'],
-        ["ชื่อ", data.name],
-        ["เบอร์โทร", data.phone],
-        ...(data.tiktok_url ? [["TikTok", data.tiktok_url]] : []),
+        ["ชื่อ", e(data.name)],
+        ["เบอร์โทร", e(data.phone)],
+        ...(data.tiktok_url ? [["TikTok", e(data.tiktok_url)]] : []),
         ["สนใจ", data.service],
-        ...(data.display_name ? [["LINE", `<span style="color:#06C755">${data.display_name}</span>`]] : []),
-        ...(data.message ? [["หมายเหตุ", data.message]] : []),
+        ...(data.display_name ? [["LINE", `<span style="color:#06C755">${e(data.display_name)}</span>`]] : []),
+        ...(data.message ? [["หมายเหตุ", e(data.message)]] : []),
       ]
 
   const tableRows = rows.map(([label, value], i) =>
@@ -214,7 +225,19 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await userSupabase.auth.getUser()
   const memberId = user?.id ?? null
 
-  const supabase   = createAdminClient()
+  const supabase = createAdminClient()
+
+  // Rate limit: ไม่เกิน 3 submissions ต่อเบอร์โทรใน 1 ชั่วโมง
+  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString()
+  const { count: recentCount } = await supabase
+    .from("leads")
+    .select("id", { count: "exact", head: true })
+    .eq("phone", data.phone)
+    .gte("created_at", oneHourAgo)
+  if ((recentCount ?? 0) >= 3) {
+    return NextResponse.json({ error: "too_many_requests" }, { status: 429 })
+  }
+
   const insertData = {
     lead_type:    data.lead_type,
     name:         data.name,
