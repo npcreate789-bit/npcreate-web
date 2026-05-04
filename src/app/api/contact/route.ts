@@ -3,31 +3,78 @@ import { z } from "zod"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
 
-const VALID_GMV     = ["ยังไม่เปิดร้าน", "น้อยกว่า 50K", "50K-200K", "200K-1M", "1M+"] as const
-const VALID_SERVICE = ["ยิงแอด GMV Max", "วางกลยุทธ์ TikTok Shop", "Content & Creative", "ทั้งหมด", "ยังไม่แน่ใจ"] as const
+// ─── Validation schemas ───────────────────────────────────────────────────────
 
-const bodySchema = z.object({
-  name:          z.string().min(2).max(100),
-  phone:         z.string().regex(/^0[6-9]\d{8}$/),
-  brand:         z.string().min(2).max(200),
-  monthly_gmv:   z.enum(VALID_GMV),
-  service:       z.enum(VALID_SERVICE),
-  message:       z.string().max(2000).optional(),
-  line_user_id:  z.string().max(100).optional(),
-  display_name:  z.string().max(200).optional(),
+const VALID_GMV = ["ยังไม่เปิดร้าน", "น้อยกว่า 50K", "50K-200K", "200K-1M", "1M+"] as const
+
+const VALID_SELLER_SERVICE = [
+  "ยิงแอด GMV Max",
+  "วางกลยุทธ์ TikTok Shop",
+  "Content & Creative",
+  "ทั้งหมด",
+  "ยังไม่แน่ใจ",
+] as const
+
+const VALID_AFFILIATE_SERVICE = [
+  "คอร์สเรียน TikTok Affiliate",
+  "บริการวางแผน Affiliate",
+  "สมัครเป็น Affiliate กับ NP Create",
+  "ที่ปรึกษา Affiliate",
+  "ยังไม่แน่ใจ",
+] as const
+
+const lineFields = {
+  line_user_id: z.string().max(100).optional(),
+  display_name: z.string().max(200).optional(),
+}
+
+const sellerSchema = z.object({
+  lead_type:   z.literal("seller"),
+  name:        z.string().min(2).max(100),
+  phone:       z.string().regex(/^0[6-9]\d{8}$/),
+  brand:       z.string().min(2).max(200),
+  monthly_gmv: z.enum(VALID_GMV),
+  service:     z.enum(VALID_SELLER_SERVICE),
+  message:     z.string().max(2000).optional(),
+  ...lineFields,
 })
 
-type Lead = z.infer<typeof bodySchema>
+const affiliateSchema = z.object({
+  lead_type:  z.literal("affiliate"),
+  name:       z.string().min(2).max(100),
+  phone:      z.string().regex(/^0[6-9]\d{8}$/),
+  tiktok_url: z.string().url().max(300).optional().or(z.literal("")),
+  service:    z.enum(VALID_AFFILIATE_SERVICE),
+  message:    z.string().max(2000).optional(),
+  ...lineFields,
+})
 
-function buildAdminMessage(data: Lead): string {
+const bodySchema = z.discriminatedUnion("lead_type", [sellerSchema, affiliateSchema])
+
+type LeadInput = z.infer<typeof bodySchema>
+
+// ─── Admin message builders ───────────────────────────────────────────────────
+
+function buildAdminMessage(data: LeadInput): string {
+  if (data.lead_type === "seller") {
+    return [
+      "📩 Lead Seller ใหม่จาก NP Create",
+      `👤 ชื่อ: ${data.name}`,
+      `📱 เบอร์: ${data.phone}`,
+      data.display_name ? `💚 LINE: ${data.display_name}` : "",
+      `🏪 แบรนด์: ${data.brand}`,
+      `💰 GMV: ${data.monthly_gmv}`,
+      `🎯 บริการ: ${data.service}`,
+      data.message ? `💬 หมายเหตุ: ${data.message}` : "",
+    ].filter(Boolean).join("\n")
+  }
   return [
-    "📩 Lead ใหม่จาก NP Create",
+    "📩 Lead Affiliate/คอร์ส ใหม่จาก NP Create",
     `👤 ชื่อ: ${data.name}`,
     `📱 เบอร์: ${data.phone}`,
     data.display_name ? `💚 LINE: ${data.display_name}` : "",
-    `🏪 แบรนด์: ${data.brand}`,
-    `💰 GMV: ${data.monthly_gmv}`,
-    `🎯 บริการ: ${data.service}`,
+    data.tiktok_url ? `🎵 TikTok: ${data.tiktok_url}` : "",
+    `📚 สนใจ: ${data.service}`,
     data.message ? `💬 หมายเหตุ: ${data.message}` : "",
   ].filter(Boolean).join("\n")
 }
@@ -43,7 +90,8 @@ function buildCustomerMessage(name: string): string {
   ].join("\n")
 }
 
-// ── LINE Messaging API push ─────────────────────────────────────────────────
+// ─── LINE Messaging API push ──────────────────────────────────────────────────
+
 async function pushLine(to: string, text: string): Promise<boolean> {
   const token = process.env.LINE_CHANNEL_ACCESS_TOKEN
   if (!token || !to) return false
@@ -57,7 +105,7 @@ async function pushLine(to: string, text: string): Promise<boolean> {
       body: JSON.stringify({ to, messages: [{ type: "text", text }] }),
     })
     if (!res.ok) {
-      console.error(`LINE push to ${to.slice(0, 6)}... failed: HTTP ${res.status}`)
+      console.error(`LINE push failed: HTTP ${res.status}`)
       return false
     }
     return true
@@ -67,24 +115,53 @@ async function pushLine(to: string, text: string): Promise<boolean> {
   }
 }
 
-// ── Email via Resend (fallback when admin LINE push fails) ──────────────────
-async function sendEmail(data: Lead): Promise<boolean> {
+// ─── Email via Resend (fallback) ──────────────────────────────────────────────
+
+function buildEmailHtml(data: LeadInput): string {
+  const isSeller = data.lead_type === "seller"
+  const rows = isSeller
+    ? [
+        ["ประเภท", '<span style="color:#DC2626;font-weight:bold">Seller / Agency</span>'],
+        ["ชื่อ", data.name],
+        ["เบอร์โทร", data.phone],
+        ["แบรนด์", data.brand],
+        ["GMV/เดือน", data.monthly_gmv],
+        ["บริการที่สนใจ", data.service],
+        ...(data.display_name ? [["LINE", `<span style="color:#06C755">${data.display_name}</span>`]] : []),
+        ...(data.message ? [["หมายเหตุ", data.message]] : []),
+      ]
+    : [
+        ["ประเภท", '<span style="color:#F59E0B;font-weight:bold">Affiliate / คอร์ส</span>'],
+        ["ชื่อ", data.name],
+        ["เบอร์โทร", data.phone],
+        ...(data.tiktok_url ? [["TikTok", data.tiktok_url]] : []),
+        ["สนใจ", data.service],
+        ...(data.display_name ? [["LINE", `<span style="color:#06C755">${data.display_name}</span>`]] : []),
+        ...(data.message ? [["หมายเหตุ", data.message]] : []),
+      ]
+
+  const tableRows = rows.map(([label, value], i) =>
+    `<tr${i % 2 === 1 ? ' style="background:#f9f9f9"' : ""}>
+      <td style="padding:8px 12px;color:#666;white-space:nowrap">${label}</td>
+      <td style="padding:8px 12px;font-weight:500">${value}</td>
+    </tr>`
+  ).join("")
+
+  return `
+    <h2 style="font-family:sans-serif">📩 Lead ใหม่จาก NP Create</h2>
+    <table style="border-collapse:collapse;width:100%;max-width:520px;font-family:sans-serif;font-size:14px">
+      ${tableRows}
+    </table>
+  `
+}
+
+async function sendEmail(data: LeadInput): Promise<boolean> {
   const apiKey = process.env.RESEND_API_KEY
   const to     = process.env.ADMIN_EMAIL
   if (!apiKey || !to) return false
 
-  const html = `
-    <h2>📩 Lead ใหม่จาก NP Create</h2>
-    <table style="border-collapse:collapse;width:100%;max-width:500px">
-      <tr><td style="padding:8px;color:#666">ชื่อ</td><td style="padding:8px;font-weight:bold">${data.name}</td></tr>
-      <tr style="background:#f9f9f9"><td style="padding:8px;color:#666">เบอร์โทร</td><td style="padding:8px;font-weight:bold">${data.phone}</td></tr>
-      <tr><td style="padding:8px;color:#666">แบรนด์</td><td style="padding:8px;font-weight:bold">${data.brand}</td></tr>
-      <tr style="background:#f9f9f9"><td style="padding:8px;color:#666">GMV/เดือน</td><td style="padding:8px">${data.monthly_gmv}</td></tr>
-      <tr><td style="padding:8px;color:#666">บริการที่สนใจ</td><td style="padding:8px">${data.service}</td></tr>
-      ${data.line_user_id ? `<tr style="background:#f9f9f9"><td style="padding:8px;color:#666">LINE</td><td style="padding:8px;color:#06C755;font-weight:bold">${data.display_name ?? ""} (${data.line_user_id})</td></tr>` : ""}
-      ${data.message ? `<tr><td style="padding:8px;color:#666">หมายเหตุ</td><td style="padding:8px">${data.message}</td></tr>` : ""}
-    </table>
-  `
+  const typeLabel = data.lead_type === "seller" ? "Seller" : "Affiliate/คอร์ส"
+  const subject   = `📩 Lead ${typeLabel}: ${data.name}${data.lead_type === "seller" ? ` — ${data.brand}` : ""}`
 
   try {
     const res = await fetch("https://api.resend.com/emails", {
@@ -94,10 +171,10 @@ async function sendEmail(data: Lead): Promise<boolean> {
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        from:    "NP Create <onboarding@resend.dev>",
-        to:      [to],
-        subject: `📩 Lead ใหม่: ${data.name} — ${data.brand}`,
-        html,
+        from: "NP Create <onboarding@resend.dev>",
+        to:   [to],
+        subject,
+        html: buildEmailHtml(data),
       }),
     })
     if (!res.ok) {
@@ -111,21 +188,21 @@ async function sendEmail(data: Lead): Promise<boolean> {
   }
 }
 
-async function notifyAdmin(data: Lead) {
-  const adminId = process.env.LINE_ADMIN_USER_ID
+async function notifyAdmin(data: LeadInput) {
+  const adminId  = process.env.LINE_ADMIN_USER_ID
   const sentLine = adminId ? await pushLine(adminId, buildAdminMessage(data)) : false
   if (!sentLine) {
     const sentEmail = await sendEmail(data)
     if (!sentEmail) {
-      console.warn("ไม่มีช่องทางแจ้งเตือน admin — ตั้งค่า LINE_ADMIN_USER_ID หรือ RESEND_API_KEY ใน Vercel")
+      console.warn("ไม่มีช่องทางแจ้งเตือน admin — ตั้งค่า LINE_ADMIN_USER_ID หรือ RESEND_API_KEY")
     }
   }
 }
 
-// ── Handler ─────────────────────────────────────────────────────────────────
+// ─── Handler ──────────────────────────────────────────────────────────────────
 
 export async function POST(req: NextRequest) {
-  const raw = await req.json().catch(() => null)
+  const raw    = await req.json().catch(() => null)
   const result = bodySchema.safeParse(raw)
   if (!result.success) {
     return NextResponse.json({ error: "invalid_input" }, { status: 400 })
@@ -133,41 +210,41 @@ export async function POST(req: NextRequest) {
 
   const data = result.data
 
-  // ดึง user จาก session (ถ้า login อยู่) เพื่อบันทึก member_id
   const userSupabase = await createClient()
   const { data: { user } } = await userSupabase.auth.getUser()
   const memberId = user?.id ?? null
 
-  // ใช้ admin client เพื่อ bypass RLS — server-side route ไม่ต้องพึ่ง user session
-  const supabase = createAdminClient()
-
-  const { error: dbError } = await supabase.from("leads").insert({
+  const supabase   = createAdminClient()
+  const insertData = {
+    lead_type:    data.lead_type,
     name:         data.name,
     phone:        data.phone,
-    brand:        data.brand,
-    monthly_gmv:  data.monthly_gmv,
     service:      data.service,
     message:      data.message ?? null,
     line_user_id: data.line_user_id ?? null,
     display_name: data.display_name ?? null,
     member_id:    memberId,
-  })
+    brand:        data.lead_type === "seller" ? data.brand : null,
+    monthly_gmv:  data.lead_type === "seller" ? data.monthly_gmv : null,
+    tiktok_url:   data.lead_type === "affiliate" && data.tiktok_url ? data.tiktok_url : null,
+  }
 
+  const { error: dbError } = await supabase.from("leads").insert(insertData)
   if (dbError) {
-    console.error("leads insert failed:", dbError.code, dbError.message, dbError.details)
+    console.error("leads insert failed:", dbError.code, dbError.message)
     return NextResponse.json({ error: "บันทึกข้อมูลไม่สำเร็จ กรุณาลองใหม่" }, { status: 500 })
   }
 
-  // ── 2. แจ้ง admin + แจ้ง customer พร้อมกัน (ไม่ block หากล้มเหลว) ──
   const notifications: Promise<unknown>[] = [notifyAdmin(data)]
   if (data.line_user_id) {
     notifications.push(pushLine(data.line_user_id, buildCustomerMessage(data.name)))
   }
   await Promise.allSettled(notifications)
 
-  // ── 3. Set cookie + return ──
-  const response = NextResponse.json({ success: true })
-  response.cookies.set("contact_submitted", "1", {
+  // คุกกี้แยกกันตาม lead_type เพื่อ track การ submit แต่ละประเภทแยกกัน
+  const cookieName = data.lead_type === "seller" ? "contact_submitted" : "contact_affiliate_submitted"
+  const response   = NextResponse.json({ success: true })
+  response.cookies.set(cookieName, "1", {
     httpOnly: true,
     secure:   process.env.NODE_ENV === "production",
     sameSite: "lax",

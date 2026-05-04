@@ -88,9 +88,11 @@ export type ClientLogo = {
 }
 
 export type LeadStatus = 'new' | 'contacted' | 'closed'
+export type LeadType = 'seller' | 'affiliate'
 
 export type Lead = {
   id: string
+  lead_type: LeadType
   line_user_id: string | null
   display_name: string | null
   picture_url: string | null
@@ -98,8 +100,9 @@ export type Lead = {
   member_id: string | null
   name: string
   phone: string
-  brand: string
-  monthly_gmv: string
+  brand: string | null
+  monthly_gmv: string | null
+  tiktok_url: string | null
   service: string
   message: string | null
   status: LeadStatus

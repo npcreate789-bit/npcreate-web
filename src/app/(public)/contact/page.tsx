@@ -1,44 +1,51 @@
 import type { Metadata } from "next"
 import { cookies } from "next/headers"
-import { ContactForm } from "@/components/public/contact/ContactForm"
-import { ContactInfo } from "@/components/public/contact/ContactInfo"
+import { ContactTabs } from "@/components/public/contact/ContactTabs"
 import { createClient } from "@/lib/supabase/server"
 import { mergeSiteInfo, getLineOaHref } from "@/lib/data/site-info"
 
 export const metadata: Metadata = {
   title: "ติดต่อ",
   description:
-    "ปรึกษาฟรี ไม่มีข้อผูกมัด ทีมงานตอบกลับภายใน 1 ชั่วโมง ผ่าน Line OA หรือกรอกฟอร์มด้านล่าง",
+    "ปรึกษาฟรี ไม่มีข้อผูกมัด ทีมงานตอบกลับภายใน 1 ชั่วโมง — สำหรับ Seller ที่ต้องการยิงแอด GMV Max หรือ Affiliate ที่ต้องการคอร์สเรียนและวางแผนกลยุทธ์",
 }
 
 type LineSession = { userId: string; displayName: string; pictureUrl: string }
 
-export default async function ContactPage() {
-  const [cookieStore, supabase] = await Promise.all([cookies(), createClient()])
+export default async function ContactPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ type?: string }>
+}) {
+  const { type } = await searchParams
+  const defaultTab = type === "affiliate" ? "affiliate" : "seller"
 
+  const [cookieStore, supabase] = await Promise.all([cookies(), createClient()])
   const { data: { user } } = await supabase.auth.getUser()
   const isMember = !!user
 
-  // ── hasSubmitted: member → ตรวจ active lead ใน DB, anonymous → cookie ──
-  let hasSubmitted = false
+  // ── Seller hasSubmitted: member → ตรวจ active lead ใน DB, anonymous → cookie ──
+  let sellerHasSubmitted = false
   if (user) {
-    // member ที่มี lead ที่ยัง "new" หรือ "contacted" ถือว่ายังรออยู่
     try {
       const { data: activeLead } = await supabase
         .from("leads")
         .select("id")
         .eq("member_id", user.id)
+        .eq("lead_type", "seller")
         .in("status", ["new", "contacted"])
         .limit(1)
         .maybeSingle()
-      hasSubmitted = !!activeLead
+      sellerHasSubmitted = !!activeLead
     } catch {
-      // graceful fallback ถ้า member_id column ยังไม่มี
-      hasSubmitted = false
+      sellerHasSubmitted = !!cookieStore.get("contact_submitted")?.value
     }
   } else {
-    hasSubmitted = !!cookieStore.get("contact_submitted")?.value
+    sellerHasSubmitted = !!cookieStore.get("contact_submitted")?.value
   }
+
+  // ── Affiliate hasSubmitted: cookie-based สำหรับทุกคน ──
+  const affiliateHasSubmitted = !!cookieStore.get("contact_affiliate_submitted")?.value
 
   // ── LINE session: ดึงจาก member profile ก่อน fallback cookie ──
   let lineSession: LineSession | null = null
@@ -56,7 +63,6 @@ export default async function ContactPage() {
       }
     }
   }
-
   if (!lineSession) {
     try {
       const raw = cookieStore.get("line_session")?.value
@@ -73,24 +79,28 @@ export default async function ContactPage() {
     <main className="min-h-screen bg-[#0A0808] pt-24 pb-24">
       <div className="max-w-2xl mx-auto px-4 sm:px-6">
 
-        {/* Header */}
+        {/* Page header */}
         <div className="text-center mb-8">
           <span className="text-[#DC2626] text-sm font-semibold uppercase tracking-widest">ติดต่อเรา</span>
-          <h1 className="font-display font-bold text-4xl sm:text-5xl text-white mt-3 mb-4">ปรึกษาฟรี วันนี้</h1>
-          <p className="text-slate-400 text-lg leading-relaxed">
-            บอกเราเกี่ยวกับ shop ของคุณ แล้วเราจะวิเคราะห์และเสนอแนวทางที่เหมาะสมที่สุดให้ฟรี
+          <h1 className="font-display font-bold text-4xl sm:text-5xl text-white mt-3 mb-4">
+            เริ่มต้นด้วยการคุย
+          </h1>
+          <p className="text-slate-400 text-base leading-relaxed">
+            เลือกหมวดหมู่ที่ตรงกับคุณ แล้วกรอกข้อมูลสั้นๆ
             <br />
-            <span className="text-slate-500 text-base">เราพร้อมให้คำปรึกษาฟรีโดยไม่มีข้อผูกมัด</span>
+            <span className="text-slate-500 text-sm">ทีมงานตอบกลับภายใน 1 ชั่วโมง ในเวลาทำการ 9:00–20:00 น.</span>
           </p>
         </div>
 
-        {/* Form — ต่อจาก header โดยตรง */}
-        <ContactForm hasSubmitted={hasSubmitted} lineSession={lineSession} isMember={isMember} lineOaHref={lineOaHref} />
-
-        {/* Info cards — ด้านล่างฟอร์ม */}
-        <div className="mt-10">
-          <ContactInfo lineHref={lineOaHref} />
-        </div>
+        {/* Tab-based contact forms */}
+        <ContactTabs
+          defaultTab={defaultTab}
+          sellerHasSubmitted={sellerHasSubmitted}
+          affiliateHasSubmitted={affiliateHasSubmitted}
+          lineSession={lineSession}
+          isMember={isMember}
+          lineOaHref={lineOaHref}
+        />
 
       </div>
     </main>
