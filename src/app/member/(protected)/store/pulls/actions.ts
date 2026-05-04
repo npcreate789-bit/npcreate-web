@@ -7,6 +7,7 @@ import type { SampleStatus, Product, Profile } from "@/types/database"
 
 export type AffiliateInfo = Pick<Profile,
   | "id" | "full_name" | "avatar_url" | "phone" | "user_code" | "tiktok_channel_url"
+  | "content_type"
   | "address_name" | "address_phone" | "address_line1"
   | "address_subdistrict" | "address_district" | "address_province" | "address_postcode"
 >
@@ -54,6 +55,7 @@ export async function getStorePulls(opts?: { status?: string; productId?: string
       product:products(id, name, image_url, commission_rate),
       affiliate:profiles!affiliate_id(
         id, full_name, avatar_url, phone, user_code, tiktok_channel_url,
+        content_type,
         address_name, address_phone, address_line1,
         address_subdistrict, address_district, address_province, address_postcode
       )

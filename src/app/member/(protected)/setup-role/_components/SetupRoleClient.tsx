@@ -2,20 +2,28 @@
 
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
-import { Store, TrendingUp, ChevronRight, Loader2 } from "lucide-react"
+import { Store, TrendingUp, ChevronRight, Loader2, Video, Radio, Layers } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { saveRoleAndInfo, type RoleInfoInput } from "@/app/register/actions"
 
-type Step = "role" | "role_info"
-type RoleChoice = "seller" | "affiliate" | null
+type Step        = "role" | "role_info"
+type RoleChoice  = "seller" | "affiliate" | null
+type ContentType = "clip" | "live" | "both"
+
+const CONTENT_OPTIONS: { value: ContentType; icon: React.ReactNode; label: string }[] = [
+  { value: "clip", icon: <Video  size={18} />, label: "คลิปปักตะกร้า" },
+  { value: "live", icon: <Radio  size={18} />, label: "ไลฟ์สด"        },
+  { value: "both", icon: <Layers size={18} />, label: "ทั้งสองแบบ"    },
+]
 
 export function SetupRoleClient() {
   const router = useRouter()
   const [step, setStep]   = useState<Step>("role")
   const [role, setRole]   = useState<RoleChoice>(null)
-  const [storeName, setStoreName]         = useState("")
-  const [storeTiktokUrl, setStoreTiktokUrl] = useState("")
+  const [storeName, setStoreName]               = useState("")
+  const [storeTiktokUrl, setStoreTiktokUrl]     = useState("")
   const [tiktokChannelUrl, setTiktokChannelUrl] = useState("")
+  const [contentType, setContentType]           = useState<ContentType | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [pending, start]  = useTransition()
 
@@ -31,7 +39,7 @@ export function SetupRoleClient() {
 
     const input: RoleInfoInput = role === "seller"
       ? { role: "seller", store_name: storeName, store_tiktok_url: storeTiktokUrl }
-      : { role: "affiliate", tiktok_channel_url: tiktokChannelUrl }
+      : { role: "affiliate", tiktok_channel_url: tiktokChannelUrl, content_type: contentType ?? undefined }
 
     start(async () => {
       const result = await saveRoleAndInfo(input)
@@ -107,7 +115,35 @@ export function SetupRoleClient() {
                     <input value={tiktokChannelUrl} onChange={e => setTiktokChannelUrl(e.target.value)}
                       placeholder="https://www.tiktok.com/@username" type="url" className={inputCls()} />
                   </Field>
-                  <p className="text-slate-600 text-xs">Seller ใช้ดูเพื่อพิจารณาส่งสินค้าตัวอย่างให้คุณ</p>
+                  <div className="space-y-2">
+                    <label className="text-slate-300 text-xs font-medium block">
+                      คุณทำ TikTok แบบไหน?
+                      <span className="text-slate-600 ml-1">(ไม่บังคับ)</span>
+                    </label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {CONTENT_OPTIONS.map(o => (
+                        <button
+                          key={o.value}
+                          type="button"
+                          onClick={() => setContentType(prev => prev === o.value ? null : o.value)}
+                          className={cn(
+                            "flex flex-col items-center gap-1.5 py-3 px-1.5 rounded-xl border-2 text-center transition-all",
+                            contentType === o.value
+                              ? "border-[#F59E0B]/50 bg-[#F59E0B]/8"
+                              : "border-white/8 hover:border-white/15"
+                          )}
+                        >
+                          <span className={cn("transition-colors", contentType === o.value ? "text-[#F59E0B]" : "text-slate-500")}>
+                            {o.icon}
+                          </span>
+                          <p className={cn("text-[10px] font-semibold leading-tight", contentType === o.value ? "text-[#F59E0B]" : "text-slate-300")}>
+                            {o.label}
+                          </p>
+                        </button>
+                      ))}
+                    </div>
+                    <p className="text-slate-600 text-xs">Seller ใช้ดูเพื่อพิจารณาส่งสินค้าตัวอย่างให้คุณ</p>
+                  </div>
                 </>
               )}
               {error && <p className="text-red-400 text-sm">{error}</p>}

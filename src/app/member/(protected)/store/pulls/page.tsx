@@ -3,6 +3,7 @@ import Link from "next/link"
 import {
   ChevronRight, Users, Package, Clock, CheckCircle2, Truck,
   XCircle, ExternalLink, MapPin, Phone, AlertTriangle, Music,
+  Video, Radio, Layers,
 } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
 import { cn } from "@/lib/utils"
@@ -151,6 +152,22 @@ function AddressPanel({ affiliate, status }: { affiliate: AffiliateInfo | null; 
   )
 }
 
+const contentTypeConfig: Record<string, { icon: React.ReactNode; label: string }> = {
+  clip: { icon: <Video size={9} />, label: "คลิปปักตะกร้า" },
+  live: { icon: <Radio size={9} />, label: "ไลฟ์สด" },
+  both: { icon: <Layers size={9} />, label: "คลิป + ไลฟ์" },
+}
+
+function ContentTypeBadge({ type }: { type: string }) {
+  const cfg = contentTypeConfig[type]
+  if (!cfg) return null
+  return (
+    <span className="inline-flex items-center gap-1 text-[#F59E0B]/80 text-[10px] bg-[#F59E0B]/8 border border-[#F59E0B]/20 px-2 py-0.5 rounded-full">
+      {cfg.icon} {cfg.label}
+    </span>
+  )
+}
+
 function AffiliateSection({ affiliate }: { affiliate: AffiliateInfo | null }) {
   return (
     <div className="flex items-start gap-3 py-3 border-t border-white/5">
@@ -201,7 +218,10 @@ function AffiliateSection({ affiliate }: { affiliate: AffiliateInfo | null }) {
               <Music size={9} /> TikTok
             </a>
           )}
-          {!affiliate?.phone && !affiliate?.tiktok_channel_url && (
+          {affiliate?.content_type && (
+            <ContentTypeBadge type={affiliate.content_type} />
+          )}
+          {!affiliate?.phone && !affiliate?.tiktok_channel_url && !affiliate?.content_type && (
             <p className="text-slate-600 text-xs">ไม่มีข้อมูลติดต่อ</p>
           )}
         </div>

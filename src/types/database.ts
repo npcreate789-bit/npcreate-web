@@ -154,6 +154,7 @@ export type Profile = {
   avatar_url: string | null
   is_active: boolean
   tiktok_channel_url: string | null
+  content_type: "clip" | "live" | "both" | null
   address_name: string | null
   address_phone: string | null
   address_line1: string | null

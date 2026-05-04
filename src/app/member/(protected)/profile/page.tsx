@@ -11,6 +11,7 @@ import { LineSection } from "./_components/LineSection"
 import { AvatarUpload } from "./_components/AvatarUpload"
 import { TiktokForm } from "./_components/TiktokForm"
 import { AddressForm } from "./_components/AddressForm"
+import { ContentTypeForm } from "./_components/ContentTypeForm"
 import { createClient } from "@/lib/supabase/server"
 import { cn } from "@/lib/utils"
 
@@ -43,10 +44,11 @@ export default async function MemberProfilePage() {
   type CompletionItem = { label: string; done: boolean; anchor: string }
   const completionItems: CompletionItem[] = profile.role === "affiliate"
     ? [
-        { label: "ชื่อ-สกุล",    done: !!profile.full_name?.trim(),                               anchor: "#personal" },
-        { label: "เบอร์โทร",      done: !!profile.phone?.trim(),                                   anchor: "#personal" },
-        { label: "ช่อง TikTok",  done: !!profile.tiktok_channel_url,                              anchor: "#tiktok"   },
-        { label: "ที่อยู่จัดส่ง", done: !!(profile.address_name && profile.address_line1),         anchor: "#address"  },
+        { label: "ชื่อ-สกุล",        done: !!profile.full_name?.trim(),                       anchor: "#personal"      },
+        { label: "เบอร์โทร",          done: !!profile.phone?.trim(),                           anchor: "#personal"      },
+        { label: "ช่อง TikTok",      done: !!profile.tiktok_channel_url,                      anchor: "#tiktok"        },
+        { label: "รูปแบบคอนเทนต์",   done: !!profile.content_type,                            anchor: "#content-type"  },
+        { label: "ที่อยู่จัดส่ง",     done: !!(profile.address_name && profile.address_line1), anchor: "#address"       },
       ]
     : [
         { label: "ชื่อ-สกุล", done: !!profile.full_name?.trim(), anchor: "#personal" },
@@ -209,6 +211,11 @@ export default async function MemberProfilePage() {
           <div id="tiktok" className="scroll-mt-4">
             <TiktokForm currentUrl={profile.tiktok_channel_url} />
           </div>
+        )}
+
+        {/* Affiliate-only: content type */}
+        {profile.role === "affiliate" && (
+          <ContentTypeForm current={profile.content_type ?? null} />
         )}
 
         {/* Affiliate-only: delivery address */}

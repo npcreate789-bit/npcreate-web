@@ -10,8 +10,9 @@ const sellerSchema = z.object({
 })
 
 const affiliateSchema = z.object({
-  role: z.literal("affiliate"),
+  role:               z.literal("affiliate"),
   tiktok_channel_url: z.string().url("URL ไม่ถูกต้อง").optional().or(z.literal("")),
+  content_type:       z.enum(["clip", "live", "both"]).optional(),
 })
 
 const roleInfoSchema = z.discriminatedUnion("role", [sellerSchema, affiliateSchema])
@@ -39,6 +40,7 @@ export async function saveRoleAndInfo(
           role_confirmed:     true,
           is_active:          true,
           tiktok_channel_url: data.tiktok_channel_url?.trim() || null,
+          content_type:       data.content_type ?? null,
         })
         .eq("id", user.id)
       if (error) return { error: error.message }

@@ -21,6 +21,19 @@ export async function updateProfile(data: { full_name: string; phone: string; li
   revalidatePath("/member/profile")
 }
 
+export async function updateContentType(contentType: "clip" | "live" | "both") {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error("ไม่ได้เข้าสู่ระบบ")
+  const { error } = await supabase
+    .from("profiles")
+    .update({ content_type: contentType, updated_at: new Date().toISOString() })
+    .eq("id", user.id)
+  if (error) throw new Error(error.message)
+  revalidatePath("/member/profile")
+  revalidatePath("/member/store/pulls")
+}
+
 export async function updateTiktokUrl(url: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
