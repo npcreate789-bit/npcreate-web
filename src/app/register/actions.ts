@@ -34,7 +34,7 @@ export async function saveRoleAndInfo(
     if (data.role === "affiliate") {
       const { error } = await supabase
         .from("profiles")
-        .update({ role: "affiliate", is_active: true })
+        .update({ role: "affiliate", role_confirmed: true, is_active: true })
         .eq("id", user.id)
       if (error) return { error: error.message }
       return { redirectTo: "/marketplace" }
@@ -43,7 +43,7 @@ export async function saveRoleAndInfo(
     // Seller: update profile + upsert store
     const { error: profileError } = await supabase
       .from("profiles")
-      .update({ role: "seller", is_active: true })
+      .update({ role: "seller", role_confirmed: true, is_active: true })
       .eq("id", user.id)
     if (profileError) return { error: profileError.message }
 
