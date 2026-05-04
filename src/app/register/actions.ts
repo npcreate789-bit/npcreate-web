@@ -3,15 +3,20 @@
 import { createClient } from "@/lib/supabase/server"
 import { z } from "zod"
 
+const httpsUrl = z.string().max(500).refine(
+  (v) => v === "" || /^https?:\/\//i.test(v),
+  "URL ต้องเป็น https:// หรือ http://"
+)
+
 const sellerSchema = z.object({
   role: z.literal("seller"),
   store_name: z.string().min(1, "กรุณากรอกชื่อร้านค้า").max(100).trim(),
-  store_tiktok_url: z.string().url("URL ไม่ถูกต้อง").optional().or(z.literal("")),
+  store_tiktok_url: httpsUrl.optional().or(z.literal("")),
 })
 
 const affiliateSchema = z.object({
   role:               z.literal("affiliate"),
-  tiktok_channel_url: z.string().url("URL ไม่ถูกต้อง").optional().or(z.literal("")),
+  tiktok_channel_url: httpsUrl.optional().or(z.literal("")),
   content_type:       z.enum(["clip", "live", "both"]).optional(),
 })
 
@@ -26,6 +31,10 @@ export async function saveRoleAndInfo(
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { error: "ไม่ได้เข้าสู่ระบบ" }
+
+    const { data: profile } = await supabase
+      .from("profiles").select("role_confirmed").eq("id", user.id).maybeSingle()
+    if (profile?.role_confirmed) return { error: "บัญชีนี้ยืนยัน role แล้ว" }
 
     const parsed = roleInfoSchema.safeParse(input)
     if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "ข้อมูลไม่ถูกต้อง" }
