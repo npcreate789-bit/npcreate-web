@@ -56,18 +56,23 @@ function parseInput(data: CampaignInput, storeId: string) {
     ends_at: data.ends_at,
     product_ids: data.product_ids,
     script: data.script.trim() || null,
-    banner_url: data.banner_url.trim() || null,
+    banner_url: (() => {
+      const u = data.banner_url.trim()
+      if (u && !/^https?:\/\//i.test(u)) throw new Error("banner_url ต้องเป็น https://")
+      return u || null
+    })(),
     is_active: data.is_active,
   }
 }
 
 async function verifyProductIds(supabase: Awaited<ReturnType<typeof createClient>>, storeId: string, productIds: string[]) {
   if (productIds.length === 0) return []
+  const safeIds = productIds.slice(0, 100)  // cap at 100 to prevent oversized IN queries
   const { data } = await supabase
     .from("products")
     .select("id")
     .eq("store_id", storeId)
-    .in("id", productIds)
+    .in("id", safeIds)
   const ownedIds = new Set((data ?? []).map(p => p.id as string))
   return productIds.filter(id => ownedIds.has(id))
 }

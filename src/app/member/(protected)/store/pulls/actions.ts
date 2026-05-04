@@ -108,6 +108,7 @@ export async function updateSampleStatus(pullId: string, newStatus: SampleStatus
 }
 
 export async function updateSellerNote(pullId: string, note: string) {
+  if (note.trim().length > 500) throw new Error("หมายเหตุยาวเกินไป (สูงสุด 500 ตัวอักษร)")
   const { supabase, storeId } = await getStoreId()
 
   const { data: pull } = await supabase

@@ -94,6 +94,14 @@ export async function pullProduct(productId: string): Promise<string> {
   if (!profile?.is_active)        throw new Error("บัญชีถูกระงับการใช้งาน")
   if (profile?.role !== "affiliate") throw new Error("เฉพาะสมาชิก Affiliate เท่านั้น")
 
+  // ตรวจสอบว่าสินค้ายังเปิดใช้งาน
+  const { data: product } = await supabase
+    .from("products")
+    .select("id, is_active")
+    .eq("id", productId)
+    .maybeSingle()
+  if (!product || !product.is_active) throw new Error("สินค้านี้ไม่พร้อมให้ดึง")
+
   // Upsert: if already pulled return existing pull_code
   const existing = await supabase
     .from("affiliate_pulls")

@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { cookies } from "next/headers"
 import { z } from "zod"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
@@ -34,11 +35,6 @@ const VALID_AFFILIATE_SERVICE = [
   "ยังไม่แน่ใจ",
 ] as const
 
-const lineFields = {
-  line_user_id: z.string().max(100).optional(),
-  display_name: z.string().max(200).optional(),
-}
-
 const sellerSchema = z.object({
   lead_type:   z.literal("seller"),
   name:        z.string().min(2).max(100),
@@ -47,7 +43,6 @@ const sellerSchema = z.object({
   monthly_gmv: z.enum(VALID_GMV),
   service:     z.enum(VALID_SELLER_SERVICE),
   message:     z.string().max(2000).optional(),
-  ...lineFields,
 })
 
 const affiliateSchema = z.object({
@@ -60,7 +55,6 @@ const affiliateSchema = z.object({
   ).optional().or(z.literal("")),
   service:    z.enum(VALID_AFFILIATE_SERVICE),
   message:    z.string().max(2000).optional(),
-  ...lineFields,
 })
 
 const bodySchema = z.discriminatedUnion("lead_type", [sellerSchema, affiliateSchema])
@@ -69,13 +63,13 @@ type LeadInput = z.infer<typeof bodySchema>
 
 // ─── Admin message builders ───────────────────────────────────────────────────
 
-function buildAdminMessage(data: LeadInput): string {
+function buildAdminMessage(data: LeadInput, lineDisplayName: string | null): string {
   if (data.lead_type === "seller") {
     return [
       "📩 Lead Seller ใหม่จาก NP Create",
       `👤 ชื่อ: ${data.name}`,
       `📱 เบอร์: ${data.phone}`,
-      data.display_name ? `💚 LINE: ${data.display_name}` : "",
+      lineDisplayName ? `💚 LINE: ${lineDisplayName}` : "",
       `🏪 แบรนด์: ${data.brand}`,
       `💰 GMV: ${data.monthly_gmv}`,
       `🎯 บริการ: ${data.service}`,
@@ -86,7 +80,7 @@ function buildAdminMessage(data: LeadInput): string {
     "📩 Lead Affiliate/คอร์ส ใหม่จาก NP Create",
     `👤 ชื่อ: ${data.name}`,
     `📱 เบอร์: ${data.phone}`,
-    data.display_name ? `💚 LINE: ${data.display_name}` : "",
+    lineDisplayName ? `💚 LINE: ${lineDisplayName}` : "",
     data.tiktok_url ? `🎵 TikTok: ${data.tiktok_url}` : "",
     `📚 สนใจ: ${data.service}`,
     data.message ? `💬 หมายเหตุ: ${data.message}` : "",
@@ -131,7 +125,7 @@ async function pushLine(to: string, text: string): Promise<boolean> {
 
 // ─── Email via Resend (fallback) ──────────────────────────────────────────────
 
-function buildEmailHtml(data: LeadInput): string {
+function buildEmailHtml(data: LeadInput, lineDisplayName: string | null): string {
   const isSeller = data.lead_type === "seller"
   const rows = isSeller
     ? [
@@ -141,7 +135,7 @@ function buildEmailHtml(data: LeadInput): string {
         ["แบรนด์", e(data.brand)],
         ["GMV/เดือน", data.monthly_gmv],
         ["บริการที่สนใจ", data.service],
-        ...(data.display_name ? [["LINE", `<span style="color:#06C755">${e(data.display_name)}</span>`]] : []),
+        ...(lineDisplayName ? [["LINE", `<span style="color:#06C755">${e(lineDisplayName)}</span>`]] : []),
         ...(data.message ? [["หมายเหตุ", e(data.message)]] : []),
       ]
     : [
@@ -150,7 +144,7 @@ function buildEmailHtml(data: LeadInput): string {
         ["เบอร์โทร", e(data.phone)],
         ...(data.tiktok_url ? [["TikTok", e(data.tiktok_url)]] : []),
         ["สนใจ", data.service],
-        ...(data.display_name ? [["LINE", `<span style="color:#06C755">${e(data.display_name)}</span>`]] : []),
+        ...(lineDisplayName ? [["LINE", `<span style="color:#06C755">${e(lineDisplayName)}</span>`]] : []),
         ...(data.message ? [["หมายเหตุ", e(data.message)]] : []),
       ]
 
@@ -169,7 +163,7 @@ function buildEmailHtml(data: LeadInput): string {
   `
 }
 
-async function sendEmail(data: LeadInput): Promise<boolean> {
+async function sendEmail(data: LeadInput, lineDisplayName: string | null): Promise<boolean> {
   const apiKey = process.env.RESEND_API_KEY
   const to     = process.env.ADMIN_EMAIL
   if (!apiKey || !to) return false
@@ -188,7 +182,7 @@ async function sendEmail(data: LeadInput): Promise<boolean> {
         from: "NP Create <onboarding@resend.dev>",
         to:   [to],
         subject,
-        html: buildEmailHtml(data),
+        html: buildEmailHtml(data, lineDisplayName),
       }),
     })
     if (!res.ok) {
@@ -202,11 +196,11 @@ async function sendEmail(data: LeadInput): Promise<boolean> {
   }
 }
 
-async function notifyAdmin(data: LeadInput) {
+async function notifyAdmin(data: LeadInput, lineDisplayName: string | null) {
   const adminId  = process.env.LINE_ADMIN_USER_ID
-  const sentLine = adminId ? await pushLine(adminId, buildAdminMessage(data)) : false
+  const sentLine = adminId ? await pushLine(adminId, buildAdminMessage(data, lineDisplayName)) : false
   if (!sentLine) {
-    const sentEmail = await sendEmail(data)
+    const sentEmail = await sendEmail(data, lineDisplayName)
     if (!sentEmail) {
       console.warn("ไม่มีช่องทางแจ้งเตือน admin — ตั้งค่า LINE_ADMIN_USER_ID หรือ RESEND_API_KEY")
     }
@@ -223,6 +217,19 @@ export async function POST(req: NextRequest) {
   }
 
   const data = result.data
+
+  // อ่าน LINE session จาก server-side cookie เท่านั้น — ไม่รับ line_user_id จาก client body
+  const cookieStore = await cookies()
+  const lineRaw = cookieStore.get("line_session")?.value ?? ""
+  let lineUserId: string | null = null
+  let lineDisplayName: string | null = null
+  if (lineRaw) {
+    try {
+      const ls = JSON.parse(lineRaw)
+      lineUserId    = typeof ls.userId      === "string" ? ls.userId      : null
+      lineDisplayName = typeof ls.displayName === "string" ? ls.displayName : null
+    } catch { /* ignore malformed cookie */ }
+  }
 
   const userSupabase = await createClient()
   const { data: { user } } = await userSupabase.auth.getUser()
@@ -247,8 +254,8 @@ export async function POST(req: NextRequest) {
     phone:        data.phone,
     service:      data.service,
     message:      data.message ?? null,
-    line_user_id: data.line_user_id ?? null,
-    display_name: data.display_name ?? null,
+    line_user_id: lineUserId,
+    display_name: lineDisplayName,
     member_id:    memberId,
     brand:        data.lead_type === "seller" ? data.brand : null,
     monthly_gmv:  data.lead_type === "seller" ? data.monthly_gmv : null,
@@ -261,9 +268,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "บันทึกข้อมูลไม่สำเร็จ กรุณาลองใหม่" }, { status: 500 })
   }
 
-  const notifications: Promise<unknown>[] = [notifyAdmin(data)]
-  if (data.line_user_id) {
-    notifications.push(pushLine(data.line_user_id, buildCustomerMessage(data.name)))
+  const notifications: Promise<unknown>[] = [notifyAdmin(data, lineDisplayName)]
+  if (lineUserId) {
+    notifications.push(pushLine(lineUserId, buildCustomerMessage(data.name)))
   }
   await Promise.allSettled(notifications)
 

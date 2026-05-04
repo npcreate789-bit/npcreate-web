@@ -4,6 +4,9 @@ import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
 
 export async function updateProfile(data: { full_name: string; phone: string; line_id: string }) {
+  if (data.full_name.trim().length > 100) throw new Error("ชื่อยาวเกินไป")
+  if (data.phone.trim().length > 20)      throw new Error("เบอร์โทรไม่ถูกต้อง")
+  if (data.line_id.trim().length > 50)    throw new Error("LINE ID ยาวเกินไป")
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error("ไม่ได้เข้าสู่ระบบ")
@@ -59,6 +62,14 @@ export async function updateAddress(data: {
   address_province: string
   address_postcode: string
 }) {
+  if (data.address_name.trim().length > 100)        throw new Error("ชื่อผู้รับยาวเกินไป")
+  if (data.address_phone.trim().length > 20)         throw new Error("เบอร์ผู้รับไม่ถูกต้อง")
+  if (data.address_line1.trim().length > 200)        throw new Error("ที่อยู่ยาวเกินไป")
+  if (data.address_subdistrict.trim().length > 100)  throw new Error("แขวง/ตำบลยาวเกินไป")
+  if (data.address_district.trim().length > 100)     throw new Error("เขต/อำเภอยาวเกินไป")
+  if (data.address_province.trim().length > 100)     throw new Error("จังหวัดยาวเกินไป")
+  if (!/^\d{5}$/.test(data.address_postcode.trim()) && data.address_postcode.trim())
+    throw new Error("รหัสไปรษณีย์ต้องเป็นตัวเลข 5 หลัก")
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error("ไม่ได้เข้าสู่ระบบ")
