@@ -446,9 +446,8 @@ function PasswordRegisterFlow() {
         return
       }
 
-      toast.success("สมัครสมาชิกสำเร็จ! กำลังพาไป...")
-      router.push(result.redirectTo)
-      router.refresh()
+      toast.success("สมัครสมาชิกสำเร็จ!")
+      window.location.href = result.redirectTo
     } catch (err) {
       const msg = err instanceof Error ? err.message : "OTP ไม่ถูกต้องหรือหมดอายุ"
       setError(msg)
