@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { Loader2, Save, ExternalLink } from "lucide-react"
+import { Loader2, Save, ExternalLink, Music } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { updateTiktokUrl } from "../actions"
@@ -26,7 +26,7 @@ export function TiktokForm({ currentUrl }: { currentUrl: string | null }) {
     <form onSubmit={handleSubmit} className="bg-[#1C0D0D] border border-white/5 rounded-2xl p-5 sm:p-6 space-y-4">
       <div className="flex items-center gap-2">
         <div className="w-7 h-7 bg-white/5 rounded-lg flex items-center justify-center">
-          <span className="text-white text-xs font-bold">TT</span>
+          <Music size={13} className="text-white" />
         </div>
         <h2 className="text-white font-semibold text-sm">ช่อง TikTok ของคุณ</h2>
       </div>

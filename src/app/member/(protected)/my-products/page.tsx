@@ -139,20 +139,20 @@ export default async function MyProductsPage() {
                 return (
                   <div key={pull.id} className="p-4 flex gap-3">
                     {/* Thumbnail */}
-                    <div className="w-14 h-14 rounded-xl overflow-hidden bg-white/[0.03] shrink-0 flex items-center justify-center">
+                    <Link href={`/marketplace/${product.id}`} className="w-14 h-14 rounded-xl overflow-hidden bg-white/[0.03] shrink-0 flex items-center justify-center hover:opacity-80 transition-opacity">
                       {product.image_url ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
                       ) : (
                         <Package size={18} className="text-slate-700" />
                       )}
-                    </div>
+                    </Link>
 
                     {/* Info */}
                     <div className="min-w-0 flex-1 space-y-2">
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
-                          <p className="text-white font-semibold text-sm truncate">{product.name}</p>
+                          <Link href={`/marketplace/${product.id}`} className="text-white hover:text-[#FCA5A5] font-semibold text-sm truncate block transition-colors">{product.name}</Link>
                           <p className="text-slate-500 text-xs truncate">{product.store.name}</p>
                         </div>
                         <span className="text-[#F59E0B] font-bold text-sm shrink-0">{product.commission_rate}%</span>

@@ -17,9 +17,9 @@ export function LineSection({ lineUserId, lineDisplayName }: Props) {
   }
 
   return (
-    <div className="bg-[#1C0D0D] border border-white/5 rounded-2xl p-6 space-y-4">
+    <div className="bg-[#1C0D0D] border border-white/5 rounded-2xl p-5 sm:p-6 space-y-4">
       <div>
-        <h2 className="text-white font-semibold text-base">เชื่อมต่อ LINE</h2>
+        <h2 className="text-white font-semibold text-sm">เชื่อมต่อ LINE</h2>
         <p className="text-slate-500 text-xs mt-0.5">
           ให้ทีมงานติดต่อกลับทาง LINE ได้โดยตรง
         </p>

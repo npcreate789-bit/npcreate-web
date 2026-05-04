@@ -2,7 +2,7 @@ import { notFound } from "next/navigation"
 import Link from "next/link"
 import {
   ChevronRight, Package, Users, BadgeCheck,
-  ExternalLink, Lock, TrendingUp,
+  ExternalLink, Lock, TrendingUp, ShoppingBag,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { getProductDetail } from "../actions"
@@ -40,7 +40,7 @@ export default async function ProductDetailPage({
 
         {/* Back */}
         <Link href="/marketplace"
-          className="inline-flex items-center gap-1.5 text-slate-400 hover:text-white text-sm transition-colors">
+          className="inline-flex items-center gap-1.5 text-slate-400 hover:text-white text-sm transition-colors p-2 -ml-2 rounded-xl hover:bg-white/5">
           <ChevronRight size={15} className="rotate-180" /> กลับ Marketplace
         </Link>
 
@@ -96,14 +96,14 @@ export default async function ProductDetailPage({
           {/* Price */}
           <div className="bg-[#1C0D0D] border border-white/5 rounded-2xl p-4 flex items-center justify-between">
             <div>
-              <p className="text-white font-bold text-2xl">฿{product.price.toLocaleString()}</p>
+              <p className="text-white font-bold text-xl sm:text-2xl">฿{product.price.toLocaleString()}</p>
               {product.original_price && (
                 <p className="text-slate-600 text-sm line-through">฿{product.original_price.toLocaleString()}</p>
               )}
             </div>
             <div className="text-right">
               <p className="text-slate-500 text-xs">คอมมิชชั่น</p>
-              <p className="text-[#F59E0B] font-bold text-2xl">{product.commission_rate}%</p>
+              <p className="text-[#F59E0B] font-bold text-xl sm:text-2xl">{product.commission_rate}%</p>
               <p className="text-[#F59E0B]/70 text-xs">
                 ≈ ฿{Math.round(product.price * product.commission_rate / 100).toLocaleString()}/ชิ้น
               </p>
@@ -175,11 +175,19 @@ export default async function ProductDetailPage({
           {/* Pull Button */}
           <PullButton
             productId={product.id}
-            isLoggedIn={detail.isAffiliate || detail.isPulled || detail.hasTiktok}
+            isLoggedIn={detail.isLoggedIn}
             isAffiliate={detail.isAffiliate}
             isPulled={isPulled}
             hasTiktok={hasTiktok}
           />
+
+          {/* "ดูสินค้าของฉัน" — affiliate who already pulled */}
+          {isPulled && detail.isAffiliate && (
+            <Link href="/member/my-products"
+              className="flex items-center justify-center gap-2 w-full bg-white/5 hover:bg-white/8 border border-white/10 hover:border-white/20 text-slate-400 hover:text-white font-medium py-2.5 rounded-xl text-xs transition-colors">
+              <ShoppingBag size={13} /> ดูในสินค้าของฉัน →
+            </Link>
+          )}
 
         </div>
       </div>

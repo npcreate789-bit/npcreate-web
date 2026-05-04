@@ -71,6 +71,7 @@ export async function getProductDetail(productId: string): Promise<{
   isPulled: boolean
   isAffiliate: boolean
   hasTiktok: boolean
+  isLoggedIn: boolean
 } | null> {
   const supabase = await createClient()
 
@@ -90,7 +91,7 @@ export async function getProductDetail(productId: string): Promise<{
   }
 
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { product, isPulled: false, isAffiliate: false, hasTiktok: false }
+  if (!user) return { product, isPulled: false, isAffiliate: false, hasTiktok: false, isLoggedIn: false }
 
   const [profileRes, pullRes] = await Promise.all([
     supabase.from("profiles").select("role, tiktok_channel_url").eq("id", user.id).maybeSingle(),
@@ -101,7 +102,7 @@ export async function getProductDetail(productId: string): Promise<{
   const hasTiktok = !!profileRes.data?.tiktok_channel_url
   const isPulled = !!pullRes.data
 
-  return { product, isPulled, isAffiliate, hasTiktok }
+  return { product, isPulled, isAffiliate, hasTiktok, isLoggedIn: true }
 }
 
 export async function getMyPullSet(): Promise<Set<string>> {
