@@ -5,6 +5,12 @@ import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import type { SampleStatus, Product, Profile } from "@/types/database"
 
+export type AffiliateInfo = Pick<Profile,
+  | "id" | "full_name" | "avatar_url" | "phone" | "user_code" | "tiktok_channel_url"
+  | "address_name" | "address_phone" | "address_line1"
+  | "address_subdistrict" | "address_district" | "address_province" | "address_postcode"
+>
+
 export type PullRow = {
   id: string
   sample_status: SampleStatus
@@ -12,7 +18,7 @@ export type PullRow = {
   created_at: string
   product_id: string
   product: Pick<Product, "id" | "name" | "image_url" | "commission_rate"> | null
-  affiliate: Pick<Profile, "id" | "full_name" | "tiktok_channel_url" | "avatar_url"> | null
+  affiliate: AffiliateInfo | null
 }
 
 async function getStoreId(): Promise<{ supabase: Awaited<ReturnType<typeof createClient>>; storeId: string }> {
@@ -46,7 +52,11 @@ export async function getStorePulls(opts?: { status?: string; productId?: string
     .select(`
       id, sample_status, seller_note, created_at, product_id,
       product:products(id, name, image_url, commission_rate),
-      affiliate:profiles!affiliate_id(id, full_name, tiktok_channel_url, avatar_url)
+      affiliate:profiles!affiliate_id(
+        id, full_name, avatar_url, phone, user_code, tiktok_channel_url,
+        address_name, address_phone, address_line1,
+        address_subdistrict, address_district, address_province, address_postcode
+      )
     `)
     .in("product_id", productIds)
     .order("created_at", { ascending: false })
@@ -68,7 +78,6 @@ export async function updateSampleStatus(pullId: string, newStatus: SampleStatus
 
   const { supabase, storeId } = await getStoreId()
 
-  // Verify the pull belongs to this seller's store
   const { data: pull } = await supabase
     .from("affiliate_pulls")
     .select("id, product_id")
