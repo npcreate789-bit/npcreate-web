@@ -62,7 +62,7 @@ export async function getActiveCampaigns(): Promise<CampaignWithStore[]> {
     .lte("starts_at", now)
     .gte("ends_at", now)
     .order("ends_at", { ascending: true })
-    .limit(8)
+    .limit(20)
   return (data ?? []) as CampaignWithStore[]
 }
 

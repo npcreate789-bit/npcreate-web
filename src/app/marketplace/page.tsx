@@ -1,9 +1,10 @@
 import { Suspense } from "react"
-import { ShoppingBag, Megaphone, Clock, LayoutDashboard } from "lucide-react"
+import { ShoppingBag, LayoutDashboard } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
 import { getMarketplaceProducts, getActiveCampaigns, getMyPullSet } from "./actions"
 import { ProductCard } from "./_components/ProductCard"
 import { SearchBar, SortSelect } from "./_components/SearchBar"
+import { CampaignSection } from "./_components/CampaignSection"
 import Link from "next/link"
 
 export const metadata = {
@@ -121,34 +122,8 @@ export default async function MarketplacePage({
           </div>
         )}
 
-        {/* Active Campaigns strip */}
-        {campaigns.length > 0 && (
-          <section className="space-y-3">
-            <h2 className="text-white font-semibold text-sm flex items-center gap-2">
-              <Megaphone size={14} className="text-[#F59E0B]" /> แคมเปญที่กำลังดำเนิน
-            </h2>
-            <div className="flex gap-3 overflow-x-auto pb-1 -mx-4 px-4 sm:-mx-6 sm:px-6 scrollbar-hide">
-              {campaigns.map(c => {
-                const daysLeft = Math.ceil((new Date(c.ends_at).getTime() - new Date().getTime()) / 86400000)
-                return (
-                  <div key={c.id}
-                    className="shrink-0 bg-[#1C0D0D] border border-[#F59E0B]/20 rounded-xl px-4 py-3 space-y-1 w-[220px]">
-                    <p className="text-white font-semibold text-xs line-clamp-1">{c.title}</p>
-                    <p className="text-slate-500 text-[10px]">{c.store.name}</p>
-                    <div className="flex items-center justify-between">
-                      {c.special_commission_rate && (
-                        <span className="text-[#F59E0B] font-bold text-xs">+{c.special_commission_rate}% คอม</span>
-                      )}
-                      <span className="text-slate-600 text-[10px] flex items-center gap-1 ml-auto">
-                        <Clock size={9} /> {daysLeft} วัน
-                      </span>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </section>
-        )}
+        {/* Active Campaigns */}
+        <CampaignSection campaigns={campaigns} />
 
         {/* Products grid */}
         {products.length === 0 ? (
