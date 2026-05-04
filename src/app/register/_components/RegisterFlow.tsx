@@ -412,23 +412,41 @@ function PasswordRegisterFlow() {
     try {
       const supabase = createClient()
 
+      // 1. ยืนยัน OTP
       const { data: otpData, error: otpErr } = await supabase.auth.verifyOtp({
         email, token: signupOtp, type: "signup",
       })
       if (otpErr) throw otpErr
       if (!otpData?.user) throw new Error("ยืนยัน OTP ไม่สำเร็จ กรุณาลองใหม่")
 
+      toast.success("ยืนยัน OTP สำเร็จ!")
+
+      // 2. Sign in ด้วย password เพื่อการันตี session ก่อน call Server Action
+      const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password })
+      if (signInErr) throw signInErr
+
+      toast.info("กำลังบันทึกข้อมูล...")
+
+      // 3. อัปเดต profile
+      const userId = otpData.user.id
       await supabase.from("profiles")
         .update({ full_name: fullName.trim(), phone: phone.trim() })
-        .eq("id", otpData.user.id)
+        .eq("id", userId)
 
+      // 4. บันทึก role
       if (!role || !pendingRoleInfo) throw new Error("ข้อมูลไม่ครบ กรุณาลองสมัครใหม่")
       const input: RoleInfoInput = role === "seller"
         ? { role: "seller", store_name: pendingRoleInfo.storeName ?? "", store_tiktok_url: pendingRoleInfo.storeTiktokUrl }
         : { role: "affiliate", tiktok_channel_url: pendingRoleInfo.tiktokChannelUrl }
 
       const result = await saveRoleAndInfo(input)
-      if ("error" in result) { setError(result.error); return }
+      if ("error" in result) {
+        toast.error(`ผิดพลาด: ${result.error}`)
+        setError(result.error)
+        return
+      }
+
+      toast.success("สมัครสมาชิกสำเร็จ! กำลังพาไป...")
       router.push(result.redirectTo)
       router.refresh()
     } catch (err) {
