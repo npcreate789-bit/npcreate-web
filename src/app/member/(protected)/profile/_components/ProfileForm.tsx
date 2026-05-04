@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { Loader2, User, Phone, Hash, Save } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
@@ -22,7 +23,7 @@ export function ProfileForm({ profile }: { profile: Profile }) {
       try {
         await updateProfile({ full_name: fullName, phone, line_id: lineId })
         toast.success("บันทึกสำเร็จ")
-        router.push("/member")
+        router.refresh()
       } catch (err) {
         toast.error(err instanceof Error ? err.message : "เกิดข้อผิดพลาด")
       }
@@ -76,13 +77,12 @@ export function ProfileForm({ profile }: { profile: Profile }) {
           {pending ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
           {pending ? "กำลังบันทึก..." : "บันทึก"}
         </button>
-        <button
-          type="button"
-          onClick={() => router.push("/member")}
+        <Link
+          href="/member"
           className="text-slate-400 hover:text-white text-sm transition-colors"
         >
-          ยกเลิก
-        </button>
+          กลับ Dashboard
+        </Link>
       </div>
     </form>
   )
