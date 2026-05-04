@@ -3,8 +3,9 @@ import { redirect } from "next/navigation"
 import Link from "next/link"
 import {
   LayoutDashboard, FileText, Home, UserCog,
-  Phone, MessageCircle, CalendarDays, ChevronRight,
+  Phone, MessageCircle, ChevronRight,
   TrendingUp, Clock, CheckCircle2, Store, ShoppingBag, Package,
+  Tag, Users, Plus, BadgeCheck,
 } from "lucide-react"
 import type { Profile, Lead } from "@/types/database"
 import { MemberLogout } from "./_components/MemberLogout"
@@ -20,17 +21,17 @@ const roleBg: Record<string, string> = {
   affiliate: "bg-[#F59E0B]/10 text-[#F59E0B]",
   seller:    "bg-emerald-500/10 text-emerald-400",
 }
-const statusLabel: Record<string, string> = {
+const leadStatusLabel: Record<string, string> = {
   new:       "รอติดต่อ",
   contacted: "ติดต่อแล้ว",
   closed:    "เสร็จสิ้น",
 }
-const statusColor: Record<string, string> = {
+const leadStatusColor: Record<string, string> = {
   new:       "bg-[#F59E0B]/10 text-[#F59E0B]",
   contacted: "bg-blue-500/10 text-blue-400",
   closed:    "bg-emerald-500/10 text-emerald-400",
 }
-const statusIcon: Record<string, React.ReactNode> = {
+const leadStatusIcon: Record<string, React.ReactNode> = {
   new:       <Clock size={11} />,
   contacted: <TrendingUp size={11} />,
   closed:    <CheckCircle2 size={11} />,
@@ -49,10 +50,13 @@ export default async function MemberPage() {
 
   const profile = data as Profile | null
   if (!profile) redirect("/register")
-
-  // LINE users who haven't chosen a role yet (only redirect if explicitly false, not undefined)
   if (profile.role_confirmed === false) redirect("/member/setup-role")
 
+  const isLineOnly   = user.email?.endsWith("@line.npcreate.co.th") ?? false
+  const displayName  = profile.full_name || (isLineOnly ? profile.line_display_name : null) || "สมาชิก"
+  const initials     = displayName[0]?.toUpperCase() ?? "?"
+
+  // ── Leads ──────────────────────────────────────────────────────────────────
   let myLeads: Pick<Lead, "id" | "brand" | "service" | "status" | "created_at" | "monthly_gmv">[] = []
   try {
     const { data: leadsData } = await supabase
@@ -62,196 +66,260 @@ export default async function MemberPage() {
       .order("created_at", { ascending: false })
       .limit(5)
     myLeads = (leadsData ?? []) as typeof myLeads
-  } catch {
-    // member_id column may not exist yet — graceful fallback
+  } catch { /* leads table may not have member_id yet */ }
+
+  // ── Affiliate: pull stats ──────────────────────────────────────────────────
+  let pullStats = { pending: 0, approved: 0, sent: 0, total: 0 }
+  if (profile.role === "affiliate") {
+    const { data: pulls } = await supabase
+      .from("affiliate_pulls")
+      .select("sample_status")
+      .eq("affiliate_id", user.id)
+    const all = pulls ?? []
+    pullStats = {
+      pending:  all.filter(p => p.sample_status === "pending").length,
+      approved: all.filter(p => p.sample_status === "approved").length,
+      sent:     all.filter(p => p.sample_status === "sent").length,
+      total:    all.length,
+    }
   }
 
-  const isLineOnly = user.email?.endsWith("@line.npcreate.co.th") ?? false
-  const displayEmail = isLineOnly ? null : user.email
+  // ── Seller: store + counts ─────────────────────────────────────────────────
+  let sellerData: { storeId: string; storeName: string; productCount: number; campaignCount: number } | null = null
+  if (profile.role === "seller") {
+    const { data: storeRow } = await supabase
+      .from("stores")
+      .select("id, name")
+      .eq("seller_id", user.id)
+      .maybeSingle()
+
+    if (storeRow) {
+      const now = new Date().toISOString()
+      const [prodRes, campRes] = await Promise.all([
+        supabase.from("products").select("*", { count: "exact", head: true }).eq("store_id", storeRow.id).eq("is_active", true),
+        supabase.from("campaigns").select("*", { count: "exact", head: true }).eq("store_id", storeRow.id).eq("is_active", true).lte("starts_at", now).gte("ends_at", now),
+      ])
+      sellerData = {
+        storeId:       storeRow.id,
+        storeName:     storeRow.name,
+        productCount:  prodRes.count ?? 0,
+        campaignCount: campRes.count ?? 0,
+      }
+    }
+  }
+
   const hasActiveLead = myLeads.some(l => l.status === "new" || l.status === "contacted")
 
   return (
     <div className="min-h-screen bg-[#0A0808] pt-10 pb-16 overflow-x-hidden">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 space-y-5">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 space-y-4">
 
-        {/* Header */}
-        <div className="flex items-center justify-between gap-4">
-          <div className="min-w-0">
-            <h1 className="font-display font-bold text-white text-2xl tracking-tight">พอร์ทัลสมาชิก</h1>
-            <p className="text-slate-400 text-sm mt-0.5 truncate">ยินดีต้อนรับ, {profile.full_name || "สมาชิก"}</p>
+        {/* ── Compact header ─────────────────────────────────────────────── */}
+        <div className="flex items-center gap-3">
+          <div className="w-11 h-11 rounded-full bg-[#DC2626]/10 border border-[#DC2626]/20 flex items-center justify-center shrink-0 overflow-hidden">
+            {profile.avatar_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={profile.avatar_url} alt={displayName} className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-[#DC2626] font-bold text-lg">{initials}</span>
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-display font-bold text-white text-base truncate">{displayName}</span>
+              <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full shrink-0", roleBg[profile.role] ?? roleBg.seller)}>
+                {roleLabel[profile.role] ?? profile.role}
+              </span>
+              {isLineOnly && (
+                <span className="text-xs bg-[#06C755]/10 text-[#06C755] px-2 py-0.5 rounded-full shrink-0">LINE</span>
+              )}
+            </div>
+            <p className="text-[#F59E0B] font-mono text-xs mt-0.5">{profile.user_code}</p>
           </div>
           <MemberLogout />
         </div>
 
-        {/* Profile card */}
-        <div className="bg-[#1C0D0D] border border-white/5 rounded-2xl p-5 sm:p-6">
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-[#DC2626]/10 flex items-center justify-center shrink-0 overflow-hidden border-2 border-[#DC2626]/20">
+        {/* ── Role: Affiliate ─────────────────────────────────────────────── */}
+        {profile.role === "affiliate" && (
+          <div className="space-y-3">
+            {/* Stats strip */}
+            <div className="grid grid-cols-3 gap-2">
+              <StatCard value={pullStats.pending}            label="รอพิจารณา"  color="text-slate-400"   bg="bg-[#1C0D0D]" />
+              <StatCard value={pullStats.approved + pullStats.sent} label="ผ่านแล้ว" color="text-emerald-400" bg="bg-[#1C0D0D]" highlight />
+              <StatCard value={pullStats.total}              label="สินค้าทั้งหมด" color="text-[#F59E0B]" bg="bg-[#1C0D0D]" />
+            </div>
+
+            {/* Primary action tiles */}
+            <div className="grid sm:grid-cols-2 gap-3">
+              <Link href="/marketplace"
+                className="group flex items-center gap-3 bg-[#F59E0B]/5 border border-[#F59E0B]/20 hover:border-[#F59E0B]/40 hover:bg-[#F59E0B]/10 rounded-2xl p-4 sm:p-5 transition-colors">
+                <div className="w-10 h-10 bg-[#F59E0B]/10 rounded-xl flex items-center justify-center shrink-0">
+                  <ShoppingBag size={18} className="text-[#F59E0B]" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-white text-sm group-hover:text-[#F59E0B] transition-colors">Marketplace</p>
+                  <p className="text-slate-500 text-xs mt-0.5">เลือกสินค้าโปรโมท</p>
+                </div>
+                <ChevronRight size={15} className="text-slate-600 shrink-0 group-hover:text-[#F59E0B] transition-colors" />
+              </Link>
+
+              <Link href="/member/my-products"
+                className="group flex items-center gap-3 bg-[#1C0D0D] border border-white/5 hover:border-white/15 rounded-2xl p-4 sm:p-5 transition-colors">
+                <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center shrink-0">
+                  <Package size={18} className="text-slate-400 group-hover:text-white transition-colors" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-white text-sm group-hover:text-[#FCA5A5] transition-colors">สินค้าของฉัน</p>
+                  <p className="text-slate-500 text-xs mt-0.5">
+                    {pullStats.total > 0 ? `${pullStats.total} สินค้าที่ดึงมา` : "ยังไม่มีสินค้า"}
+                  </p>
+                </div>
+                <ChevronRight size={15} className="text-slate-600 shrink-0 group-hover:text-slate-400 transition-colors" />
+              </Link>
+            </div>
+
+            {/* Approved nudge */}
+            {pullStats.approved > 0 && (
+              <Link href="/member/profile#address"
+                className="group flex items-center gap-3 bg-emerald-500/5 border border-emerald-500/20 hover:border-emerald-500/40 rounded-xl px-4 py-3 transition-colors">
+                <CheckCircle2 size={15} className="text-emerald-400 shrink-0" />
+                <p className="flex-1 text-emerald-300 text-xs">
+                  {pullStats.approved} สินค้าอนุมัติแล้ว — <span className="underline underline-offset-2">กรอกที่อยู่รับสินค้า</span>
+                </p>
+                <ChevronRight size={13} className="text-emerald-500/50 shrink-0 group-hover:text-emerald-400 transition-colors" />
+              </Link>
+            )}
+          </div>
+        )}
+
+        {/* ── Role: Seller ────────────────────────────────────────────────── */}
+        {profile.role === "seller" && (
+          <div className="space-y-3">
+            {sellerData ? (
+              <>
+                {/* Stats strip */}
+                <div className="grid grid-cols-3 gap-2">
+                  <StatCard value={sellerData.productCount}  label="สินค้า"     color="text-emerald-400" bg="bg-[#1C0D0D]" />
+                  <StatCard value={sellerData.campaignCount} label="แคมเปญ"    color="text-[#F59E0B]"   bg="bg-[#1C0D0D]" />
+                  <StatCard value="—"                        label="Affiliate"  color="text-slate-400"   bg="bg-[#1C0D0D]" />
+                </div>
+
+                {/* Main store tile */}
+                <Link href="/member/store"
+                  className="group flex items-center gap-4 bg-emerald-500/5 border border-emerald-500/20 hover:border-emerald-500/40 hover:bg-emerald-500/8 rounded-2xl p-5 transition-colors">
+                  <div className="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center shrink-0">
+                    <Store size={20} className="text-emerald-400" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-display font-bold text-white text-base group-hover:text-emerald-400 transition-colors truncate">
+                      {sellerData.storeName}
+                    </p>
+                    <p className="text-slate-500 text-xs mt-0.5">จัดการสินค้า แคมเปญ และคำขอ</p>
+                  </div>
+                  <ChevronRight size={18} className="text-slate-600 shrink-0 group-hover:text-emerald-400 transition-colors" />
+                </Link>
+
+                {/* Sub-links */}
+                <div className="grid grid-cols-3 gap-2">
+                  <SubLink href="/member/store/products/new" icon={<Plus size={13} />} label="เพิ่มสินค้า" />
+                  <SubLink href="/member/store/campaigns"    icon={<Tag size={13} />}  label="แคมเปญ" />
+                  <SubLink href="/member/store/pulls"        icon={<Users size={13} />} label="คำขอ Affiliate" />
+                </div>
+              </>
+            ) : (
+              /* No store yet */
+              <Link href="/member/store"
+                className="group flex items-center gap-4 bg-emerald-500/5 border border-emerald-500/20 hover:border-emerald-500/40 rounded-2xl p-5 transition-colors">
+                <div className="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center shrink-0">
+                  <Plus size={20} className="text-emerald-400" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-white text-base group-hover:text-emerald-400 transition-colors">สร้างร้านค้า</p>
+                  <p className="text-slate-500 text-xs mt-0.5">เริ่มต้นขายด้วย Affiliate</p>
+                </div>
+                <ChevronRight size={18} className="text-slate-600 shrink-0 group-hover:text-emerald-400" />
+              </Link>
+            )}
+          </div>
+        )}
+
+        {/* ── Compact profile card ─────────────────────────────────────────── */}
+        <div className="bg-[#1C0D0D] border border-white/5 rounded-2xl p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-full bg-[#DC2626]/10 border border-[#DC2626]/15 flex items-center justify-center shrink-0 overflow-hidden">
               {profile.avatar_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={profile.avatar_url} alt={profile.full_name} className="w-full h-full object-cover" />
+                <img src={profile.avatar_url} alt={displayName} className="w-full h-full object-cover" />
               ) : (
-                <span className="text-[#DC2626] font-bold text-xl">
-                  {profile.full_name?.[0]?.toUpperCase() ?? "?"}
-                </span>
+                <span className="text-[#DC2626] font-bold text-lg">{initials}</span>
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="font-display font-bold text-white text-lg truncate">{profile.full_name || "—"}</span>
-                <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full shrink-0 ${roleBg[profile.role] ?? roleBg.seller}`}>
-                  {roleLabel[profile.role] ?? profile.role}
-                </span>
-                {isLineOnly && (
-                  <span className="text-xs bg-[#06C755]/10 text-[#06C755] border border-[#06C755]/20 px-2.5 py-0.5 rounded-full shrink-0">
-                    LINE
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <p className="text-white font-semibold text-sm truncate">{profile.full_name || "—"}</p>
+                {profile.is_active && (
+                  <span className="inline-flex items-center gap-0.5 text-[10px] bg-emerald-500/10 text-emerald-400 px-1.5 py-0.5 rounded-full shrink-0">
+                    <BadgeCheck size={9} /> ใช้งาน
                   </span>
                 )}
-                {!profile.is_active && (
-                  <span className="text-xs bg-slate-500/10 text-slate-500 px-2.5 py-0.5 rounded-full shrink-0">ระงับ</span>
+              </div>
+              <p className="text-[#F59E0B] font-mono text-xs">{profile.user_code}</p>
+              <div className="flex items-center gap-3 mt-1">
+                {profile.phone && (
+                  <span className="text-slate-500 text-[10px] flex items-center gap-1">
+                    <Phone size={9} /> {profile.phone}
+                  </span>
+                )}
+                {(profile.line_display_name || profile.line_id) && (
+                  <span className="text-[10px] flex items-center gap-1 text-[#06C755]/80">
+                    <MessageCircle size={9} /> {profile.line_display_name || profile.line_id}
+                  </span>
                 )}
               </div>
-              <p className="text-[#F59E0B] font-mono font-bold text-sm mt-1 truncate">{profile.user_code}</p>
-              {displayEmail && (
-                <p className="text-slate-500 text-xs mt-0.5 truncate">{displayEmail}</p>
-              )}
             </div>
-          </div>
-
-          <div className="grid sm:grid-cols-3 gap-3 mt-5 pt-5 border-t border-white/5">
-            <InfoItem
-              icon={<Phone size={12} className="text-slate-500 shrink-0" />}
-              label="เบอร์โทรศัพท์"
-              value={profile.phone || "—"}
-            />
-            <InfoItem
-              icon={<MessageCircle size={12} className={profile.line_display_name ? "text-[#06C755] shrink-0" : "text-slate-500 shrink-0"} />}
-              label="LINE"
-              value={profile.line_display_name ? `${profile.line_display_name}` : profile.line_id || "—"}
-              highlight={!!profile.line_display_name}
-            />
-            <InfoItem
-              icon={<CalendarDays size={12} className="text-slate-500 shrink-0" />}
-              label="สมัครเมื่อ"
-              value={new Date(profile.created_at).toLocaleDateString("th-TH")}
-            />
+            <Link href="/member/profile"
+              className="flex items-center gap-1 text-xs text-slate-500 hover:text-white border border-white/10 hover:border-white/20 px-3 py-1.5 rounded-lg transition-colors shrink-0">
+              <UserCog size={12} />
+              แก้ไข
+            </Link>
           </div>
         </div>
 
-        {/* Primary CTA — กลับหน้าหลัก */}
-        <Link href="/"
-          className="group flex items-center gap-4 bg-[#DC2626] hover:bg-[#B91C1C] active:bg-[#991B1B] rounded-2xl p-5 sm:p-6 transition-colors shadow-lg shadow-[#DC2626]/10">
-          <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center shrink-0 group-hover:bg-white/15 transition-colors">
-            <Home size={22} className="text-white" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="font-display font-bold text-white text-base">กลับหน้าหลัก</p>
-            <p className="text-red-200/70 text-xs mt-0.5">ดูบริการ ผลงาน และ case studies ของ NP Create</p>
-          </div>
-          <ChevronRight size={20} className="text-white/50 shrink-0 group-hover:text-white/80 group-hover:translate-x-0.5 transition-all" />
-        </Link>
-
-        {/* Secondary actions */}
-        <div className="grid sm:grid-cols-2 gap-4">
-          <Link href="/member/profile"
-            className="group flex items-center gap-3 bg-[#1C0D0D] border border-white/5 hover:border-white/15 hover:bg-white/[0.03] rounded-2xl p-4 sm:p-5 transition-colors">
-            <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center shrink-0 group-hover:bg-white/8 transition-colors">
-              <UserCog size={18} className="text-slate-400 group-hover:text-white transition-colors" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="font-semibold text-white text-sm group-hover:text-[#FCA5A5] transition-colors">แก้ไขโปรไฟล์</p>
-              <p className="text-slate-500 text-xs mt-0.5 truncate">อัปเดตชื่อ เบอร์โทร LINE</p>
-            </div>
-            <ChevronRight size={15} className="text-slate-600 shrink-0 group-hover:text-slate-400 transition-colors" />
-          </Link>
-
-          <div className="bg-[#1C0D0D] border border-white/5 rounded-2xl p-4 sm:p-5 flex items-center gap-3">
-            <div className="w-10 h-10 bg-[#F59E0B]/10 rounded-xl flex items-center justify-center shrink-0">
-              <TrendingUp size={18} className="text-[#F59E0B]" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="font-semibold text-white text-sm">ยอดส่ง Lead</p>
-              <p className="text-[#F59E0B] font-bold text-lg leading-none mt-0.5">{myLeads.length} <span className="text-slate-500 text-xs font-normal">รายการ</span></p>
-            </div>
-          </div>
-        </div>
-
-        {/* Role-specific shortcuts */}
-        {profile.role === "seller" && (
-          <Link href="/member/store"
-            className="group flex items-center gap-3 bg-emerald-500/5 border border-emerald-500/20 hover:border-emerald-500/40 hover:bg-emerald-500/10 rounded-2xl p-4 sm:p-5 transition-colors">
-            <div className="w-10 h-10 bg-emerald-500/10 rounded-xl flex items-center justify-center shrink-0">
-              <Store size={18} className="text-emerald-400" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="font-semibold text-white text-sm group-hover:text-emerald-400 transition-colors">จัดการร้านค้า</p>
-              <p className="text-slate-500 text-xs mt-0.5">เพิ่มสินค้า แคมเปญ ดูยอดคลิก</p>
-            </div>
-            <ChevronRight size={15} className="text-slate-600 shrink-0 group-hover:text-slate-400 transition-colors" />
-          </Link>
-        )}
-
-        {profile.role === "affiliate" && (
-          <div className="grid sm:grid-cols-2 gap-3">
-            <Link href="/marketplace"
-              className="group flex items-center gap-3 bg-[#F59E0B]/5 border border-[#F59E0B]/20 hover:border-[#F59E0B]/40 hover:bg-[#F59E0B]/10 rounded-2xl p-4 sm:p-5 transition-colors">
-              <div className="w-10 h-10 bg-[#F59E0B]/10 rounded-xl flex items-center justify-center shrink-0">
-                <ShoppingBag size={18} className="text-[#F59E0B]" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="font-semibold text-white text-sm group-hover:text-[#F59E0B] transition-colors">Marketplace</p>
-                <p className="text-slate-500 text-xs mt-0.5">เลือกสินค้าเพื่อโปรโมท</p>
-              </div>
-              <ChevronRight size={15} className="text-slate-600 shrink-0 group-hover:text-slate-400 transition-colors" />
-            </Link>
-            <Link href="/member/my-products"
-              className="group flex items-center gap-3 bg-[#1C0D0D] border border-white/5 hover:border-white/15 rounded-2xl p-4 sm:p-5 transition-colors">
-              <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center shrink-0">
-                <Package size={18} className="text-slate-400 group-hover:text-white transition-colors" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="font-semibold text-white text-sm group-hover:text-[#FCA5A5] transition-colors">สินค้าของฉัน</p>
-                <p className="text-slate-500 text-xs mt-0.5">สินค้าที่ดึงมาแล้ว สถานะตัวอย่าง</p>
-              </div>
-              <ChevronRight size={15} className="text-slate-600 shrink-0 group-hover:text-slate-400 transition-colors" />
-            </Link>
-          </div>
-        )}
-
-        {/* Lead history — ด้านล่างสุด */}
+        {/* ── Lead history ────────────────────────────────────────────────── */}
         {myLeads.length > 0 ? (
-          <div className="bg-[#1C0D0D] border border-white/5 rounded-2xl p-5 sm:p-6 space-y-4">
+          <div className="bg-[#1C0D0D] border border-white/5 rounded-2xl p-4 sm:p-5 space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="w-7 h-7 bg-white/5 rounded-lg flex items-center justify-center">
-                  <FileText size={13} className="text-slate-400" />
+                <div className="w-6 h-6 bg-white/5 rounded-lg flex items-center justify-center">
+                  <FileText size={12} className="text-slate-400" />
                 </div>
                 <h2 className="text-white font-semibold text-sm">ประวัติการติดต่อ</h2>
+                <span className="text-slate-600 text-xs">{myLeads.length} รายการ</span>
               </div>
               {!hasActiveLead && (
                 <Link href="/contact"
-                  className="text-xs text-[#DC2626] hover:text-[#FCA5A5] transition-colors font-medium flex items-center gap-1">
-                  ส่งคำขอใหม่ <ChevronRight size={12} />
+                  className="text-xs text-[#DC2626] hover:text-[#FCA5A5] font-medium transition-colors flex items-center gap-0.5">
+                  ส่งใหม่ <ChevronRight size={11} />
                 </Link>
               )}
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-1">
               {myLeads.map(lead => (
                 <div key={lead.id}
-                  className="flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl bg-white/[0.02] hover:bg-white/[0.04] transition-colors">
+                  className="flex items-center justify-between gap-3 px-3 py-2 rounded-xl bg-white/[0.02] hover:bg-white/[0.04] transition-colors">
                   <div className="min-w-0 flex-1">
-                    <p className="text-white text-sm font-medium truncate">{lead.brand}</p>
-                    <p className="text-slate-500 text-xs truncate mt-0.5">{lead.service} · {lead.monthly_gmv}</p>
+                    <p className="text-white text-xs font-medium truncate">{lead.brand}</p>
+                    <p className="text-slate-600 text-[10px] truncate">{lead.service} · {lead.monthly_gmv}</p>
                   </div>
-                  <div className="flex items-center gap-2.5 shrink-0">
+                  <div className="flex items-center gap-2 shrink-0">
                     <span className={cn(
-                      "inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full font-medium",
-                      statusColor[lead.status] ?? statusColor.new
+                      "inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-medium",
+                      leadStatusColor[lead.status] ?? leadStatusColor.new
                     )}>
-                      {statusIcon[lead.status]}
-                      {statusLabel[lead.status] ?? lead.status}
+                      {leadStatusIcon[lead.status]}
+                      {leadStatusLabel[lead.status] ?? lead.status}
                     </span>
-                    <span className="text-slate-600 text-xs hidden sm:block">
+                    <span className="text-slate-600 text-[10px] hidden sm:block">
                       {new Date(lead.created_at).toLocaleDateString("th-TH", { day: "numeric", month: "short" })}
                     </span>
                   </div>
@@ -260,60 +328,81 @@ export default async function MemberPage() {
             </div>
           </div>
         ) : (
-          <div className="bg-[#1C0D0D] border border-white/5 rounded-2xl p-5 sm:p-6">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-7 h-7 bg-white/5 rounded-lg flex items-center justify-center">
-                <FileText size={13} className="text-slate-400" />
+          <div className="bg-[#1C0D0D] border border-white/5 rounded-2xl p-4 sm:p-5">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 bg-white/5 rounded-lg flex items-center justify-center">
+                  <FileText size={12} className="text-slate-400" />
+                </div>
+                <div>
+                  <p className="text-white font-semibold text-xs">ยังไม่มีประวัติการติดต่อ</p>
+                  <p className="text-slate-500 text-[10px] mt-0.5">ส่งคำขอเพื่อรับคำปรึกษาฟรีจาก NP Create</p>
+                </div>
               </div>
-              <h2 className="text-white font-semibold text-sm">ประวัติการติดต่อ</h2>
+              <Link href="/contact"
+                className="shrink-0 text-xs bg-[#DC2626]/10 hover:bg-[#DC2626]/20 border border-[#DC2626]/20 text-[#DC2626] hover:text-[#FCA5A5] px-3 py-1.5 rounded-lg transition-colors font-medium">
+                ปรึกษาฟรี
+              </Link>
             </div>
-            <p className="text-slate-500 text-sm">ยังไม่มีประวัติการติดต่อ</p>
-            <Link href="/contact"
-              className="inline-flex items-center gap-2 mt-4 bg-[#DC2626]/10 hover:bg-[#DC2626]/20 border border-[#DC2626]/20 hover:border-[#DC2626]/40 text-[#DC2626] hover:text-[#FCA5A5] transition-colors font-semibold text-sm px-4 py-2.5 rounded-xl">
-              <MessageCircle size={15} />
-              ปรึกษาฟรีได้เลย
-              <ChevronRight size={14} />
-            </Link>
           </div>
         )}
 
-        {/* Admin panel shortcut — ด้านล่างสุด */}
+        {/* ── Admin shortcut ──────────────────────────────────────────────── */}
         {profile.role === "admin" && (
           <Link href="/admin"
-            className="flex items-center gap-4 bg-[#DC2626]/5 border border-[#DC2626]/20 hover:border-[#DC2626]/40 hover:bg-[#DC2626]/10 rounded-2xl p-5 transition-colors group">
+            className="flex items-center gap-4 bg-[#DC2626]/5 border border-[#DC2626]/20 hover:border-[#DC2626]/40 hover:bg-[#DC2626]/8 rounded-2xl p-4 sm:p-5 transition-colors group">
             <div className="w-10 h-10 bg-[#DC2626]/10 rounded-xl flex items-center justify-center shrink-0">
               <LayoutDashboard size={18} className="text-[#DC2626]" />
             </div>
-            <div className="min-w-0 flex-1">
-              <p className="font-semibold text-white text-sm group-hover:text-[#FCA5A5] transition-colors">จัดการหลังบ้าน</p>
-              <p className="text-slate-500 text-xs mt-0.5 truncate">Admin Panel — จัดการผลงาน บริการ สมาชิก และการตั้งค่า</p>
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-white text-sm group-hover:text-[#FCA5A5] transition-colors">Admin Panel</p>
+              <p className="text-slate-500 text-xs mt-0.5">จัดการผลงาน บริการ สมาชิก และการตั้งค่า</p>
             </div>
             <ChevronRight size={15} className="text-slate-600 shrink-0 group-hover:text-slate-400 transition-colors" />
           </Link>
         )}
+
+        {/* ── Back to public site — demoted to bottom text link ───────────── */}
+        <div className="pt-1 pb-2">
+          <Link href="/"
+            className="flex items-center justify-center gap-2 text-slate-600 hover:text-slate-400 text-xs py-2 transition-colors">
+            <Home size={12} />
+            กลับหน้าหลัก NP Create
+          </Link>
+        </div>
 
       </div>
     </div>
   )
 }
 
-function InfoItem({
-  icon, label, value, highlight,
-}: {
-  icon: React.ReactNode
+// ── Helper components ────────────────────────────────────────────────────────
+
+function StatCard({ value, label, color, bg, highlight }: {
+  value: number | string
   label: string
-  value: string
+  color: string
+  bg: string
   highlight?: boolean
 }) {
   return (
-    <div className="min-w-0">
-      <div className="flex items-center gap-1.5 mb-1">
-        {icon}
-        <p className="text-slate-500 text-[10px] font-medium uppercase tracking-widest truncate">{label}</p>
-      </div>
-      <p className={cn("text-sm font-medium truncate", highlight ? "text-[#06C755]" : "text-white")}>
-        {value}
-      </p>
+    <div className={cn(
+      "rounded-2xl border p-3 text-center space-y-1",
+      bg,
+      highlight ? "border-emerald-500/15" : "border-white/5"
+    )}>
+      <p className={cn("font-bold text-xl leading-none tabular-nums", color)}>{value}</p>
+      <p className="text-slate-600 text-[10px]">{label}</p>
     </div>
+  )
+}
+
+function SubLink({ href, icon, label }: { href: string; icon: React.ReactNode; label: string }) {
+  return (
+    <Link href={href}
+      className="group flex flex-col items-center gap-1.5 bg-[#1C0D0D] border border-white/5 hover:border-white/15 hover:bg-white/[0.03] rounded-2xl px-2 py-3 transition-colors text-center">
+      <div className="text-slate-500 group-hover:text-white transition-colors">{icon}</div>
+      <span className="text-slate-500 group-hover:text-white text-[10px] font-medium transition-colors leading-tight">{label}</span>
+    </Link>
   )
 }

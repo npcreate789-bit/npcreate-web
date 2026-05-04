@@ -15,12 +15,13 @@ const stockLabel: Record<string, string> = {
   out_of_stock: "หมด",
 }
 
-export function ProductCard({ product, isPulled, isLoggedIn, isAffiliate, hasTiktok }: {
+export function ProductCard({ product, isPulled, isLoggedIn, isAffiliate, hasTiktok, isSeller }: {
   product: ProductWithMeta
   isPulled: boolean
   isLoggedIn: boolean
   isAffiliate: boolean
   hasTiktok: boolean
+  isSeller?: boolean
 }) {
   const discount = product.original_price && product.original_price > product.price
     ? Math.round((1 - product.price / product.original_price) * 100)
@@ -98,13 +99,20 @@ export function ProductCard({ product, isPulled, isLoggedIn, isAffiliate, hasTik
           </p>
         )}
 
-        <PullButton
-          productId={product.id}
-          isLoggedIn={isLoggedIn}
-          isAffiliate={isAffiliate}
-          isPulled={isPulled}
-          hasTiktok={hasTiktok}
-        />
+        {isSeller ? (
+          <Link href={`/marketplace/${product.id}`}
+            className="w-full inline-flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-slate-400 hover:text-white font-medium py-2.5 rounded-xl text-xs transition-colors">
+            ดูรายละเอียด →
+          </Link>
+        ) : (
+          <PullButton
+            productId={product.id}
+            isLoggedIn={isLoggedIn}
+            isAffiliate={isAffiliate}
+            isPulled={isPulled}
+            hasTiktok={hasTiktok}
+          />
+        )}
       </div>
     </div>
   )
