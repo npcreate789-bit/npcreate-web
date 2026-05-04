@@ -34,7 +34,12 @@ export async function saveRoleAndInfo(
     if (data.role === "affiliate") {
       const { error } = await supabase
         .from("profiles")
-        .update({ role: "affiliate", role_confirmed: true, is_active: true })
+        .update({
+          role:               "affiliate",
+          role_confirmed:     true,
+          is_active:          true,
+          tiktok_channel_url: data.tiktok_channel_url?.trim() || null,
+        })
         .eq("id", user.id)
       if (error) return { error: error.message }
       return { redirectTo: "/marketplace" }
