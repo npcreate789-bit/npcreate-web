@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import { cookies } from "next/headers"
-import { ContactTabs } from "@/components/public/contact/ContactTabs"
+import { ContactForm } from "@/components/public/contact/ContactForm"
 import { createClient } from "@/lib/supabase/server"
 import { mergeSiteInfo, getLineOaHref } from "@/lib/data/site-info"
 
@@ -11,6 +11,7 @@ export const metadata: Metadata = {
 }
 
 type LineSession = { userId: string; displayName: string; pictureUrl: string }
+type UserRole    = "seller" | "affiliate" | "admin" | null
 
 export default async function ContactPage({
   searchParams,
@@ -18,13 +19,42 @@ export default async function ContactPage({
   searchParams: Promise<{ type?: string }>
 }) {
   const { type } = await searchParams
-  const defaultTab = type === "affiliate" ? "affiliate" : "seller"
-
   const [cookieStore, supabase] = await Promise.all([cookies(), createClient()])
   const { data: { user } } = await supabase.auth.getUser()
-  const isMember = !!user
 
-  // ── Seller hasSubmitted: member → ตรวจ active lead ใน DB, anonymous → cookie ──
+  // ── User role (auto-detect from DB) ──────────────────────────────────────────
+  let userRole: UserRole = null
+  let lineSession: LineSession | null = null
+
+  if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role, role_confirmed, line_user_id, line_display_name")
+      .eq("id", user.id)
+      .maybeSingle()
+
+    if (profile?.role_confirmed) {
+      userRole = (profile.role as UserRole) ?? null
+    }
+    if (profile?.line_user_id) {
+      lineSession = {
+        userId:      profile.line_user_id,
+        displayName: profile.line_display_name ?? "",
+        pictureUrl:  "",
+      }
+    }
+  }
+
+  // Fallback: LINE session from cookie (for non-member LINE users)
+  if (!lineSession) {
+    try {
+      const raw = cookieStore.get("line_session")?.value
+      if (raw) lineSession = JSON.parse(raw) as LineSession
+    } catch {}
+  }
+
+  // ── hasSubmitted ─────────────────────────────────────────────────────────────
+  // Seller: member → DB check, anonymous → cookie
   let sellerHasSubmitted = false
   if (user) {
     try {
@@ -44,36 +74,18 @@ export default async function ContactPage({
     sellerHasSubmitted = !!cookieStore.get("contact_submitted")?.value
   }
 
-  // ── Affiliate hasSubmitted: cookie-based สำหรับทุกคน ──
+  // Affiliate: cookie-based
   const affiliateHasSubmitted = !!cookieStore.get("contact_affiliate_submitted")?.value
 
-  // ── LINE session: ดึงจาก member profile ก่อน fallback cookie ──
-  let lineSession: LineSession | null = null
-  if (user) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("line_user_id, line_display_name")
-      .eq("id", user.id)
-      .maybeSingle()
-    if (profile?.line_user_id) {
-      lineSession = {
-        userId:      profile.line_user_id,
-        displayName: profile.line_display_name ?? "",
-        pictureUrl:  "",
-      }
-    }
-  }
-  if (!lineSession) {
-    try {
-      const raw = cookieStore.get("line_session")?.value
-      if (raw) lineSession = JSON.parse(raw) as LineSession
-    } catch {}
-  }
-
+  // ── Site settings ─────────────────────────────────────────────────────────────
   const { data: siteData } = await supabase
     .from("site_settings").select("value").eq("key", "site_info").maybeSingle()
   const info       = mergeSiteInfo((siteData?.value ?? {}) as Record<string, unknown>)
   const lineOaHref = getLineOaHref(info.line_oa_url, info.line_oa_id)
+
+  // ── fallback form type for non-logged-in users (from URL ?type=) ─────────────
+  const defaultFormType: "seller" | "affiliate" =
+    type === "affiliate" ? "affiliate" : "seller"
 
   return (
     <main className="min-h-screen bg-[#0A0808] pt-24 pb-24">
@@ -86,19 +98,20 @@ export default async function ContactPage({
             เริ่มต้นด้วยการคุย
           </h1>
           <p className="text-slate-400 text-base leading-relaxed">
-            เลือกหมวดหมู่ที่ตรงกับคุณ แล้วกรอกข้อมูลสั้นๆ
-            <br />
-            <span className="text-slate-500 text-sm">ทีมงานตอบกลับภายใน 1 ชั่วโมง ในเวลาทำการ 9:00–20:00 น.</span>
+            {userRole === "affiliate"
+              ? <>คอร์สเรียน TikTok Affiliate และบริการวางแผนกลยุทธ์<br /><span className="text-slate-500 text-sm">ทีมงานตอบกลับภายใน 1 ชั่วโมง ในเวลาทำการ 9:00–20:00 น.</span></>
+              : <>ปรึกษายิงแอด GMV Max และวางกลยุทธ์ TikTok Shop<br /><span className="text-slate-500 text-sm">ปรึกษาฟรี ไม่มีข้อผูกมัด ทีมงานตอบกลับภายใน 1 ชั่วโมง</span></>
+            }
           </p>
         </div>
 
-        {/* Tab-based contact forms */}
-        <ContactTabs
-          defaultTab={defaultTab}
+        <ContactForm
+          userRole={userRole}
+          defaultFormType={defaultFormType}
           sellerHasSubmitted={sellerHasSubmitted}
           affiliateHasSubmitted={affiliateHasSubmitted}
           lineSession={lineSession}
-          isMember={isMember}
+          isMember={!!user}
           lineOaHref={lineOaHref}
         />
 
