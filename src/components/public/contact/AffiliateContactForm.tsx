@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { cn } from "@/lib/utils"
-import { CheckCircle2, Loader2, MessageCircle, RotateCcw, Music } from "lucide-react"
+import { CheckCircle2, Loader2, MessageCircle, RotateCcw, Music, UserCircle2 } from "lucide-react"
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
 
@@ -28,23 +28,30 @@ const serviceOptions = [
 ]
 
 type LineSession = { userId: string; displayName: string; pictureUrl: string }
+type Prefill     = { fullName: string; phone: string; storeName: string; tiktokUrl: string }
 
 interface Props {
-  hasSubmitted:    boolean
-  lineSession:     LineSession | null
-  lineOaHref:      string
-  tiktokChannelUrl?: string | null
+  hasSubmitted: boolean
+  lineSession:  LineSession | null
+  lineOaHref:   string
+  prefill:      Prefill
 }
 
-export function AffiliateContactForm({ hasSubmitted, lineSession, lineOaHref, tiktokChannelUrl }: Props) {
+export function AffiliateContactForm({ hasSubmitted, lineSession, lineOaHref, prefill }: Props) {
   const [justSubmitted, setJustSubmitted] = useState(false)
   const [allowResubmit, setAllowResubmit] = useState(false)
   const [apiError, setApiError]           = useState<string | null>(null)
 
   const { register, handleSubmit, formState: { errors, isSubmitting }, reset } = useForm<FormData>({
     resolver:      zodResolver(schema),
-    defaultValues: { tiktok_url: tiktokChannelUrl ?? "" },
+    defaultValues: {
+      name:       prefill.fullName  || undefined,
+      phone:      prefill.phone     || undefined,
+      tiktok_url: prefill.tiktokUrl || undefined,
+    },
   })
+
+  const hasPrefill = !!(prefill.fullName || prefill.phone || prefill.tiktokUrl)
 
   const onSubmit = async (data: FormData) => {
     setApiError(null)
@@ -114,6 +121,16 @@ export function AffiliateContactForm({ hasSubmitted, lineSession, lineOaHref, ti
       className="bg-[#1C0D0D] border border-white/5 rounded-2xl p-6 sm:p-8 space-y-5"
     >
       {apiError && <ErrorBox msg={apiError} />}
+
+      {hasPrefill && (
+        <div className="flex items-center gap-2.5 px-3.5 py-2.5 bg-[#F59E0B]/8 border border-[#F59E0B]/20 rounded-xl">
+          <UserCircle2 size={14} className="text-[#F59E0B] shrink-0" />
+          <p className="text-[#F59E0B]/80 text-xs flex-1">ข้อมูลดึงจาก profile ของคุณอัตโนมัติ — แก้ไขได้ก่อนส่ง</p>
+          <a href="/member/profile" className="text-[#F59E0B] hover:text-amber-300 text-xs underline shrink-0 transition-colors">
+            แก้ profile
+          </a>
+        </div>
+      )}
 
       <div className="grid sm:grid-cols-2 gap-5">
         <Field label="ชื่อ-นามสกุล" error={errors.name?.message} required>

@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils"
 import { createClient } from "@/lib/supabase/client"
 import {
   CheckCircle2, Loader2, Mail, Eye, EyeOff, ChevronDown, ChevronUp, MessageCircle, RotateCcw,
+  UserCircle2,
 } from "lucide-react"
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
@@ -155,21 +156,31 @@ function LoginPrompt() {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
+type Prefill = { fullName: string; phone: string; storeName: string; tiktokUrl: string }
+
 interface Props {
   hasSubmitted: boolean
   lineSession:  LineSession | null
   isMember:     boolean
   lineOaHref:   string
+  prefill:      Prefill
 }
 
-export function SellerContactForm({ hasSubmitted, lineSession, isMember, lineOaHref }: Props) {
+export function SellerContactForm({ hasSubmitted, lineSession, isMember, lineOaHref, prefill }: Props) {
   const [justSubmitted, setJustSubmitted] = useState(false)
   const [allowResubmit, setAllowResubmit] = useState(false)
   const [apiError, setApiError]           = useState<string | null>(null)
 
   const { register, handleSubmit, formState: { errors, isSubmitting }, reset } = useForm<FormData>({
-    resolver: zodResolver(schema),
+    resolver:      zodResolver(schema),
+    defaultValues: {
+      name:  prefill.fullName  || undefined,
+      phone: prefill.phone     || undefined,
+      brand: prefill.storeName || undefined,
+    },
   })
+
+  const hasPrefill = !!(prefill.fullName || prefill.phone || prefill.storeName)
 
   const onSubmit = async (data: FormData) => {
     setApiError(null)
@@ -242,6 +253,16 @@ export function SellerContactForm({ hasSubmitted, lineSession, isMember, lineOaH
       className="bg-[#1C0D0D] border border-white/5 rounded-2xl p-6 sm:p-8 space-y-5"
     >
       {apiError && <ErrorBox msg={apiError} />}
+
+      {hasPrefill && (
+        <div className="flex items-center gap-2.5 px-3.5 py-2.5 bg-emerald-500/8 border border-emerald-500/20 rounded-xl">
+          <UserCircle2 size={14} className="text-emerald-400 shrink-0" />
+          <p className="text-emerald-300 text-xs flex-1">ข้อมูลดึงจาก profile ของคุณอัตโนมัติ — แก้ไขได้ก่อนส่ง</p>
+          <a href="/member/profile" className="text-emerald-500 hover:text-emerald-300 text-xs underline shrink-0 transition-colors">
+            แก้ profile
+          </a>
+        </div>
+      )}
 
       <div className="grid sm:grid-cols-2 gap-5">
         <Field label="ชื่อ-นามสกุล" error={errors.name?.message} required>

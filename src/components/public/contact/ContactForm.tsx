@@ -16,6 +16,8 @@ import { ContactInfo } from "./ContactInfo"
 type UserRole    = "seller" | "affiliate" | "admin" | null
 type LineSession = { userId: string; displayName: string; pictureUrl: string }
 
+type Prefill = { fullName: string; phone: string; storeName: string; tiktokUrl: string }
+
 interface Props {
   userRole:              UserRole
   sellerHasSubmitted:    boolean
@@ -23,7 +25,7 @@ interface Props {
   lineSession:           LineSession | null
   isMember:              boolean
   lineOaHref:            string
-  tiktokChannelUrl:      string | null
+  prefill:               Prefill
 }
 
 // ─── Auth Gate ────────────────────────────────────────────────────────────────
@@ -207,7 +209,7 @@ export function ContactForm({
   lineSession,
   isMember,
   lineOaHref,
-  tiktokChannelUrl,
+  prefill,
 }: Props) {
   // Not logged-in → show auth gate, block access to forms entirely
   if (!isMember) {
@@ -268,13 +270,14 @@ export function ContactForm({
           lineSession={lineSession}
           isMember={true}
           lineOaHref={lineOaHref}
+          prefill={prefill}
         />
       ) : (
         <AffiliateContactForm
           hasSubmitted={affiliateHasSubmitted}
           lineSession={lineSession}
           lineOaHref={lineOaHref}
-          tiktokChannelUrl={tiktokChannelUrl}
+          prefill={prefill}
         />
       )}
 

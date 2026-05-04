@@ -17,19 +17,27 @@ export default async function ContactPage() {
   const [cookieStore, supabase] = await Promise.all([cookies(), createClient()])
   const { data: { user } } = await supabase.auth.getUser()
 
-  // ── Fetch profile + site settings ────────────────────────────────────────────
-  const [profileRes, siteRes] = await Promise.all([
+  // ── Fetch profile + store + site settings ─────────────────────────────────────
+  const [profileRes, storeRes, siteRes] = await Promise.all([
     user
       ? supabase
           .from("profiles")
-          .select("role, role_confirmed, line_user_id, line_display_name, tiktok_channel_url")
+          .select("role, role_confirmed, line_user_id, line_display_name, full_name, phone, tiktok_channel_url")
           .eq("id", user.id)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+    user
+      ? supabase
+          .from("stores")
+          .select("name")
+          .eq("seller_id", user.id)
           .maybeSingle()
       : Promise.resolve({ data: null }),
     supabase.from("site_settings").select("value").eq("key", "site_info").maybeSingle(),
   ])
 
   const profile    = profileRes.data
+  const store      = storeRes.data
   const info       = mergeSiteInfo((siteRes.data?.value ?? {}) as Record<string, unknown>)
   const lineOaHref = getLineOaHref(info.line_oa_url, info.line_oa_id)
 
@@ -48,6 +56,14 @@ export default async function ContactPage() {
       const raw = cookieStore.get("line_session")?.value
       if (raw) lineSession = JSON.parse(raw) as LineSession
     } catch {}
+  }
+
+  // ── Prefill data from profile ─────────────────────────────────────────────────
+  const prefill = {
+    fullName:   profile?.full_name   ?? "",
+    phone:      profile?.phone       ?? "",
+    storeName:  store?.name          ?? "",
+    tiktokUrl:  profile?.tiktok_channel_url ?? "",
   }
 
   // ── hasSubmitted (only relevant when logged in) ───────────────────────────────
@@ -98,7 +114,7 @@ export default async function ContactPage() {
           lineSession={lineSession}
           isMember={!!user}
           lineOaHref={lineOaHref}
-          tiktokChannelUrl={profile?.tiktok_channel_url ?? null}
+          prefill={prefill}
         />
 
       </div>
