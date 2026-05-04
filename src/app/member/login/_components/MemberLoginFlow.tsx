@@ -129,8 +129,9 @@ function PasswordLoginFlow({ next }: { next: string }) {
 // ─── Main Component ──────────────────────────────────────────────────────────
 
 export function MemberLoginFlow() {
-  const searchParams   = useSearchParams()
-  const next           = searchParams.get("next") ?? "/member"
+  const searchParams = useSearchParams()
+  const rawNext      = searchParams.get("next") ?? "/member"
+  const next         = rawNext.startsWith("/") ? rawNext : "/member"
   const [showEmail, setShowEmail] = useState(false)
   const [method, setMethod]       = useState<"password" | "otp">("password")
 

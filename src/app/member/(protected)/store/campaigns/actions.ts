@@ -44,6 +44,9 @@ export type CampaignInput = {
 }
 
 function parseInput(data: CampaignInput, storeId: string) {
+  if (!data.starts_at || !data.ends_at) throw new Error("กรุณาระบุวันเริ่มต้นและสิ้นสุด")
+  if (new Date(data.ends_at) <= new Date(data.starts_at)) throw new Error("วันสิ้นสุดต้องมาหลังวันเริ่มต้น")
+  if (!data.title.trim()) throw new Error("กรุณาระบุชื่อแคมเปญ")
   return {
     store_id: storeId,
     title: data.title.trim(),

@@ -8,6 +8,9 @@ async function getSellerUser() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error("ไม่ได้เข้าสู่ระบบ")
+  const { data: profile } = await supabase
+    .from("profiles").select("role").eq("id", user.id).maybeSingle()
+  if (profile?.role !== "seller" && profile?.role !== "admin") throw new Error("เฉพาะ Seller เท่านั้น")
   return { supabase, user }
 }
 
