@@ -158,15 +158,17 @@ function LoginPrompt() {
 
 type Prefill = { fullName: string; phone: string; storeName: string; tiktokUrl: string }
 
+const emptyPrefill: Prefill = { fullName: "", phone: "", storeName: "", tiktokUrl: "" }
+
 interface Props {
   hasSubmitted: boolean
   lineSession:  LineSession | null
   isMember:     boolean
   lineOaHref:   string
-  prefill:      Prefill
+  prefill?:     Prefill
 }
 
-export function SellerContactForm({ hasSubmitted, lineSession, isMember, lineOaHref, prefill }: Props) {
+export function SellerContactForm({ hasSubmitted, lineSession, isMember, lineOaHref, prefill = emptyPrefill }: Props) {
   const [justSubmitted, setJustSubmitted] = useState(false)
   const [allowResubmit, setAllowResubmit] = useState(false)
   const [apiError, setApiError]           = useState<string | null>(null)

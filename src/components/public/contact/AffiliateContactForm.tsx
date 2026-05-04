@@ -30,14 +30,16 @@ const serviceOptions = [
 type LineSession = { userId: string; displayName: string; pictureUrl: string }
 type Prefill     = { fullName: string; phone: string; storeName: string; tiktokUrl: string }
 
+const emptyPrefill: Prefill = { fullName: "", phone: "", storeName: "", tiktokUrl: "" }
+
 interface Props {
   hasSubmitted: boolean
   lineSession:  LineSession | null
   lineOaHref:   string
-  prefill:      Prefill
+  prefill?:     Prefill
 }
 
-export function AffiliateContactForm({ hasSubmitted, lineSession, lineOaHref, prefill }: Props) {
+export function AffiliateContactForm({ hasSubmitted, lineSession, lineOaHref, prefill = emptyPrefill }: Props) {
   const [justSubmitted, setJustSubmitted] = useState(false)
   const [allowResubmit, setAllowResubmit] = useState(false)
   const [apiError, setApiError]           = useState<string | null>(null)
