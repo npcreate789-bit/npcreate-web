@@ -34,8 +34,7 @@ export async function POST(req: NextRequest) {
   })
 
   if (!res.ok) {
-    const body = await res.text()
-    return NextResponse.json({ error: `LINE API error: ${res.status}`, detail: body }, { status: 502 })
+    return NextResponse.json({ error: `LINE API error: ${res.status}` }, { status: 502 })
   }
 
   return NextResponse.json({ ok: true })
