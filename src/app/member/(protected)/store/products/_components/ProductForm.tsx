@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { Loader2, Save } from "lucide-react"
+import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { createProduct, updateProduct, type ProductInput } from "../actions"
 import type { Product } from "@/types/database"
@@ -64,13 +65,16 @@ export function ProductForm({ product }: { product?: Product }) {
       try {
         if (isEdit && product) {
           await updateProduct(product.id, data)
+          toast.success("บันทึกการเปลี่ยนแปลงแล้ว")
         } else {
           await createProduct(data)
+          toast.success("เพิ่มสินค้าแล้ว")
         }
         router.push("/member/store/products")
-        router.refresh()
       } catch (err) {
-        setError(err instanceof Error ? err.message : "เกิดข้อผิดพลาด")
+        const msg = err instanceof Error ? err.message : "เกิดข้อผิดพลาด"
+        setError(msg)
+        toast.error(msg)
       }
     })
   }

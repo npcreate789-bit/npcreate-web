@@ -1,8 +1,10 @@
 "use client"
 
 import { useTransition } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Pencil, Trash2, Loader2, Eye, EyeOff } from "lucide-react"
+import { toast } from "sonner"
 import { toggleProductActive, deleteProduct } from "../actions"
 
 export function ProductRowActions({ id, name, isActive }: {
@@ -10,16 +12,31 @@ export function ProductRowActions({ id, name, isActive }: {
   name: string
   isActive: boolean
 }) {
+  const router = useRouter()
   const [toggling, startToggle] = useTransition()
   const [deleting, startDelete] = useTransition()
 
   function handleToggle() {
-    startToggle(async () => { await toggleProductActive(id, !isActive) })
+    startToggle(async () => {
+      try {
+        await toggleProductActive(id, !isActive)
+        router.refresh()
+      } catch (e) {
+        toast.error(e instanceof Error ? e.message : "เกิดข้อผิดพลาด")
+      }
+    })
   }
 
   function handleDelete() {
     if (!confirm(`ลบสินค้า "${name}" ใช่ไหม? ไม่สามารถยกเลิกได้`)) return
-    startDelete(async () => { await deleteProduct(id) })
+    startDelete(async () => {
+      try {
+        await deleteProduct(id)
+        router.refresh()
+      } catch (e) {
+        toast.error(e instanceof Error ? e.message : "เกิดข้อผิดพลาด")
+      }
+    })
   }
 
   return (
