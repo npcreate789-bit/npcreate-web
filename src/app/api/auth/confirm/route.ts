@@ -6,7 +6,8 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const tokenHash = searchParams.get("token_hash")
   const type      = searchParams.get("type") as "magiclink" | "email" | null
-  const next      = searchParams.get("next") ?? "/member"
+  const rawNext   = searchParams.get("next") ?? ""
+  const next      = rawNext.startsWith("/") ? rawNext : "/member"
   const base      = process.env.NEXT_PUBLIC_SITE_URL!
 
   if (!tokenHash || !type) {

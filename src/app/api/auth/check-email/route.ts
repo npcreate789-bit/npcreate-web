@@ -8,10 +8,10 @@ export async function POST(req: NextRequest) {
     if (!email) return NextResponse.json({ exists: false })
 
     const admin = createAdminClient()
-    const { data, error } = await admin.auth.admin.listUsers({ perPage: 1000 })
+    const { data, error } = await admin.auth.admin.getUserByEmail(email)
     if (error) return NextResponse.json({ exists: false })
 
-    const exists = data?.users?.some(u => u.email?.toLowerCase() === email) ?? false
+    const exists = !!data?.user
     return NextResponse.json({ exists })
   } catch {
     return NextResponse.json({ exists: false })
