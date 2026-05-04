@@ -1,4 +1,4 @@
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import { Inter, Plus_Jakarta_Sans, Noto_Sans_Thai } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { SpeedInsights } from "@vercel/speed-insights/next"
@@ -11,6 +11,12 @@ const jakarta  = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-jakar
 const notoThai = Noto_Sans_Thai({ subsets: ["thai"], variable: "--font-thai" })
 
 const BASE_URL = "https://npcreate.co.th"
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+}
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
