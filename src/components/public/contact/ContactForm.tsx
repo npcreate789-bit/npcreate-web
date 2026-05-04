@@ -23,6 +23,7 @@ interface Props {
   lineSession:           LineSession | null
   isMember:              boolean
   lineOaHref:            string
+  tiktokChannelUrl:      string | null
 }
 
 // ─── Auth Gate ────────────────────────────────────────────────────────────────
@@ -206,6 +207,7 @@ export function ContactForm({
   lineSession,
   isMember,
   lineOaHref,
+  tiktokChannelUrl,
 }: Props) {
   // Not logged-in → show auth gate, block access to forms entirely
   if (!isMember) {
@@ -272,6 +274,7 @@ export function ContactForm({
           hasSubmitted={affiliateHasSubmitted}
           lineSession={lineSession}
           lineOaHref={lineOaHref}
+          tiktokChannelUrl={tiktokChannelUrl}
         />
       )}
 

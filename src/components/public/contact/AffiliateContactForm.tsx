@@ -30,18 +30,20 @@ const serviceOptions = [
 type LineSession = { userId: string; displayName: string; pictureUrl: string }
 
 interface Props {
-  hasSubmitted: boolean
-  lineSession:  LineSession | null
-  lineOaHref:   string
+  hasSubmitted:    boolean
+  lineSession:     LineSession | null
+  lineOaHref:      string
+  tiktokChannelUrl?: string | null
 }
 
-export function AffiliateContactForm({ hasSubmitted, lineSession, lineOaHref }: Props) {
+export function AffiliateContactForm({ hasSubmitted, lineSession, lineOaHref, tiktokChannelUrl }: Props) {
   const [justSubmitted, setJustSubmitted] = useState(false)
   const [allowResubmit, setAllowResubmit] = useState(false)
   const [apiError, setApiError]           = useState<string | null>(null)
 
   const { register, handleSubmit, formState: { errors, isSubmitting }, reset } = useForm<FormData>({
-    resolver: zodResolver(schema),
+    resolver:      zodResolver(schema),
+    defaultValues: { tiktok_url: tiktokChannelUrl ?? "" },
   })
 
   const onSubmit = async (data: FormData) => {

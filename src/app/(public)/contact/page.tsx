@@ -22,7 +22,7 @@ export default async function ContactPage() {
     user
       ? supabase
           .from("profiles")
-          .select("role, role_confirmed, line_user_id, line_display_name")
+          .select("role, role_confirmed, line_user_id, line_display_name, tiktok_channel_url")
           .eq("id", user.id)
           .maybeSingle()
       : Promise.resolve({ data: null }),
@@ -98,6 +98,7 @@ export default async function ContactPage() {
           lineSession={lineSession}
           isMember={!!user}
           lineOaHref={lineOaHref}
+          tiktokChannelUrl={profile?.tiktok_channel_url ?? null}
         />
 
       </div>
