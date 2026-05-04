@@ -43,7 +43,7 @@ export default async function StoreDashboardPage() {
     )
   }
 
-  const stats = await getStoreDashboardStats(store.id)
+  const stats = await getStoreDashboardStats()
 
   return (
     <div className="min-h-screen bg-[#0A0808] pt-10 pb-16">

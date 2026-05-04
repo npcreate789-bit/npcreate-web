@@ -71,9 +71,14 @@ export async function updateStore(id: string, data: {
   revalidatePath("/member/marketplace")
 }
 
-export async function getStoreDashboardStats(storeId: string) {
-  const { supabase } = await getSellerUser()
+export async function getStoreDashboardStats() {
+  const { supabase, user } = await getSellerUser()
 
+  const { data: store } = await supabase
+    .from("stores").select("id").eq("seller_id", user.id).maybeSingle()
+  if (!store) return { totalProducts: 0, activeProducts: 0, activeCampaigns: 0, totalPulls: 0, pendingPulls: 0 }
+
+  const storeId = store.id as string
   const [productsRes, campaignsRes] = await Promise.all([
     supabase.from("products").select("id, is_active").eq("store_id", storeId),
     supabase.from("campaigns").select("id, is_active").eq("store_id", storeId),
