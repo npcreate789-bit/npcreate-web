@@ -29,7 +29,10 @@ export function AvatarUpload({ userId, avatarUrl, initials }: AvatarUploadProps)
     setUploading(true)
     try {
       const supabase = createClient()
-      const ext = file.name.split(".").pop()?.toLowerCase() ?? "jpg"
+      const ALLOWED_EXTS = ["jpg", "jpeg", "png", "webp"]
+      const rawExt = file.name.split(".").pop()?.toLowerCase() ?? ""
+      const ext    = ALLOWED_EXTS.includes(rawExt) ? rawExt : null
+      if (!ext) { setError("รองรับเฉพาะ JPG, PNG, WebP"); setUploading(false); return }
       const path = `${userId}/avatar.${ext}`
 
       const { error: uploadError } = await supabase.storage

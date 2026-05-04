@@ -77,6 +77,8 @@ export async function updateAddress(data: {
   revalidatePath("/member/profile")
 }
 
+const AVATAR_ALLOWED_EXTS = [".jpg", ".jpeg", ".png", ".webp"]
+
 export async function updateAvatarUrl(url: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -85,6 +87,11 @@ export async function updateAvatarUrl(url: string) {
   const base = process.env.NEXT_PUBLIC_SUPABASE_URL
   if (!base || !url.startsWith(`${base}/storage/`)) {
     throw new Error("Invalid avatar URL")
+  }
+  // Validate image extension (strip query string before checking)
+  const urlPath = url.split("?")[0].toLowerCase()
+  if (!AVATAR_ALLOWED_EXTS.some(ext => urlPath.endsWith(ext))) {
+    throw new Error("ประเภทไฟล์ไม่ถูกต้อง")
   }
   const { error } = await supabase
     .from("profiles")

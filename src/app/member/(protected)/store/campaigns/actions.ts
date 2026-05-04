@@ -58,9 +58,21 @@ function parseInput(data: CampaignInput, storeId: string) {
   }
 }
 
+async function verifyProductIds(supabase: Awaited<ReturnType<typeof createClient>>, storeId: string, productIds: string[]) {
+  if (productIds.length === 0) return []
+  const { data } = await supabase
+    .from("products")
+    .select("id")
+    .eq("store_id", storeId)
+    .in("id", productIds)
+  const ownedIds = new Set((data ?? []).map(p => p.id as string))
+  return productIds.filter(id => ownedIds.has(id))
+}
+
 export async function createCampaign(data: CampaignInput) {
   const { supabase, storeId } = await getSellerCtx()
-  const { error } = await supabase.from("campaigns").insert(parseInput(data, storeId))
+  const safeProductIds = await verifyProductIds(supabase, storeId, data.product_ids)
+  const { error } = await supabase.from("campaigns").insert(parseInput({ ...data, product_ids: safeProductIds }, storeId))
   if (error) throw new Error(error.message)
   revalidatePath("/member/store/campaigns")
   revalidatePath("/member/marketplace")
@@ -68,8 +80,9 @@ export async function createCampaign(data: CampaignInput) {
 
 export async function updateCampaign(id: string, data: CampaignInput) {
   const { supabase, storeId } = await getSellerCtx()
+  const safeProductIds = await verifyProductIds(supabase, storeId, data.product_ids)
   const { error } = await supabase.from("campaigns").update({
-    ...parseInput(data, storeId),
+    ...parseInput({ ...data, product_ids: safeProductIds }, storeId),
     updated_at: new Date().toISOString(),
   }).eq("id", id).eq("store_id", storeId)
   if (error) throw new Error(error.message)

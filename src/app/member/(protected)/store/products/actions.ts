@@ -2,7 +2,25 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
+import { z } from "zod"
 import type { Product } from "@/types/database"
+
+const productSchema = z.object({
+  name:                z.string().min(1).max(200).trim(),
+  description:         z.string().max(2000).trim(),
+  price:               z.number().positive(),
+  original_price:      z.number().positive().nullable(),
+  commission_rate:     z.number().min(0).max(100),
+  image_url:           z.string().url().max(500).or(z.literal("")),
+  tiktok_product_url:  z.string().url().max(500).or(z.literal("")),
+  tags:                z.string().max(500),
+  stock_status:        z.enum(["in_stock", "low_stock", "out_of_stock"]),
+  monthly_sales_est:   z.number().min(0),
+  is_active:           z.boolean(),
+  promotion_text:      z.string().max(1000).trim(),
+  caption_suggestions: z.string().max(2000).trim(),
+  forbidden_words:     z.string().max(500).trim(),
+})
 
 async function getStoreId(supabase: Awaited<ReturnType<typeof createClient>>, userId: string) {
   const { data } = await supabase.from("stores").select("id").eq("seller_id", userId).maybeSingle()
@@ -77,17 +95,21 @@ function parseInput(data: ProductInput, storeId: string) {
 }
 
 export async function createProduct(data: ProductInput) {
+  const parsed = productSchema.safeParse(data)
+  if (!parsed.success) throw new Error(parsed.error.issues[0]?.message ?? "ข้อมูลไม่ถูกต้อง")
   const { supabase, storeId } = await getSellerCtx()
-  const { error } = await supabase.from("products").insert(parseInput(data, storeId))
+  const { error } = await supabase.from("products").insert(parseInput(parsed.data, storeId))
   if (error) throw new Error(error.message)
   revalidatePath("/member/store/products")
   revalidatePath("/marketplace")
 }
 
 export async function updateProduct(id: string, data: ProductInput) {
+  const parsed = productSchema.safeParse(data)
+  if (!parsed.success) throw new Error(parsed.error.issues[0]?.message ?? "ข้อมูลไม่ถูกต้อง")
   const { supabase, storeId } = await getSellerCtx()
   const { error } = await supabase.from("products").update({
-    ...parseInput(data, storeId),
+    ...parseInput(parsed.data, storeId),
     updated_at: new Date().toISOString(),
   }).eq("id", id).eq("store_id", storeId)
   if (error) throw new Error(error.message)
