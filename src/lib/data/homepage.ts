@@ -11,7 +11,13 @@ export type HomepageSettings = {
     cta2_text: string
   }
   stats: Array<{ value: string; label: string }>
-  services_section: { badge: string; heading: string; subtext: string }
+  services_section: {
+    badge: string
+    heading: string
+    heading_color: string
+    heading_size: "sm" | "md" | "lg" | "xl"
+    subtext: string
+  }
   why_us: {
     badge: string
     heading: string
@@ -51,6 +57,8 @@ export const DEFAULT_HOMEPAGE: HomepageSettings = {
   services_section: {
     badge: "บริการของเรา",
     heading: "ครบทุกขั้นตอน ดูแลถึง Result",
+    heading_color: "#FFFFFF",
+    heading_size: "md",
     subtext: "ไม่ใช่แค่ยิงแอด — เราวางกลยุทธ์ ผลิต creative และติดตามผลลัพธ์จริงให้คุณ",
   },
   why_us: {

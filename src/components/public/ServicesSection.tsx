@@ -1,5 +1,13 @@
 import { TrendingUp, Target, Film, BarChart3 } from "lucide-react"
+import { cn } from "@/lib/utils"
 import type { HomepageSettings } from "@/lib/data/homepage"
+
+const SIZE_CLASSES = {
+  sm: "text-3xl sm:text-4xl lg:text-5xl",
+  md: "text-4xl sm:text-5xl lg:text-6xl",
+  lg: "text-5xl sm:text-6xl lg:text-7xl",
+  xl: "text-6xl sm:text-7xl lg:text-8xl",
+}
 
 const CARDS = [
   {
@@ -72,7 +80,10 @@ export function ServicesSection({ settings }: Props) {
           </div>
 
           {/* Heading */}
-          <h2 className="font-display font-bold text-4xl sm:text-5xl lg:text-6xl text-white leading-tight">
+          <h2
+            className={cn("font-display font-bold leading-tight", SIZE_CLASSES[settings.heading_size ?? "md"])}
+            style={{ color: settings.heading_color || "#FFFFFF" }}
+          >
             {settings.heading}
           </h2>
 

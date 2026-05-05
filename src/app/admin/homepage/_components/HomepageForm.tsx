@@ -291,8 +291,65 @@ export function HomepageForm({ initial }: Props) {
           <Field label="Badge (ป้ายเล็กบนสุด)">
             <input value={s.services_section.badge} onChange={(e) => patch("services_section", { badge: e.target.value })} className={inputCls} />
           </Field>
-          <Field label="หัวข้อหลัก — แสดงเป็น H2 ขนาดใหญ่ (text-4xl → 6xl)">
+          <Field label="หัวข้อหลัก — แสดงเป็น H2 ขนาดใหญ่">
             <input value={s.services_section.heading} onChange={(e) => patch("services_section", { heading: e.target.value })} className={inputCls} />
+          </Field>
+
+          {/* Heading color */}
+          <Field label="สีหัวข้อหลัก">
+            <div className="flex flex-wrap items-center gap-2 mt-1">
+              {COLOR_PRESETS.map((c) => (
+                <button
+                  key={c.value}
+                  type="button"
+                  title={c.label}
+                  onClick={() => patch("services_section", { heading_color: c.value })}
+                  className={cn(
+                    "w-8 h-8 rounded-lg border-2 transition-all",
+                    s.services_section.heading_color === c.value
+                      ? "border-white scale-110"
+                      : "border-transparent opacity-70 hover:opacity-100"
+                  )}
+                  style={{ backgroundColor: c.value }}
+                />
+              ))}
+              <div className="flex items-center gap-2 ml-1">
+                <input
+                  type="color"
+                  value={s.services_section.heading_color || "#FFFFFF"}
+                  onChange={(e) => patch("services_section", { heading_color: e.target.value })}
+                  className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0"
+                  title="เลือกสีเอง"
+                />
+                <input
+                  value={s.services_section.heading_color || "#FFFFFF"}
+                  onChange={(e) => patch("services_section", { heading_color: e.target.value })}
+                  placeholder="#FFFFFF"
+                  className="w-24 bg-[#0A0808] border border-white/10 rounded-lg px-2 py-1 text-white text-base font-mono focus:outline-none focus:border-[#DC2626]/50"
+                />
+              </div>
+            </div>
+          </Field>
+
+          {/* Heading size */}
+          <Field label="ขนาดหัวข้อหลัก">
+            <div className="flex gap-2 flex-wrap mt-1">
+              {(["sm", "md", "lg", "xl"] as const).map((sz) => (
+                <button
+                  key={sz}
+                  type="button"
+                  onClick={() => patch("services_section", { heading_size: sz })}
+                  className={cn(
+                    "px-4 py-1.5 rounded-lg text-sm font-medium border transition-all",
+                    s.services_section.heading_size === sz
+                      ? "bg-[#DC2626] border-[#DC2626] text-white"
+                      : "border-white/10 text-slate-400 hover:text-white"
+                  )}
+                >
+                  {sz === "sm" ? "เล็ก" : sz === "md" ? "กลาง" : sz === "lg" ? "ใหญ่" : "ใหญ่มาก"}
+                </button>
+              ))}
+            </div>
           </Field>
           <Field label="คำอธิบาย — แสดงเป็น font-light text-sm ใต้หัวข้อ">
             <textarea value={s.services_section.subtext} onChange={(e) => patch("services_section", { subtext: e.target.value })} rows={3} className={cn(inputCls, "resize-none")} />
@@ -310,9 +367,15 @@ export function HomepageForm({ initial }: Props) {
                 {s.services_section.badge || "บริการของเรา"}
               </span>
             </div>
-            {/* Heading — text-4xl (scaled down in admin) */}
-            <h2 className="font-bold text-3xl text-white leading-tight">
+            {/* Heading — scaled down 1 step for admin preview */}
+            <h2
+              className="font-bold text-3xl leading-tight"
+              style={{ color: s.services_section.heading_color || "#FFFFFF" }}
+            >
               {s.services_section.heading || "หัวข้อหลัก"}
+              <span className="ml-2 text-slate-600 text-xs font-normal align-middle">
+                ({s.services_section.heading_size === "sm" ? "เล็ก" : s.services_section.heading_size === "md" ? "กลาง" : s.services_section.heading_size === "lg" ? "ใหญ่" : "ใหญ่มาก"})
+              </span>
             </h2>
             {/* Subtext — font-light text-sm */}
             <p className="text-slate-500 mt-4 max-w-lg mx-auto leading-loose font-light text-sm">
