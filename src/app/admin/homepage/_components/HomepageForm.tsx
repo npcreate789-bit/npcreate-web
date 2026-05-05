@@ -59,9 +59,9 @@ export function HomepageForm({ initial }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 max-w-3xl">
-      {/* Save bar */}
-      <div className="flex items-center justify-between bg-[#1C0D0D] border border-white/5 rounded-2xl px-5 py-3">
+    <form onSubmit={handleSubmit} className="space-y-6 max-w-4xl">
+      {/* Save bar — sticky so it stays visible while scrolling */}
+      <div className="sticky top-0 z-10 flex items-center justify-between bg-[#1C0D0D]/95 backdrop-blur-sm border border-white/5 rounded-2xl px-5 py-3">
         <p className="text-slate-400 text-sm">แก้ไขเนื้อหาหน้าแรก — บันทึกแล้วอัปเดตทันที</p>
         <div className="flex items-center gap-3">
           {saved && (
@@ -173,7 +173,7 @@ export function HomepageForm({ initial }: Props) {
                 value={s.hero.line2_color}
                 onChange={(e) => patch("hero", { line2_color: e.target.value })}
                 placeholder="#DC2626"
-                className="w-24 bg-[#0A0808] border border-white/10 rounded-lg px-2 py-1 text-white text-xs font-mono focus:outline-none focus:border-[#DC2626]/50"
+                className="w-24 bg-[#0A0808] border border-white/10 rounded-lg px-2 py-1 text-white text-base font-mono focus:outline-none focus:border-[#DC2626]/50"
               />
             </div>
           </div>
@@ -406,4 +406,4 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 const inputCls =
-  "w-full bg-[#0A0808] border border-white/10 rounded-xl px-3 py-2 text-white text-sm placeholder:text-slate-600 focus:outline-none focus:border-[#DC2626]/50 focus:ring-2 focus:ring-[#DC2626]/20 transition-colors"
+  "w-full bg-[#0A0808] border border-white/10 rounded-xl px-3 py-2 text-white text-base placeholder:text-slate-600 focus:outline-none focus:border-[#DC2626]/50 focus:ring-2 focus:ring-[#DC2626]/20 transition-colors"

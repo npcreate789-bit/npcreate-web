@@ -3,6 +3,7 @@ import Link from "next/link"
 import { Plus } from "lucide-react"
 import type { PromoBanner } from "@/types/database"
 import { PromoBannerRowActions } from "./_components/PromoBannerRowActions"
+import { HomepageHeader } from "../_components/HomepageHeader"
 import { cn } from "@/lib/utils"
 
 export default async function PromoBannersPage() {
@@ -14,21 +15,20 @@ export default async function PromoBannersPage() {
 
   const banners = (data as PromoBanner[]) ?? []
 
+  const addButton = (
+    <Link
+      href="/admin/homepage/banners/new"
+      className="inline-flex items-center gap-2 bg-[#DC2626] hover:bg-[#B91C1C] text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors"
+    >
+      <Plus size={16} />
+      เพิ่มแบนเนอร์
+    </Link>
+  )
+
   return (
     <div className="space-y-6 max-w-4xl">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="font-display font-bold text-white text-2xl">แบนเนอร์โปรโมชัน</h1>
-          <p className="text-slate-400 text-sm mt-0.5">แบนเนอร์ที่แสดงใต้สถิติในหน้าแรก</p>
-        </div>
-        <Link
-          href="/admin/homepage/banners/new"
-          className="inline-flex items-center gap-2 bg-[#DC2626] hover:bg-[#B91C1C] text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors"
-        >
-          <Plus size={16} />
-          เพิ่มแบนเนอร์
-        </Link>
-      </div>
+      <HomepageHeader action={addButton} />
+      <p className="text-slate-500 text-sm -mt-2">แบนเนอร์ที่แสดงใต้ Hero ในหน้าแรก เรียงตามลำดับที่กำหนด</p>
 
       {banners.length === 0 ? (
         <div className="bg-[#1C0D0D] border border-white/5 rounded-2xl py-16 text-center">
