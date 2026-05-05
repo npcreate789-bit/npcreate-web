@@ -48,7 +48,7 @@ export function HeroSection({ settings, media, lineHref = "/api/auth/line" }: Pr
 
         {/* 4 — คำอธิบาย */}
         {hero.subtext && (
-          <p className="text-slate-400 text-lg sm:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
+          <p className="text-slate-400 text-lg sm:text-xl max-w-2xl mx-auto mb-10 leading-relaxed text-center">
             {hero.subtext}
           </p>
         )}

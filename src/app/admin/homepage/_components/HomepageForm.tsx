@@ -189,9 +189,20 @@ export function HomepageForm({ initial }: Props) {
 
       {/* ── Hero subtext + CTA ── */}
       <Section title="Hero — คำอธิบายและปุ่ม" subtitle="ข้อความรองและปุ่ม CTA">
-        <Field label="คำอธิบาย (ใต้หัวเรื่อง)">
+        <Field label="คำอธิบาย (ใต้หัวเรื่อง — แสดงกลางหน้า text-center)">
           <textarea value={s.hero.subtext} onChange={(e) => patch("hero", { subtext: e.target.value })} rows={2} className={cn(inputCls, "resize-none")} />
         </Field>
+
+        {/* Preview subtext */}
+        {s.hero.subtext && (
+          <div className="bg-[#0A0808] rounded-xl px-6 py-4 text-center">
+            <PreviewLabel />
+            <p className="text-slate-400 text-base max-w-xl mx-auto leading-relaxed text-center">
+              {s.hero.subtext}
+            </p>
+          </div>
+        )}
+
         <div className="grid sm:grid-cols-2 gap-3">
           <Field label="ปุ่มหลัก (Line OA)">
             <input value={s.hero.cta1_text} onChange={(e) => patch("hero", { cta1_text: e.target.value })} className={inputCls} />
