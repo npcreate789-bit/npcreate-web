@@ -28,7 +28,7 @@ export function HeroMediaGallery({ items }: Props) {
   if (items.length === 0) return null
 
   return (
-    <div className="flex flex-col items-center gap-3 mb-10">
+    <div className="flex flex-col items-center gap-3 mb-6">
       <div className="flex items-center gap-3">
         {items.length > 1 && (
           <button
@@ -41,7 +41,7 @@ export function HeroMediaGallery({ items }: Props) {
 
         {/* Slide track */}
         <div
-          className="relative w-[min(240px,calc(100vw-7.5rem))] sm:w-[300px] md:w-[340px] overflow-hidden rounded-2xl"
+          className="relative w-[min(160px,calc(100vw-7.5rem))] sm:w-[200px] md:w-[220px] overflow-hidden rounded-2xl"
           style={{ aspectRatio: "9/16" }}
         >
           <div
@@ -100,7 +100,7 @@ function ImageCard({ item, totalItems }: { item: HeroMedia; totalItems: number }
           <img
             src={item.media_url}
             alt={item.caption ?? ""}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-contain bg-black"
           />
           {item.caption && (
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent pt-8 pb-3 px-3">

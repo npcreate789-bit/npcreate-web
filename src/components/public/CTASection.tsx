@@ -7,7 +7,7 @@ interface Props {
 
 export function CTASection({ settings = DEFAULT_HOMEPAGE.cta_section, lineOaHref = "/api/auth/line" }: Props) {
   return (
-    <section className="py-24 bg-[#0A0808]">
+    <section className="py-14 bg-[#0A0808]">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
         <div className="bg-gradient-to-br from-[#DC2626]/20 to-[#DC2626]/10 border border-[#DC2626]/20 rounded-3xl p-10 sm:p-14">
           <h2 className="font-display font-bold text-3xl sm:text-4xl text-white mb-4">

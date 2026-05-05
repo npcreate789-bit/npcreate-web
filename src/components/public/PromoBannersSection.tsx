@@ -8,7 +8,7 @@ export function PromoBannersSection({ banners }: Props) {
   if (banners.length === 0) return null
 
   return (
-    <section className="py-16 bg-[#0A0808]">
+    <section className="pt-4 pb-12 bg-[#0A0808]">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 space-y-10">
         {banners.map((banner) => (
           <BannerCard key={banner.id} banner={banner} />
@@ -35,7 +35,7 @@ function BannerCard({ banner }: { banner: PromoBanner }) {
           <img
             src={banner.banner_url}
             alt={banner.heading}
-            className="w-full aspect-video object-cover"
+            className="w-full h-auto block"
           />
         </div>
       )}

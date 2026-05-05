@@ -8,7 +8,7 @@ interface Props {
 
 export function WhyUsSection({ settings, lineHref = "/api/auth/line" }: Props) {
   return (
-    <section className="py-24 bg-[#0A0404]">
+    <section className="py-14 bg-[#0A0404]">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="grid lg:grid-cols-2 gap-14 items-center">
           <div>

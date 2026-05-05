@@ -10,9 +10,9 @@ export function TestimonialsSection({ testimonials }: Props) {
   if (testimonials.length === 0) return null
 
   return (
-    <section className="py-24 bg-[#0A0808]">
+    <section className="py-14 bg-[#0A0808]">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
-        <div className="text-center mb-14">
+        <div className="text-center mb-10">
           <span className="text-[#DC2626] text-sm font-semibold uppercase tracking-widest">
             รีวิวจากลูกค้า
           </span>
