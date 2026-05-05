@@ -40,6 +40,20 @@ export function mergeSiteInfo(override: Record<string, unknown>): SiteInfo {
   return { ...DEFAULT_SITE_INFO, ...(override as Partial<SiteInfo>) }
 }
 
+import { cache } from "react"
+import { createClient } from "@/lib/supabase/server"
+
+// Cached per-request — deduplicates DB query between generateMetadata and Footer
+export const getSiteInfo = cache(async (): Promise<SiteInfo> => {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from("site_settings")
+    .select("value")
+    .eq("key", "site_info")
+    .maybeSingle()
+  return mergeSiteInfo((data?.value ?? {}) as Record<string, unknown>)
+})
+
 export function getLineOaHref(lineOaUrl: string, lineOaId: string): string {
   // ใช้ custom URL ก็ต่อเมื่อเป็น URL จริง (https://...)
   if (lineOaUrl && lineOaUrl.startsWith("http")) return lineOaUrl

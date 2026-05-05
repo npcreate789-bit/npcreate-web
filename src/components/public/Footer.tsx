@@ -1,6 +1,5 @@
 import Link from "next/link"
-import { createClient } from "@/lib/supabase/server"
-import { mergeSiteInfo } from "@/lib/data/site-info"
+import { getSiteInfo } from "@/lib/data/site-info"
 import { safeUrl } from "@/lib/utils"
 
 const NAV_LINKS = [
@@ -12,14 +11,7 @@ const NAV_LINKS = [
 ]
 
 export async function Footer({ lineHref = "/api/auth/line" }: { lineHref?: string }) {
-  const supabase = await createClient()
-  const { data } = await supabase
-    .from("site_settings")
-    .select("value")
-    .eq("key", "site_info")
-    .maybeSingle()
-
-  const info = mergeSiteInfo((data?.value ?? {}) as Record<string, unknown>)
+  const info = await getSiteInfo()
 
   const hasSocial =
     safeUrl(info.facebook_url) ||

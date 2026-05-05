@@ -5,8 +5,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next"
 import { Toaster } from "sonner"
 import "./globals.css"
 import { OrganizationJsonLd } from "@/components/JsonLd"
-import { createClient } from "@/lib/supabase/server"
-import { mergeSiteInfo } from "@/lib/data/site-info"
+import { getSiteInfo } from "@/lib/data/site-info"
 
 const inter    = Inter({ subsets: ["latin"], variable: "--font-inter" })
 const jakarta  = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-jakarta" })
@@ -21,44 +20,36 @@ export const viewport: Viewport = {
 }
 
 export async function generateMetadata(): Promise<Metadata> {
-  const supabase = await createClient()
-  const { data } = await supabase
-    .from("site_settings")
-    .select("value")
-    .eq("key", "site_info")
-    .maybeSingle()
-
-  const info = mergeSiteInfo((data?.value ?? {}) as Record<string, unknown>)
-  const title = info.seo_title || "NP Create — รับยิงแอด GMV Max & TikTok Shop"
-  const description = info.seo_description || "ปั้นยอดขาย TikTok Shop ของคุณให้โต 10 เท่าด้วย GMV Max ดูแลมาแล้วมากกว่า 500 แบรนด์ ยอดขายรวมทะลุ 800 ล้านบาท"
+  const info = await getSiteInfo()
   const keywords = info.seo_keywords
-    ? info.seo_keywords.split(",").map((k) => k.trim()).filter(Boolean)
-    : ["รับยิงแอด GMV Max", "TikTok Shop", "ยิงแอด TikTok", "การตลาดออนไลน์", "NP Create", "เพิ่มยอดขาย TikTok Shop"]
+    .split(",")
+    .map((k) => k.trim())
+    .filter(Boolean)
 
   return {
     metadataBase: new URL(BASE_URL),
     title: {
-      default: title,
-      template: `%s | ${info.site_name || "NP Create"}`,
+      default: info.seo_title,
+      template: `%s | ${info.site_name}`,
     },
-    description,
+    description: info.seo_description,
     keywords,
-    authors: [{ name: info.site_name || "NP Create", url: BASE_URL }],
-    creator: info.site_name || "NP Create",
+    authors: [{ name: info.site_name, url: BASE_URL }],
+    creator: info.site_name,
     alternates: { canonical: BASE_URL },
     openGraph: {
       type: "website",
       locale: "th_TH",
       url: BASE_URL,
-      siteName: info.site_name || "NP Create",
-      title,
-      description,
-      images: [{ url: "/og-image.png", width: 1200, height: 630, alt: info.site_name || "NP Create" }],
+      siteName: info.site_name,
+      title: info.seo_title,
+      description: info.seo_description,
+      images: [{ url: "/og-image.png", width: 1200, height: 630, alt: info.site_name }],
     },
     twitter: {
       card: "summary_large_image",
-      title,
-      description,
+      title: info.seo_title,
+      description: info.seo_description,
       images: ["/og-image.png"],
     },
     robots: { index: true, follow: true },
