@@ -53,13 +53,15 @@ export async function generateMetadata(): Promise<Metadata> {
       images: ["/og-image.png"],
     },
     robots: { index: true, follow: true },
-    other: { "fb:app_id": "1768055977512245" },
   }
 }
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="th" suppressHydrationWarning className="bg-[#0A0808]">
+      <head>
+        <meta property="fb:app_id" content="1768055977512245" />
+      </head>
       <body className={`${inter.variable} ${jakarta.variable} ${notoThai.variable} font-sans antialiased bg-[#0A0808]`}>
         <OrganizationJsonLd />
         {children}
