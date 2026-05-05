@@ -14,7 +14,7 @@ interface Props {
 
 export function ServicesSection({ settings }: Props) {
   return (
-    <section className="py-14 bg-[#0A0808]">
+    <section className="pt-2 pb-14 bg-[#0A0808]">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="text-center mb-10">
           <span className="text-[#DC2626] text-sm font-semibold uppercase tracking-widest">
