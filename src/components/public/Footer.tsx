@@ -3,11 +3,12 @@ import { createClient } from "@/lib/supabase/server"
 import { mergeSiteInfo } from "@/lib/data/site-info"
 import { safeUrl } from "@/lib/utils"
 
-const navLinks = [
-  { label: "ผลงาน",       href: "/portfolio" },
-  { label: "บริการ",       href: "/services" },
+const NAV_LINKS = [
+  { label: "หน้าแรก",    href: "/" },
+  { label: "ผลงาน",      href: "/portfolio" },
+  { label: "บริการ",      href: "/services" },
   { label: "เกี่ยวกับเรา", href: "/about" },
-  { label: "ติดต่อ",       href: "/contact" },
+  { label: "ติดต่อ",      href: "/contact" },
 ]
 
 export async function Footer({ lineHref = "/api/auth/line" }: { lineHref?: string }) {
@@ -20,45 +21,41 @@ export async function Footer({ lineHref = "/api/auth/line" }: { lineHref?: strin
 
   const info = mergeSiteInfo((data?.value ?? {}) as Record<string, unknown>)
 
-  return (
-    <footer className="bg-[#0A0404] border-t border-white/5">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
-        <div className="flex flex-col md:flex-row justify-between items-start gap-8">
+  const hasSocial =
+    safeUrl(info.facebook_url) ||
+    safeUrl(info.tiktok_url) ||
+    safeUrl(info.instagram_url) ||
+    safeUrl(info.youtube_url)
 
-          {/* Brand */}
-          <div className="max-w-xs">
-            <Link href="/" className="font-display font-bold text-xl text-white">
-              NP<span className="text-[#DC2626]">Create</span>
+  const hasContact = info.line_oa_id || info.phone || info.email
+
+  return (
+    <footer className="bg-[#0A0404] relative">
+      {/* Top gradient accent */}
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#DC2626]/40 to-transparent" />
+
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-14 pb-8">
+
+        {/* ── Main grid ── */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 lg:gap-8 mb-12">
+
+          {/* Col 1 — Brand */}
+          <div className="space-y-5">
+            <Link href="/" className="inline-block font-display font-bold text-2xl text-white tracking-tight group">
+              NP<span className="text-[#DC2626] group-hover:text-[#EF4444] transition-colors duration-200">
+                Create
+              </span>
             </Link>
+
             {info.tagline && (
-              <p className="text-slate-400 text-sm mt-3 leading-relaxed">{info.tagline}</p>
+              <p className="text-slate-400 text-sm leading-relaxed max-w-[240px]">
+                {info.tagline}
+              </p>
             )}
 
-            <div className="flex flex-col gap-2 mt-4">
-              {info.line_oa_id && (
-                <a
-                  href={lineHref}
-                  className="inline-flex items-center gap-1.5 text-[#06C755] hover:text-[#05a847] text-sm font-medium transition-colors"
-                >
-                  <LineIcon />
-                  Line OA: {info.line_oa_id}
-                </a>
-              )}
-              {info.phone && (
-                <a href={`tel:${info.phone}`} className="text-slate-400 hover:text-white text-sm transition-colors">
-                  📞 {info.phone}
-                </a>
-              )}
-              {info.email && (
-                <a href={`mailto:${info.email}`} className="text-slate-400 hover:text-white text-sm transition-colors">
-                  ✉️ {info.email}
-                </a>
-              )}
-            </div>
-
-            {/* Social links */}
-            {(info.facebook_url || info.tiktok_url || info.instagram_url || info.youtube_url) && (
-              <div className="flex items-center gap-3 mt-4">
+            {/* Social icons */}
+            {hasSocial && (
+              <div className="flex items-center gap-2 pt-1">
                 {safeUrl(info.facebook_url) && (
                   <SocialLink href={safeUrl(info.facebook_url)!} label="Facebook">
                     <FacebookIcon />
@@ -83,24 +80,87 @@ export async function Footer({ lineHref = "/api/auth/line" }: { lineHref?: strin
             )}
           </div>
 
-          {/* Nav */}
-          <nav className="flex flex-wrap gap-x-8 gap-y-3">
-            {navLinks.map((link) => (
-              <Link key={link.href} href={link.href}
-                className="text-slate-400 hover:text-white text-sm transition-colors">
-                {link.label}
-              </Link>
-            ))}
-          </nav>
+          {/* Col 2 — Navigation */}
+          <div className="space-y-4">
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500">
+              เมนู
+            </p>
+            <nav className="flex flex-col gap-2.5">
+              {NAV_LINKS.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="text-slate-400 hover:text-white text-sm transition-colors duration-150 w-fit"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+          </div>
+
+          {/* Col 3 — Contact */}
+          {hasContact && (
+            <div className="space-y-4">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500">
+                ติดต่อ
+              </p>
+              <div className="flex flex-col gap-3">
+                {info.line_oa_id && (
+                  <a
+                    href={lineHref}
+                    className="inline-flex items-center gap-2 text-[#06C755] hover:text-[#05a847] text-sm font-medium transition-colors duration-150 w-fit"
+                  >
+                    <span className="w-7 h-7 bg-[#06C755]/10 rounded-lg flex items-center justify-center shrink-0">
+                      <LineIcon />
+                    </span>
+                    {info.line_oa_id}
+                  </a>
+                )}
+                {info.phone && (
+                  <a
+                    href={`tel:${info.phone}`}
+                    className="inline-flex items-center gap-2 text-slate-400 hover:text-white text-sm transition-colors duration-150 w-fit"
+                  >
+                    <span className="w-7 h-7 bg-white/5 rounded-lg flex items-center justify-center shrink-0 text-slate-500 text-xs">
+                      ☎
+                    </span>
+                    {info.phone}
+                  </a>
+                )}
+                {info.email && (
+                  <a
+                    href={`mailto:${info.email}`}
+                    className="inline-flex items-center gap-2 text-slate-400 hover:text-white text-sm transition-colors duration-150 w-fit"
+                  >
+                    <span className="w-7 h-7 bg-white/5 rounded-lg flex items-center justify-center shrink-0 text-slate-500 text-xs">
+                      ✉
+                    </span>
+                    {info.email}
+                  </a>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
-        <div className="border-t border-white/5 mt-10 pt-6 text-center text-slate-500 text-xs">
-          © {new Date().getFullYear()} {info.site_name}. All rights reserved.
+        {/* ── Bottom bar ── */}
+        <div className="border-t border-white/5 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <p className="text-slate-600 text-xs">
+            © {new Date().getFullYear()}{" "}
+            <span className="text-slate-500">{info.site_name}</span>
+            {". "}สงวนลิขสิทธิ์
+          </p>
+          <p className="text-slate-700 text-xs">
+            ปั้นยอดขาย TikTok Shop ด้วย GMV Max
+          </p>
         </div>
+
       </div>
     </footer>
   )
 }
+
+// ── Sub-components ────────────────────────────────────────────────────────────
 
 function SocialLink({ href, label, children }: { href: string; label: string; children: React.ReactNode }) {
   return (
@@ -109,7 +169,7 @@ function SocialLink({ href, label, children }: { href: string; label: string; ch
       target="_blank"
       rel="noopener noreferrer"
       aria-label={label}
-      className="w-8 h-8 bg-white/5 hover:bg-white/10 rounded-full flex items-center justify-center transition-colors text-slate-400 hover:text-white"
+      className="w-9 h-9 bg-white/5 hover:bg-[#DC2626]/15 border border-white/5 hover:border-[#DC2626]/20 rounded-xl flex items-center justify-center transition-all duration-200 text-slate-400 hover:text-white"
     >
       {children}
     </a>
@@ -118,7 +178,7 @@ function SocialLink({ href, label, children }: { href: string; label: string; ch
 
 function LineIcon() {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
       <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.070 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/>
     </svg>
   )
