@@ -73,7 +73,7 @@ export function ServicesSection({ settings }: Props) {
           <h2 className="font-display font-bold text-3xl sm:text-4xl text-white">
             {settings.heading}
           </h2>
-          <p className="text-slate-400 mt-4 max-w-xl mx-auto leading-relaxed">
+          <p className="text-slate-400 mt-4 max-w-xl mx-auto leading-relaxed font-light">
             {settings.subtext}
           </p>
         </div>
