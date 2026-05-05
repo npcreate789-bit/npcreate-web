@@ -22,14 +22,6 @@ const COLOR_PRESETS = [
   { label: "ม่วง",        value: "#6366F1" },
 ]
 
-const WEIGHT_OPTIONS = [
-  { value: "light",     label: "บาง",     cls: "font-light"     },
-  { value: "normal",    label: "ปกติ",    cls: "font-normal"    },
-  { value: "semibold",  label: "กึ่งหนา", cls: "font-semibold"  },
-  { value: "bold",      label: "หนา",     cls: "font-bold"      },
-  { value: "extrabold", label: "หนามาก",  cls: "font-extrabold" },
-] as const
-
 interface Props {
   initial: HomepageSettings
 }
@@ -65,15 +57,6 @@ export function HomepageForm({ initial }: Props) {
       const next = [...prev.stats]
       next[i] = { ...next[i], [field]: val }
       return { ...prev, stats: next }
-    })
-  }
-
-  function patchReason(i: number, field: "title" | "description", val: string) {
-    setIsDirty(true)
-    setS((prev) => {
-      const next = [...prev.why_us.reasons]
-      next[i] = { ...next[i], [field]: val }
-      return { ...prev, why_us: { ...prev.why_us, reasons: next } }
     })
   }
 
@@ -238,129 +221,6 @@ export function HomepageForm({ initial }: Props) {
             <div key={i} className="text-center">
               <div className="font-bold text-xl text-[#F59E0B]">{stat.value || "—"}</div>
               <div className="text-xs text-slate-500 mt-0.5">{stat.label || "—"}</div>
-            </div>
-          ))}
-        </div>
-      </Section>
-
-      {/* ── Services section header ── */}
-      <Section title='บริการของเรา — หัวข้อ Section' subtitle="Badge, H2 และคำอธิบาย">
-        <p className="text-slate-600 text-xs -mt-2">การ์ดบริการแต่ละใบจัดการได้ที่ /admin/services</p>
-
-        <div className="grid sm:grid-cols-2 gap-3">
-          <Field label="Badge (ป้ายบนสุด)">
-            <input value={s.services_section.badge} onChange={(e) => patch("services_section", { badge: e.target.value })} className={inputCls} />
-          </Field>
-          <Field label="หัวข้อหลัก (H2)">
-            <input value={s.services_section.heading} onChange={(e) => patch("services_section", { heading: e.target.value })} className={inputCls} />
-          </Field>
-        </div>
-
-        {/* Typography group */}
-        <div className="rounded-xl border border-white/5 bg-[#0A0808] p-4 space-y-3">
-          <p className="text-slate-500 text-[10px] uppercase tracking-widest font-semibold">Typography — หัวข้อหลัก</p>
-          <Field label="สี">
-            <ColorPicker
-              value={s.services_section.heading_color || "#FFFFFF"}
-              onChange={(v) => patch("services_section", { heading_color: v })}
-            />
-          </Field>
-          <div className="grid sm:grid-cols-2 gap-3">
-            <Field label="ขนาด">
-              <div className="flex gap-2 flex-wrap mt-1">
-                {(["sm", "md", "lg", "xl"] as const).map((sz) => (
-                  <button key={sz} type="button" onClick={() => patch("services_section", { heading_size: sz })}
-                    className={cn("px-3 py-1.5 rounded-lg text-xs font-medium border transition-all",
-                      s.services_section.heading_size === sz ? "bg-[#DC2626] border-[#DC2626] text-white" : "border-white/10 text-slate-400 hover:text-white"
-                    )}>
-                    {sz === "sm" ? "เล็ก" : sz === "md" ? "กลาง" : sz === "lg" ? "ใหญ่" : "ใหญ่มาก"}
-                  </button>
-                ))}
-              </div>
-            </Field>
-            <Field label="น้ำหนัก">
-              <div className="flex gap-2 flex-wrap mt-1">
-                {WEIGHT_OPTIONS.map((w) => (
-                  <button key={w.value} type="button" onClick={() => patch("services_section", { heading_weight: w.value })}
-                    className={cn("px-3 py-1.5 rounded-lg text-xs border transition-all", w.cls,
-                      s.services_section.heading_weight === w.value ? "bg-[#DC2626] border-[#DC2626] text-white" : "border-white/10 text-slate-400 hover:text-white"
-                    )}>
-                    {w.label}
-                  </button>
-                ))}
-              </div>
-            </Field>
-          </div>
-        </div>
-
-        <Field label="คำอธิบาย (ใต้หัวข้อ)">
-          <textarea value={s.services_section.subtext} onChange={(e) => patch("services_section", { subtext: e.target.value })} rows={3} className={cn(inputCls, "resize-none")} />
-        </Field>
-
-        <div>
-          <PreviewLabel />
-          <div className="bg-[#0A0808] rounded-xl p-6 text-center">
-            <div className="inline-flex items-center gap-2 mb-4">
-              <span className="inline-flex items-center gap-2 bg-[#DC2626]/10 border border-[#DC2626]/40 text-[#DC2626] text-sm font-bold uppercase tracking-[0.2em] px-5 py-2 rounded-full">
-                <span className="w-2 h-2 rounded-full bg-[#DC2626] animate-pulse" />
-                {s.services_section.badge || "บริการของเรา"}
-              </span>
-            </div>
-            <h2
-              className={cn("text-3xl leading-tight", {
-                "font-light":     s.services_section.heading_weight === "light",
-                "font-normal":    s.services_section.heading_weight === "normal",
-                "font-semibold":  s.services_section.heading_weight === "semibold",
-                "font-bold":      !s.services_section.heading_weight || s.services_section.heading_weight === "bold",
-                "font-extrabold": s.services_section.heading_weight === "extrabold",
-              })}
-              style={{ color: s.services_section.heading_color || "#FFFFFF" }}
-            >
-              {s.services_section.heading || "หัวข้อหลัก"}
-            </h2>
-            <p className="text-slate-500 mt-4 max-w-lg mx-auto leading-loose font-light text-sm">
-              {s.services_section.subtext || "คำอธิบาย..."}
-            </p>
-            <div className="flex items-center justify-center gap-3 mt-5">
-              <div className="h-px w-16 bg-gradient-to-r from-transparent to-[#DC2626]/50" />
-              <div className="w-2 h-2 rounded-full bg-[#DC2626]/70" />
-              <div className="h-px w-16 bg-gradient-to-l from-transparent to-[#DC2626]/50" />
-            </div>
-          </div>
-        </div>
-      </Section>
-
-      {/* ── Why us ── */}
-      <Section title="ทำไมต้องเลือก NP Create" subtitle="หัวข้อ, คำอธิบาย, 4 เหตุผล">
-        <div className="grid sm:grid-cols-2 gap-3">
-          <Field label="Badge">
-            <input value={s.why_us.badge} onChange={(e) => patch("why_us", { badge: e.target.value })} className={inputCls} />
-          </Field>
-          <Field label="หัวข้อหลัก">
-            <input value={s.why_us.heading} onChange={(e) => patch("why_us", { heading: e.target.value })} className={inputCls} />
-          </Field>
-        </div>
-        <Field label="คำอธิบาย">
-          <textarea value={s.why_us.subtext} onChange={(e) => patch("why_us", { subtext: e.target.value })} rows={2} className={cn(inputCls, "resize-none")} />
-        </Field>
-        <Field label="ปุ่ม CTA">
-          <input value={s.why_us.cta_text} onChange={(e) => patch("why_us", { cta_text: e.target.value })} className={inputCls} />
-        </Field>
-
-        <div className="space-y-3">
-          <p className="text-slate-500 text-[10px] uppercase tracking-widest font-semibold">4 เหตุผล</p>
-          {s.why_us.reasons.map((r, i) => (
-            <div key={i} className="bg-[#0A0808] rounded-xl p-4 space-y-2">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="w-5 h-5 rounded-full bg-[#DC2626]/20 text-[#DC2626] text-[10px] font-bold flex items-center justify-center shrink-0">{i + 1}</span>
-                <span className="text-slate-500 text-xs">เหตุผลข้อ {i + 1}</span>
-              </div>
-              <Field label="หัวข้อ">
-                <input value={r.title} onChange={(e) => patchReason(i, "title", e.target.value)} className={inputCls} />
-              </Field>
-              <Field label="คำอธิบาย">
-                <textarea value={r.description} rows={2} onChange={(e) => patchReason(i, "description", e.target.value)} className={cn(inputCls, "resize-none")} />
-              </Field>
             </div>
           ))}
         </div>

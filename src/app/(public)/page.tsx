@@ -2,8 +2,6 @@ import { createClient } from "@/lib/supabase/server"
 import { mergeHomepage } from "@/lib/data/homepage"
 import { HeroSection } from "@/components/public/HeroSection"
 import { PromoBannersSection } from "@/components/public/PromoBannersSection"
-import { ServicesSection } from "@/components/public/ServicesSection"
-import { WhyUsSection } from "@/components/public/WhyUsSection"
 import { TestimonialsSection } from "@/components/public/TestimonialsSection"
 import { CTASection } from "@/components/public/CTASection"
 import type { Testimonial, HeroMedia, PromoBanner } from "@/types/database"
@@ -47,8 +45,6 @@ export default async function HomePage() {
     <main>
       <HeroSection settings={hp} media={heroMedia} lineHref="/contact" />
       <PromoBannersSection banners={promoBanners} />
-      <ServicesSection settings={hp.services_section} />
-      <WhyUsSection settings={hp.why_us} lineHref="/contact" />
       <TestimonialsSection testimonials={testimonials} />
       <CTASection settings={hp.cta_section} lineOaHref="/contact" />
     </main>
