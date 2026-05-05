@@ -288,15 +288,43 @@ export function HomepageForm({ initial }: Props) {
       <Section title='ส่วน "บริการของเรา" — หัวข้อ'>
         <p className="text-slate-600 text-xs -mt-2 mb-3">การ์ดบริการจัดการได้ที่ /admin/services</p>
         <div className="space-y-3">
-          <Field label="Badge">
+          <Field label="Badge (ป้ายเล็กบนสุด)">
             <input value={s.services_section.badge} onChange={(e) => patch("services_section", { badge: e.target.value })} className={inputCls} />
           </Field>
-          <Field label="หัวข้อหลัก">
+          <Field label="หัวข้อหลัก — แสดงเป็น H2 ขนาดใหญ่ (text-4xl → 6xl)">
             <input value={s.services_section.heading} onChange={(e) => patch("services_section", { heading: e.target.value })} className={inputCls} />
           </Field>
-          <Field label="คำอธิบาย">
-            <input value={s.services_section.subtext} onChange={(e) => patch("services_section", { subtext: e.target.value })} className={inputCls} />
+          <Field label="คำอธิบาย — แสดงเป็น font-light text-sm ใต้หัวข้อ">
+            <textarea value={s.services_section.subtext} onChange={(e) => patch("services_section", { subtext: e.target.value })} rows={3} className={cn(inputCls, "resize-none")} />
           </Field>
+        </div>
+
+        {/* Preview — ตรงกับ ServicesSection.tsx */}
+        <div className="mt-4">
+          <p className="text-slate-600 text-[10px] uppercase tracking-widest mb-3">ตัวอย่าง — ตรงกับที่แสดงบนเว็บ</p>
+          <div className="bg-[#0A0808] rounded-xl p-6 text-center">
+            {/* Badge pill */}
+            <div className="inline-flex items-center gap-2 mb-4">
+              <span className="inline-flex items-center gap-2 bg-[#DC2626]/10 border border-[#DC2626]/40 text-[#DC2626] text-sm font-bold uppercase tracking-[0.2em] px-5 py-2 rounded-full">
+                <span className="w-2 h-2 rounded-full bg-[#DC2626] animate-pulse" />
+                {s.services_section.badge || "บริการของเรา"}
+              </span>
+            </div>
+            {/* Heading — text-4xl (scaled down in admin) */}
+            <h2 className="font-bold text-3xl text-white leading-tight">
+              {s.services_section.heading || "หัวข้อหลัก"}
+            </h2>
+            {/* Subtext — font-light text-sm */}
+            <p className="text-slate-500 mt-4 max-w-lg mx-auto leading-loose font-light text-sm">
+              {s.services_section.subtext || "คำอธิบาย..."}
+            </p>
+            {/* Decorative divider */}
+            <div className="flex items-center justify-center gap-3 mt-5">
+              <div className="h-px w-16 bg-gradient-to-r from-transparent to-[#DC2626]/50" />
+              <div className="w-2 h-2 rounded-full bg-[#DC2626]/70" />
+              <div className="h-px w-16 bg-gradient-to-l from-transparent to-[#DC2626]/50" />
+            </div>
+          </div>
         </div>
       </Section>
 
