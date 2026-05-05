@@ -102,7 +102,7 @@ draw.text((TX, 252), "GMV Max &", font=f_sub, fill=rgb("#DC2626"))
 draw.text((TX, 302), "TikTok Shop", font=f_sub, fill=rgb("#DC2626"))
 
 # Subtext
-draw.text((TX, 370), "ปั้นยอดขาย TikTok Shop ของคุณให้โต 10 เท่า", font=f_body, fill=rgba("#94A3B8"))
+draw.text((TX, 370), "ปั้นยอดขาย TikTok Shop ของคุณให้โตอย่างต่อเนื่อง", font=f_body, fill=rgba("#94A3B8"))
 
 # ── Divider ───────────────────────────────────────────────────────────────────
 for x in range(TX, TX+440):
@@ -111,7 +111,7 @@ for x in range(TX, TX+440):
     draw.point((x, 415), fill=(220, 38, 38, a))
 
 # ── Stats ─────────────────────────────────────────────────────────────────────
-stats = [("500+", "แบรนด์"), ("800M+", "ยอดขาย (฿)"), ("3 ปี", "ประสบการณ์")]
+stats = [("500+", "แบรนด์"), ("800M+", "ยอดขาย (฿)"), ("30+", "Roiสูงสุด")]
 sx = TX
 for val, lbl in stats:
     draw.text((sx, 428), val, font=f_stat_v, fill=rgb("#F59E0B"))
