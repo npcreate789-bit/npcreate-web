@@ -56,7 +56,7 @@ export default async function HeroMediaPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-white/5">
-                  {["ประเภท", "Caption / ข้อความ", "ลำดับ", "สถานะ", ""].map((h) => (
+                  {["ตัวอย่าง", "ประเภท", "Caption / ข้อความ", "ลำดับ", "สถานะ", ""].map((h) => (
                     <th key={h} className="px-5 py-3 text-left text-slate-500 font-medium text-xs whitespace-nowrap">
                       {h}
                     </th>
@@ -66,6 +66,25 @@ export default async function HeroMediaPage() {
               <tbody className="divide-y divide-white/5">
                 {items.map((item) => (
                   <tr key={item.id} className="hover:bg-white/[0.02] transition-colors">
+                    <td className="px-5 py-3">
+                      <div className="w-10 h-[72px] rounded-xl overflow-hidden bg-slate-800 border border-white/10 shrink-0">
+                        {item.type === "image" ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={item.media_url}
+                            alt={item.caption ?? ""}
+                            className="w-full h-full object-contain"
+                          />
+                        ) : (
+                          <video
+                            src={item.media_url}
+                            muted
+                            playsInline
+                            className="w-full h-full object-cover"
+                          />
+                        )}
+                      </div>
+                    </td>
                     <td className="px-5 py-4">
                       <span className={cn(
                         "text-xs font-medium px-2.5 py-1 rounded-full",
