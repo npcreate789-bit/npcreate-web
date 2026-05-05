@@ -31,21 +31,43 @@ export default async function ServicesPage() {
     <main className="bg-[#0A0808] pt-24">
 
       {/* ── Page header ── */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-10 pb-8">
-        <div className="max-w-2xl">
-          <span
-            className="text-sm font-semibold uppercase tracking-widest"
-            style={{ color: page.heading2_color }}
+      <div className="relative overflow-hidden">
+        {/* Background glow orbs */}
+        <div className="absolute top-0 -left-24 w-80 h-80 bg-[#DC2626]/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-1/2 right-0 w-64 h-64 bg-[#DC2626]/5 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 pt-10 pb-12">
+          {/* Badge label */}
+          <div
+            className="inline-flex items-center gap-2 border text-xs font-bold uppercase tracking-[0.15em] px-3.5 py-1.5 rounded-full mb-6"
+            style={{
+              color: page.heading2_color,
+              borderColor: `${page.heading2_color}33`,
+              background: `${page.heading2_color}12`,
+            }}
           >
+            <span
+              className="w-1.5 h-1.5 rounded-full animate-pulse"
+              style={{ background: page.heading2_color }}
+            />
             {page.label}
-          </span>
-          <h1 className="font-display font-bold text-4xl sm:text-5xl text-white mt-3 mb-4 leading-snug">
+          </div>
+
+          {/* Heading */}
+          <h1 className="font-display font-bold text-4xl sm:text-5xl lg:text-6xl text-white leading-snug mb-5 max-w-2xl">
             {page.heading1}
             <span className="block" style={{ color: page.heading2_color }}>
               {page.heading2}
             </span>
           </h1>
-          <p className="text-slate-400 text-lg leading-relaxed">{page.description}</p>
+
+          {/* Description */}
+          <p className="text-slate-400 text-base sm:text-lg leading-relaxed max-w-xl">
+            {page.description}
+          </p>
+
+          {/* Bottom accent line */}
+          <div className="mt-10 h-px max-w-xs bg-gradient-to-r from-[#DC2626]/40 via-[#DC2626]/10 to-transparent" />
         </div>
       </div>
 
