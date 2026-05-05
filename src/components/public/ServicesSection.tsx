@@ -9,6 +9,14 @@ const SIZE_CLASSES = {
   xl: "text-6xl sm:text-7xl lg:text-8xl",
 }
 
+const WEIGHT_CLASSES = {
+  light:     "font-light",
+  normal:    "font-normal",
+  semibold:  "font-semibold",
+  bold:      "font-bold",
+  extrabold: "font-extrabold",
+}
+
 const CARDS = [
   {
     num: "01",
@@ -81,7 +89,7 @@ export function ServicesSection({ settings }: Props) {
 
           {/* Heading */}
           <h2
-            className={cn("font-display font-bold leading-tight", SIZE_CLASSES[settings.heading_size ?? "md"])}
+            className={cn("font-display leading-tight", SIZE_CLASSES[settings.heading_size ?? "md"], WEIGHT_CLASSES[settings.heading_weight ?? "bold"])}
             style={{ color: settings.heading_color || "#FFFFFF" }}
           >
             {settings.heading}

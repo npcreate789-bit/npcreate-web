@@ -351,6 +351,35 @@ export function HomepageForm({ initial }: Props) {
               ))}
             </div>
           </Field>
+
+          {/* Heading weight */}
+          <Field label="น้ำหนักตัวอักษร (ตัวบาง → ตัวหนา)">
+            <div className="flex gap-2 flex-wrap mt-1">
+              {([
+                { value: "light",     label: "บาง",      cls: "font-light"     },
+                { value: "normal",    label: "ปกติ",     cls: "font-normal"    },
+                { value: "semibold",  label: "กึ่งหนา",  cls: "font-semibold"  },
+                { value: "bold",      label: "หนา",      cls: "font-bold"      },
+                { value: "extrabold", label: "หนามาก",   cls: "font-extrabold" },
+              ] as const).map((w) => (
+                <button
+                  key={w.value}
+                  type="button"
+                  onClick={() => patch("services_section", { heading_weight: w.value })}
+                  className={cn(
+                    "px-4 py-1.5 rounded-lg text-sm border transition-all",
+                    w.cls,
+                    s.services_section.heading_weight === w.value
+                      ? "bg-[#DC2626] border-[#DC2626] text-white"
+                      : "border-white/10 text-slate-400 hover:text-white"
+                  )}
+                >
+                  {w.label}
+                </button>
+              ))}
+            </div>
+          </Field>
+
           <Field label="คำอธิบาย — แสดงเป็น font-light text-sm ใต้หัวข้อ">
             <textarea value={s.services_section.subtext} onChange={(e) => patch("services_section", { subtext: e.target.value })} rows={3} className={cn(inputCls, "resize-none")} />
           </Field>
@@ -367,15 +396,18 @@ export function HomepageForm({ initial }: Props) {
                 {s.services_section.badge || "บริการของเรา"}
               </span>
             </div>
-            {/* Heading — scaled down 1 step for admin preview */}
+            {/* Heading — preview with actual weight + color */}
             <h2
-              className="font-bold text-3xl leading-tight"
+              className={cn("text-3xl leading-tight", {
+                "font-light":     s.services_section.heading_weight === "light",
+                "font-normal":    s.services_section.heading_weight === "normal",
+                "font-semibold":  s.services_section.heading_weight === "semibold",
+                "font-bold":      !s.services_section.heading_weight || s.services_section.heading_weight === "bold",
+                "font-extrabold": s.services_section.heading_weight === "extrabold",
+              })}
               style={{ color: s.services_section.heading_color || "#FFFFFF" }}
             >
               {s.services_section.heading || "หัวข้อหลัก"}
-              <span className="ml-2 text-slate-600 text-xs font-normal align-middle">
-                ({s.services_section.heading_size === "sm" ? "เล็ก" : s.services_section.heading_size === "md" ? "กลาง" : s.services_section.heading_size === "lg" ? "ใหญ่" : "ใหญ่มาก"})
-              </span>
             </h2>
             {/* Subtext — font-light text-sm */}
             <p className="text-slate-500 mt-4 max-w-lg mx-auto leading-loose font-light text-sm">

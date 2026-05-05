@@ -16,6 +16,7 @@ export type HomepageSettings = {
     heading: string
     heading_color: string
     heading_size: "sm" | "md" | "lg" | "xl"
+    heading_weight: "light" | "normal" | "semibold" | "bold" | "extrabold"
     subtext: string
   }
   why_us: {
@@ -59,6 +60,7 @@ export const DEFAULT_HOMEPAGE: HomepageSettings = {
     heading: "ครบทุกขั้นตอน ดูแลถึง Result",
     heading_color: "#FFFFFF",
     heading_size: "md",
+    heading_weight: "bold",
     subtext: "ไม่ใช่แค่ยิงแอด — เราวางกลยุทธ์ ผลิต creative และติดตามผลลัพธ์จริงให้คุณ",
   },
   why_us: {
