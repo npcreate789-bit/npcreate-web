@@ -53,6 +53,7 @@ export async function generateMetadata(): Promise<Metadata> {
       images: ["/og-image.png"],
     },
     robots: { index: true, follow: true },
+    other: { "fb:app_id": "1768055977512245" },
   }
 }
 
