@@ -47,6 +47,20 @@ export default async function HomePage() {
     <main>
       <HeroSection settings={hp} media={heroMedia} lineHref="/contact" />
       <PromoBannersSection banners={promoBanners} />
+      {hp.stats.length > 0 && (
+        <div className="bg-[#0A0808] py-10">
+          <div className="max-w-lg mx-auto px-4 grid grid-cols-3 gap-6">
+            {hp.stats.map((stat) => (
+              <div key={stat.label} className="text-center">
+                <div className="font-display font-bold text-2xl sm:text-3xl text-[#F59E0B]">
+                  {stat.value}
+                </div>
+                <div className="text-xs sm:text-sm text-slate-500 mt-1">{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       <ServicesSection settings={hp.services_section} />
       <WhyUsSection settings={hp.why_us} lineHref="/contact" />
       <TestimonialsSection testimonials={testimonials} />

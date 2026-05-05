@@ -22,8 +22,7 @@ export function HeroSection({ settings, media, lineHref = "/api/auth/line" }: Pr
   const { promo, hero, stats } = settings
 
   return (
-    <>
-      <section className="relative min-h-screen flex items-center justify-center bg-[#0A0808] overflow-x-hidden pt-24 pb-10">
+    <section className="relative min-h-screen flex items-center justify-center bg-[#0A0808] overflow-x-hidden pt-24 pb-10">
         <GradientOrbs />
 
         <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 text-center">
@@ -65,23 +64,7 @@ export function HeroSection({ settings, media, lineHref = "/api/auth/line" }: Pr
             </Link>
           </div>
         </div>
-      </section>
-
-      {stats.length > 0 && (
-        <div className="bg-[#0A0808] py-10">
-          <div className="max-w-lg mx-auto px-4 grid grid-cols-3 gap-6">
-            {stats.map((stat) => (
-              <div key={stat.label} className="text-center">
-                <div className="font-display font-bold text-2xl sm:text-3xl text-[#F59E0B]">
-                  {stat.value}
-                </div>
-                <div className="text-xs sm:text-sm text-slate-500 mt-1">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </>
+    </section>
   )
 }
 
