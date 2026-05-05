@@ -1,3 +1,4 @@
+import { Sparkles, Clock, Shield, CheckCircle } from "lucide-react"
 import { DEFAULT_HOMEPAGE, type HomepageSettings } from "@/lib/data/homepage"
 
 interface Props {
@@ -5,29 +6,74 @@ interface Props {
   lineOaHref?: string
 }
 
+const TRUST_BADGES = [
+  { icon: CheckCircle, text: "ปรึกษาฟรี" },
+  { icon: Clock,       text: "ตอบใน 1 ชม." },
+  { icon: Shield,      text: "ไม่ผูกมัด" },
+]
+
 export function CTASection({ settings = DEFAULT_HOMEPAGE.cta_section, lineOaHref = "/api/auth/line" }: Props) {
   return (
-    <section className="pt-4 pb-14 bg-[#0A0808]">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 text-center">
-        <div className="bg-gradient-to-br from-[#DC2626]/20 to-[#DC2626]/10 border border-[#DC2626]/20 rounded-3xl p-10 sm:p-14">
-          <h2 className="font-display font-bold text-3xl sm:text-4xl text-white mb-4">
-            {settings.heading}
-            <br />
-            <span className="text-[#DC2626]">{settings.heading_highlight}</span>
-          </h2>
-          <p className="text-slate-400 text-lg mb-8 max-w-md mx-auto">
-            {settings.subtext}
-          </p>
+    <section className="pt-4 pb-16 bg-[#0A0808]">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6">
 
-          <a
-            href={lineOaHref}
-            className="inline-flex items-center justify-center gap-3 bg-[#DC2626] hover:bg-[#B91C1C] text-white font-bold text-lg px-10 py-4 rounded-xl transition-colors shadow-lg shadow-red-900/20"
-          >
-            <LineIcon />
-            {settings.cta_text}
-          </a>
+        {/* Card */}
+        <div className="relative overflow-hidden rounded-3xl border border-[#DC2626]/30 bg-gradient-to-br from-[#1C0808] via-[#150505] to-[#0A0808]">
 
-          <p className="text-slate-500 text-sm mt-5">{settings.footer_text}</p>
+          {/* Background glow blobs */}
+          <div className="absolute -top-24 -right-24 w-72 h-72 bg-[#DC2626]/20 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-16 -left-16 w-56 h-56 bg-[#DC2626]/15 rounded-full blur-3xl pointer-events-none" />
+
+          {/* Top accent line */}
+          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#DC2626]/70 to-transparent" />
+
+          <div className="relative z-10 px-8 py-12 sm:px-14 sm:py-16 text-center">
+
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 bg-[#DC2626]/10 border border-[#DC2626]/30 text-[#DC2626] text-xs font-bold uppercase tracking-[0.2em] px-4 py-1.5 rounded-full mb-6">
+              <Sparkles size={12} />
+              เริ่มต้นวันนี้
+            </div>
+
+            {/* Heading */}
+            <h2 className="font-display font-bold text-4xl sm:text-5xl text-white leading-tight">
+              {settings.heading}
+            </h2>
+            <h2 className="font-display font-bold text-4xl sm:text-5xl text-[#DC2626] leading-tight mt-1 mb-5">
+              {settings.heading_highlight}
+            </h2>
+
+            {/* Subtext */}
+            <p className="text-slate-400 text-base sm:text-lg mb-8 max-w-md mx-auto leading-relaxed">
+              {settings.subtext}
+            </p>
+
+            {/* CTA Button — with glow ring */}
+            <div className="relative inline-block mb-3">
+              <div className="absolute -inset-1 bg-[#DC2626]/25 rounded-2xl blur-md" />
+              <a
+                href={lineOaHref}
+                className="relative inline-flex items-center justify-center gap-3 bg-[#DC2626] hover:bg-[#B91C1C] text-white font-bold text-lg px-10 py-4 rounded-xl transition-all duration-200 shadow-xl shadow-red-900/30 hover:shadow-red-900/50 hover:scale-[1.03]"
+              >
+                <LineIcon />
+                {settings.cta_text}
+              </a>
+            </div>
+
+            {/* Footer note */}
+            <p className="text-slate-600 text-sm mt-4 mb-8">{settings.footer_text}</p>
+
+            {/* Trust badges */}
+            <div className="flex items-center justify-center gap-5 sm:gap-8 pt-6 border-t border-white/5">
+              {TRUST_BADGES.map(({ icon: Icon, text }) => (
+                <div key={text} className="flex items-center gap-1.5 text-slate-500 text-xs">
+                  <Icon size={13} className="text-[#DC2626]/60 shrink-0" />
+                  {text}
+                </div>
+              ))}
+            </div>
+
+          </div>
         </div>
       </div>
     </section>
