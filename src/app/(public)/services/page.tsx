@@ -48,7 +48,12 @@ export default async function ServicesPage() {
       </div>
 
       <ServicesDetail services={serviceList} />
-      <ProcessSection steps={page.process_steps} />
+      <ProcessSection
+        steps={page.process_steps}
+        label={page.process_label}
+        heading={page.process_heading}
+        subtext={page.process_subtext}
+      />
       <PricingSection plans={plans} lineHref="/contact" />
       <FAQSection faqs={page.faqs} lineHref="/contact" />
     </main>

@@ -33,9 +33,17 @@ const DEFAULT_STEPS: ProcessStep[] = [
 
 interface Props {
   steps?: ProcessStep[]
+  label?: string
+  heading?: string
+  subtext?: string
 }
 
-export function ProcessSection({ steps }: Props) {
+export function ProcessSection({
+  steps,
+  label = "ขั้นตอนการทำงาน",
+  heading = "เริ่มต้นอย่างไร",
+  subtext = "ตั้งแต่วันแรกที่ติดต่อจนถึงการเห็นผลลัพธ์จริง",
+}: Props) {
   const items = steps && steps.length > 0 ? steps : DEFAULT_STEPS
 
   return (
@@ -43,14 +51,14 @@ export function ProcessSection({ steps }: Props) {
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="text-center mb-14">
           <span className="text-[#DC2626] text-sm font-semibold uppercase tracking-widest">
-            ขั้นตอนการทำงาน
+            {label}
           </span>
           <h2 className="font-display font-bold text-3xl sm:text-4xl text-white mt-3">
-            เริ่มต้นอย่างไร
+            {heading}
           </h2>
-          <p className="text-slate-400 mt-4 max-w-xl mx-auto">
-            ตั้งแต่วันแรกที่ติดต่อจนถึงการเห็นผลลัพธ์จริง
-          </p>
+          {subtext && (
+            <p className="text-slate-400 mt-4 max-w-xl mx-auto">{subtext}</p>
+          )}
         </div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 relative">

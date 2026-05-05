@@ -16,6 +16,9 @@ export type ServicesPageSettings = {
   heading2: string
   heading2_color: string
   description: string
+  process_label: string
+  process_heading: string
+  process_subtext: string
   process_steps: ProcessStep[]
   faqs: FAQItem[]
 }
@@ -85,6 +88,9 @@ export const DEFAULT_SERVICES_PAGE: ServicesPageSettings = {
   heading2_color: "#DC2626",
   description:
     "ไม่ใช่แค่ยิงแอด — เราวางกลยุทธ์ ผลิต creative ติดตามผลลัพธ์ และปรับ campaign แบบ real-time เพื่อให้ทุกบาทที่ลงทุนได้ผลตอบแทนสูงสุด",
+  process_label: "ขั้นตอนการทำงาน",
+  process_heading: "เริ่มต้นอย่างไร",
+  process_subtext: "ตั้งแต่วันแรกที่ติดต่อจนถึงการเห็นผลลัพธ์จริง",
   process_steps: DEFAULT_STEPS,
   faqs: DEFAULT_FAQS,
 }
@@ -97,6 +103,9 @@ export function mergeServicesPage(raw: Record<string, unknown>): ServicesPageSet
     heading2: (raw.heading2 as string) ?? base.heading2,
     heading2_color: (raw.heading2_color as string) ?? base.heading2_color,
     description: (raw.description as string) ?? base.description,
+    process_label: (raw.process_label as string) ?? base.process_label,
+    process_heading: (raw.process_heading as string) ?? base.process_heading,
+    process_subtext: (raw.process_subtext as string) ?? base.process_subtext,
     process_steps: Array.isArray(raw.process_steps)
       ? (raw.process_steps as ProcessStep[])
       : base.process_steps,

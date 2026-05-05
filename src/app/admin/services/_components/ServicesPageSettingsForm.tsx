@@ -29,7 +29,7 @@ export function ServicesPageSettingsForm({ initial }: Props) {
 
   const markDirty = () => { setIsDirty(true); setSaved(false); setError(null) }
 
-  // ── Header patch ────────────────────────────────────────────────────────────
+  // ── Generic patch ───────────────────────────────────────────────────────────
   function patchHeader<K extends keyof Omit<ServicesPageSettings, "process_steps" | "faqs">>(
     key: K, val: ServicesPageSettings[K]
   ) {
@@ -253,7 +253,37 @@ export function ServicesPageSettingsForm({ initial }: Props) {
         open={openSection === "process"}
         onToggle={() => toggle("process")}
       >
-        <div className="space-y-2">
+        <div className="space-y-4">
+          {/* Section header fields */}
+          <div className="grid sm:grid-cols-2 gap-4 pb-4 border-b border-white/5">
+            <Field label="ป้ายกำกับ (เช่น ขั้นตอนการทำงาน)">
+              <input
+                value={data.process_label}
+                onChange={(e) => patchHeader("process_label", e.target.value)}
+                placeholder="ขั้นตอนการทำงาน"
+                className={inputCls()}
+              />
+            </Field>
+            <Field label="หัวข้อหลัก (เช่น เริ่มต้นอย่างไร)">
+              <input
+                value={data.process_heading}
+                onChange={(e) => patchHeader("process_heading", e.target.value)}
+                placeholder="เริ่มต้นอย่างไร"
+                className={inputCls()}
+              />
+            </Field>
+            <Field label="คำอธิบายใต้หัวข้อ">
+              <input
+                value={data.process_subtext}
+                onChange={(e) => patchHeader("process_subtext", e.target.value)}
+                placeholder="ตั้งแต่วันแรกที่ติดต่อ..."
+                className={inputCls()}
+              />
+            </Field>
+          </div>
+
+          {/* Steps list */}
+          <div className="space-y-2">
           {data.process_steps.map((step, i) => (
             <div key={i} className="bg-[#0A0808] border border-white/5 rounded-xl overflow-hidden">
               <div className="flex items-center gap-3 px-4 py-3">
@@ -344,6 +374,7 @@ export function ServicesPageSettingsForm({ initial }: Props) {
           >
             <Plus size={14} /> เพิ่มขั้นตอน
           </button>
+          </div>
         </div>
       </Accordion>
 
