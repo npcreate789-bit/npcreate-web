@@ -148,9 +148,6 @@ export function PricingSection({ plans, lineHref = "/api/auth/line" }: Props) {
           ))}
         </div>
 
-        <p className="text-center text-slate-500 text-sm mt-8">
-          ราคายังไม่รวม Ad budget · สามารถปรับแพ็กเกจตามความต้องการได้
-        </p>
       </div>
     </section>
   )
