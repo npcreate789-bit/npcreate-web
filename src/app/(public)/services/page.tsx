@@ -6,7 +6,6 @@ import { ServicesDetail } from "@/components/public/services/ServicesDetail"
 import { ProcessSection } from "@/components/public/services/ProcessSection"
 import { PricingSection } from "@/components/public/services/PricingSection"
 import { FAQSection } from "@/components/public/services/FAQSection"
-import { CTASection } from "@/components/public/CTASection"
 
 export const metadata: Metadata = {
   title: "บริการ",
@@ -50,7 +49,6 @@ export default async function ServicesPage() {
       <ProcessSection />
       <PricingSection plans={plans} lineHref="/contact" />
       <FAQSection lineHref="/contact" />
-      <CTASection lineOaHref="/contact" />
     </main>
   )
 }
