@@ -54,7 +54,13 @@ export default async function ServicesPage() {
         heading={page.process_heading}
         subtext={page.process_subtext}
       />
-      <PricingSection plans={plans} lineHref="/contact" />
+      <PricingSection
+        plans={plans}
+        lineHref="/contact"
+        label={page.pricing_label}
+        heading={page.pricing_heading}
+        subtext={page.pricing_subtext}
+      />
       <FAQSection faqs={page.faqs} lineHref="/contact" />
     </main>
   )

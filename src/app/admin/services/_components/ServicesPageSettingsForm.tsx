@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react"
 import {
   Loader2, ChevronDown, Settings2, CheckCircle2,
-  GitBranch, HelpCircle, Plus, Trash2, ChevronUp, Pencil, X,
+  GitBranch, HelpCircle, Plus, Trash2, ChevronUp, Pencil, X, Tag,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { ServicesPageSettings, ProcessStep, FAQItem } from "@/lib/data/services-page"
@@ -11,7 +11,7 @@ import { updateServicesPageSettings } from "../actions"
 
 const COLOR_PRESETS = ["#DC2626", "#F59E0B", "#10B981", "#6366F1", "#EC4899", "#38BDF8"]
 
-type Section = "header" | "process" | "faq"
+type Section = "header" | "process" | "pricing" | "faq"
 
 interface Props {
   initial: ServicesPageSettings
@@ -378,7 +378,42 @@ export function ServicesPageSettingsForm({ initial }: Props) {
         </div>
       </Accordion>
 
-      {/* ── 3. FAQ ── */}
+      {/* ── 3. Pricing ── */}
+      <Accordion
+        icon={<Tag size={14} className="text-[#DC2626]" />}
+        title="แพ็กเกจราคา"
+        open={openSection === "pricing"}
+        onToggle={() => toggle("pricing")}
+      >
+        <div className="grid sm:grid-cols-2 gap-4">
+          <Field label="ป้ายกำกับ (เช่น แพ็กเกจราคา)">
+            <input
+              value={data.pricing_label}
+              onChange={(e) => patchHeader("pricing_label", e.target.value)}
+              placeholder="แพ็กเกจราคา"
+              className={inputCls()}
+            />
+          </Field>
+          <Field label="หัวข้อหลัก">
+            <input
+              value={data.pricing_heading}
+              onChange={(e) => patchHeader("pricing_heading", e.target.value)}
+              placeholder="เลือกแพ็กเกจที่เหมาะกับคุณ"
+              className={inputCls()}
+            />
+          </Field>
+          <Field label="คำอธิบายใต้หัวข้อ">
+            <input
+              value={data.pricing_subtext}
+              onChange={(e) => patchHeader("pricing_subtext", e.target.value)}
+              placeholder="ทุกแพ็กเกจรายเดือน ไม่มีสัญญาผูกมัดระยะยาว"
+              className={inputCls()}
+            />
+          </Field>
+        </div>
+      </Accordion>
+
+      {/* ── 4. FAQ ── */}
       <Accordion
         icon={<HelpCircle size={14} className="text-[#DC2626]" />}
         title="คำถามที่พบบ่อย (FAQ)"

@@ -20,6 +20,9 @@ export type ServicesPageSettings = {
   process_heading: string
   process_subtext: string
   process_steps: ProcessStep[]
+  pricing_label: string
+  pricing_heading: string
+  pricing_subtext: string
   faqs: FAQItem[]
 }
 
@@ -92,6 +95,9 @@ export const DEFAULT_SERVICES_PAGE: ServicesPageSettings = {
   process_heading: "เริ่มต้นอย่างไร",
   process_subtext: "ตั้งแต่วันแรกที่ติดต่อจนถึงการเห็นผลลัพธ์จริง",
   process_steps: DEFAULT_STEPS,
+  pricing_label: "แพ็กเกจราคา",
+  pricing_heading: "เลือกแพ็กเกจที่เหมาะกับคุณ",
+  pricing_subtext: "ทุกแพ็กเกจรายเดือน ไม่มีสัญญาผูกมัดระยะยาว",
   faqs: DEFAULT_FAQS,
 }
 
@@ -109,6 +115,9 @@ export function mergeServicesPage(raw: Record<string, unknown>): ServicesPageSet
     process_steps: Array.isArray(raw.process_steps)
       ? (raw.process_steps as ProcessStep[])
       : base.process_steps,
+    pricing_label: (raw.pricing_label as string) ?? base.pricing_label,
+    pricing_heading: (raw.pricing_heading as string) ?? base.pricing_heading,
+    pricing_subtext: (raw.pricing_subtext as string) ?? base.pricing_subtext,
     faqs: Array.isArray(raw.faqs) ? (raw.faqs as FAQItem[]) : base.faqs,
   }
 }

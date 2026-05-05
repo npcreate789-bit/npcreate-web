@@ -58,9 +58,18 @@ type PlanItem = Pick<Service, "title" | "short_desc" | "starting_price" | "cta" 
 interface Props {
   plans?: Service[]
   lineHref?: string
+  label?: string
+  heading?: string
+  subtext?: string
 }
 
-export function PricingSection({ plans, lineHref = "/api/auth/line" }: Props) {
+export function PricingSection({
+  plans,
+  lineHref = "/api/auth/line",
+  label = "แพ็กเกจราคา",
+  heading = "เลือกแพ็กเกจที่เหมาะกับคุณ",
+  subtext = "ทุกแพ็กเกจรายเดือน ไม่มีสัญญาผูกมัดระยะยาว",
+}: Props) {
   const items: PlanItem[] = plans && plans.length > 0 ? plans : FALLBACK
 
   return (
@@ -68,14 +77,12 @@ export function PricingSection({ plans, lineHref = "/api/auth/line" }: Props) {
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="text-center mb-14">
           <span className="text-[#DC2626] text-sm font-semibold uppercase tracking-widest">
-            แพ็กเกจราคา
+            {label}
           </span>
           <h2 className="font-display font-bold text-3xl sm:text-4xl text-white mt-3">
-            เลือกแพ็กเกจที่เหมาะกับคุณ
+            {heading}
           </h2>
-          <p className="text-slate-400 mt-4">
-            ทุกแพ็กเกจรายเดือน ไม่มีสัญญาผูกมัดระยะยาว
-          </p>
+          {subtext && <p className="text-slate-400 mt-4">{subtext}</p>}
         </div>
 
         <div className="grid md:grid-cols-3 gap-6">
