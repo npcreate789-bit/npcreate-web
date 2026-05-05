@@ -22,7 +22,7 @@ export function HeroSection({ settings, media, lineHref = "/api/auth/line" }: Pr
   const { promo, hero, stats } = settings
 
   return (
-    <section className="relative bg-[#0A0808] overflow-x-hidden pt-24 pb-10">
+    <section className="relative min-h-screen flex items-center justify-center bg-[#0A0808] overflow-x-hidden pt-24 pb-10">
       <GradientOrbs />
 
       <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 text-center">
