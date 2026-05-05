@@ -77,7 +77,7 @@ export function ServicesSection({ settings }: Props) {
           </h2>
 
           {/* Subtext — thin */}
-          <p className="text-slate-500 mt-5 max-w-lg mx-auto leading-loose font-thin text-sm tracking-wide">
+          <p className="text-slate-500 mt-5 max-w-lg mx-auto leading-loose font-light text-sm">
             {settings.subtext}
           </p>
 

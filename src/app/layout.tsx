@@ -8,7 +8,7 @@ import { OrganizationJsonLd } from "@/components/JsonLd"
 
 const inter    = Inter({ subsets: ["latin"], variable: "--font-inter" })
 const jakarta  = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-jakarta" })
-const notoThai = Noto_Sans_Thai({ subsets: ["thai"], variable: "--font-thai" })
+const notoThai = Noto_Sans_Thai({ subsets: ["thai"], variable: "--font-thai", weight: ["300", "400", "500", "600", "700"] })
 
 const BASE_URL = "https://npcreate.co.th"
 
