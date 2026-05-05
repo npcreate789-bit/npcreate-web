@@ -22,50 +22,54 @@ export function HeroSection({ settings, media, lineHref = "/api/auth/line" }: Pr
   const { promo, hero, stats } = settings
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center bg-[#0A0808] overflow-x-hidden pt-24 pb-10">
-      <GradientOrbs />
+    <>
+      <section className="relative min-h-screen flex items-center justify-center bg-[#0A0808] overflow-x-hidden pt-24 pb-10">
+        <GradientOrbs />
 
-      <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 text-center">
-        {promo.visible && promo.text && (
-          <div className="inline-flex items-center gap-2 bg-[#DC2626]/10 border border-[#DC2626]/30 text-[#FCA5A5] text-sm font-medium px-4 py-1.5 rounded-full mb-8">
-            <span className="w-2 h-2 bg-[#DC2626] rounded-full animate-pulse" />
-            {promo.text}
+        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 text-center">
+          {promo.visible && promo.text && (
+            <div className="inline-flex items-center gap-2 bg-[#DC2626]/10 border border-[#DC2626]/30 text-[#FCA5A5] text-sm font-medium px-4 py-1.5 rounded-full mb-8">
+              <span className="w-2 h-2 bg-[#DC2626] rounded-full animate-pulse" />
+              {promo.text}
+            </div>
+          )}
+
+          <h1 className={cn("font-display font-bold leading-tight mb-6 text-white", SIZE_CLASSES[hero.size])}>
+            {hero.line1}
+            <br />
+            <span style={{ color: hero.line2_color }}>{hero.line2}</span>
+            <br />
+            {hero.line3}
+          </h1>
+
+          {hero.subtext && (
+            <p className="text-slate-400 text-lg sm:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
+              {hero.subtext}
+            </p>
+          )}
+
+          {media && media.length > 0 && <HeroMediaGallery items={media} />}
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <a
+              href={lineHref}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[#06C755] hover:bg-[#05a847] text-white font-semibold text-base px-8 py-3.5 rounded-xl transition-colors shadow-lg shadow-green-900/20"
+            >
+              {hero.cta1_text}
+            </a>
+            <Link
+              href="/portfolio"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 border border-slate-600 hover:border-slate-400 text-slate-300 hover:text-white font-semibold text-base px-8 py-3.5 rounded-xl transition-colors"
+            >
+              {hero.cta2_text}
+            </Link>
           </div>
-        )}
-
-        <h1 className={cn("font-display font-bold leading-tight mb-6 text-white", SIZE_CLASSES[hero.size])}>
-          {hero.line1}
-          <br />
-          <span style={{ color: hero.line2_color }}>{hero.line2}</span>
-          <br />
-          {hero.line3}
-        </h1>
-
-        {hero.subtext && (
-          <p className="text-slate-400 text-lg sm:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
-            {hero.subtext}
-          </p>
-        )}
-
-        {media && media.length > 0 && <HeroMediaGallery items={media} />}
-
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <a
-            href={lineHref}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[#06C755] hover:bg-[#05a847] text-white font-semibold text-base px-8 py-3.5 rounded-xl transition-colors shadow-lg shadow-green-900/20"
-          >
-            {hero.cta1_text}
-          </a>
-          <Link
-            href="/portfolio"
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 border border-slate-600 hover:border-slate-400 text-slate-300 hover:text-white font-semibold text-base px-8 py-3.5 rounded-xl transition-colors"
-          >
-            {hero.cta2_text}
-          </Link>
         </div>
+      </section>
 
-        {stats.length > 0 && (
-          <div className="mt-10 grid grid-cols-3 gap-6 max-w-lg mx-auto">
+      {stats.length > 0 && (
+        <div className="bg-[#0A0808] py-10">
+          <div className="max-w-lg mx-auto px-4 grid grid-cols-3 gap-6">
             {stats.map((stat) => (
               <div key={stat.label} className="text-center">
                 <div className="font-display font-bold text-2xl sm:text-3xl text-[#F59E0B]">
@@ -75,9 +79,9 @@ export function HeroSection({ settings, media, lineHref = "/api/auth/line" }: Pr
               </div>
             ))}
           </div>
-        )}
-      </div>
-    </section>
+        </div>
+      )}
+    </>
   )
 }
 
