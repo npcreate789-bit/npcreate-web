@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { Loader2 } from "lucide-react"
+import { Loader2, Search } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { updateSiteInfo } from "../actions"
 import type { SiteInfo } from "@/lib/data/site-info"
@@ -105,6 +105,54 @@ export function SiteInfoForm({ initial }: { initial: SiteInfo }) {
         </div>
       </Card>
 
+      {/* SEO */}
+      <Card title="SEO — Title & Description" icon={<Search size={14} className="text-[#DC2626]" />}>
+        <p className="text-slate-500 text-xs -mt-1">
+          ข้อความที่แสดงบน Google, Facebook, LINE เมื่อแชร์ลิงก์ หรือค้นหาเว็บไซต์
+        </p>
+        <Field label="Page Title" hint="แนะนำ 50–60 ตัวอักษร · แสดงบน Tab และผลค้นหา Google">
+          <input
+            value={data.seo_title}
+            onChange={(e) => set("seo_title", e.target.value)}
+            className={input()}
+            placeholder="NP Create — รับยิงแอด GMV Max & TikTok Shop"
+            maxLength={80}
+          />
+          <p className="text-slate-600 text-xs text-right">{data.seo_title.length}/80</p>
+        </Field>
+        <Field label="Meta Description" hint="แนะนำ 120–160 ตัวอักษร · แสดงใต้ชื่อบน Google">
+          <textarea
+            value={data.seo_description}
+            onChange={(e) => set("seo_description", e.target.value)}
+            rows={3}
+            className={cn(input(), "resize-none")}
+            placeholder="ปั้นยอดขาย TikTok Shop ของคุณให้โต 10 เท่าด้วย GMV Max ดูแลมาแล้วมากกว่า 500 แบรนด์..."
+            maxLength={200}
+          />
+          <p className="text-slate-600 text-xs text-right">{data.seo_description.length}/200</p>
+        </Field>
+        <Field label="Keywords" hint="คั่นด้วยคอมม่า เช่น รับยิงแอด GMV Max, TikTok Shop, ยิงแอด TikTok">
+          <textarea
+            value={data.seo_keywords}
+            onChange={(e) => set("seo_keywords", e.target.value)}
+            rows={2}
+            className={cn(input(), "resize-none")}
+            placeholder="รับยิงแอด GMV Max, TikTok Shop, ยิงแอด TikTok, NP Create"
+          />
+        </Field>
+        {/* Preview */}
+        <div className="bg-[#0A0808] border border-white/5 rounded-xl p-4 space-y-1">
+          <p className="text-[10px] text-slate-600 uppercase tracking-widest mb-2">ตัวอย่างผลการค้นหา Google</p>
+          <p className="text-[#8AB4F8] text-sm font-medium leading-snug line-clamp-1">
+            {data.seo_title || "NP Create — รับยิงแอด GMV Max & TikTok Shop"}
+          </p>
+          <p className="text-[#34A853] text-xs">npcreate.co.th</p>
+          <p className="text-slate-400 text-xs leading-relaxed line-clamp-2">
+            {data.seo_description || "ปั้นยอดขาย TikTok Shop ของคุณให้โต 10 เท่าด้วย GMV Max..."}
+          </p>
+        </div>
+      </Card>
+
       {/* Tracking */}
       <Card title="Analytics & Tracking">
         <p className="text-slate-500 text-xs -mt-1">รหัสจะถูกเพิ่มอัตโนมัติในทุกหน้าของเว็บไซต์</p>
@@ -134,10 +182,13 @@ export function SiteInfoForm({ initial }: { initial: SiteInfo }) {
   )
 }
 
-function Card({ title, children }: { title: string; children: React.ReactNode }) {
+function Card({ title, icon, children }: { title: string; icon?: React.ReactNode; children: React.ReactNode }) {
   return (
     <div className="bg-[#1C0D0D] border border-white/5 rounded-2xl p-6 space-y-4">
-      <h2 className="text-white font-semibold text-sm">{title}</h2>
+      <div className="flex items-center gap-2">
+        {icon}
+        <h2 className="text-white font-semibold text-sm">{title}</h2>
+      </div>
       {children}
     </div>
   )

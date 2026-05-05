@@ -7,19 +7,22 @@ import type { SiteInfo } from "@/lib/data/site-info"
 export async function updateSiteInfo(data: SiteInfo) {
   const { supabase } = await requireAdmin()
   const clean: SiteInfo = {
-    site_name:     data.site_name.trim(),
-    tagline:       data.tagline.trim(),
-    line_oa_url:   data.line_oa_url.trim(),
-    line_oa_id:    data.line_oa_id.trim(),
-    phone:         data.phone.trim(),
-    email:         data.email.trim(),
-    address:       data.address.trim(),
-    facebook_url:  data.facebook_url.trim(),
-    tiktok_url:    data.tiktok_url.trim(),
-    instagram_url: data.instagram_url.trim(),
-    youtube_url:   data.youtube_url.trim(),
-    ga4_id:        data.ga4_id.trim(),
-    fb_pixel_id:   data.fb_pixel_id.trim(),
+    site_name:       data.site_name.trim(),
+    tagline:         data.tagline.trim(),
+    line_oa_url:     data.line_oa_url.trim(),
+    line_oa_id:      data.line_oa_id.trim(),
+    phone:           data.phone.trim(),
+    email:           data.email.trim(),
+    address:         data.address.trim(),
+    facebook_url:    data.facebook_url.trim(),
+    tiktok_url:      data.tiktok_url.trim(),
+    instagram_url:   data.instagram_url.trim(),
+    youtube_url:     data.youtube_url.trim(),
+    ga4_id:          data.ga4_id.trim(),
+    fb_pixel_id:     data.fb_pixel_id.trim(),
+    seo_title:       data.seo_title.trim(),
+    seo_description: data.seo_description.trim(),
+    seo_keywords:    data.seo_keywords.trim(),
   }
   const { error } = await supabase
     .from("site_settings")

@@ -12,22 +12,28 @@ export type SiteInfo = {
   youtube_url: string
   ga4_id: string
   fb_pixel_id: string
+  seo_title: string
+  seo_description: string
+  seo_keywords: string
 }
 
 export const DEFAULT_SITE_INFO: SiteInfo = {
-  site_name:      "NP Create",
-  tagline:        "ปั้นยอดขาย TikTok Shop ของคุณให้โต 10 เท่า ด้วย GMV Max",
-  line_oa_url:    "",
-  line_oa_id:     "@npcreate",
-  phone:          "",
-  email:          "",
-  address:        "",
-  facebook_url:   "",
-  tiktok_url:     "",
-  instagram_url:  "",
-  youtube_url:    "",
-  ga4_id:         "",
-  fb_pixel_id:    "",
+  site_name:       "NP Create",
+  tagline:         "ปั้นยอดขาย TikTok Shop ของคุณให้โต 10 เท่า ด้วย GMV Max",
+  line_oa_url:     "",
+  line_oa_id:      "@npcreate",
+  phone:           "",
+  email:           "",
+  address:         "",
+  facebook_url:    "",
+  tiktok_url:      "",
+  instagram_url:   "",
+  youtube_url:     "",
+  ga4_id:          "",
+  fb_pixel_id:     "",
+  seo_title:       "NP Create — รับยิงแอด GMV Max & TikTok Shop",
+  seo_description: "ปั้นยอดขาย TikTok Shop ของคุณให้โต 10 เท่าด้วย GMV Max ดูแลมาแล้วมากกว่า 500 แบรนด์ ยอดขายรวมทะลุ 800 ล้านบาท",
+  seo_keywords:    "รับยิงแอด GMV Max, TikTok Shop, ยิงแอด TikTok, การตลาดออนไลน์, NP Create, เพิ่มยอดขาย TikTok Shop",
 }
 
 export function mergeSiteInfo(override: Record<string, unknown>): SiteInfo {
