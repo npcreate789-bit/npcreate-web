@@ -62,20 +62,31 @@ export function ServicesSection({ settings }: Props) {
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
 
         {/* Header */}
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 mb-4">
-            <div className="h-px w-8 bg-[#DC2626]/50" />
-            <span className="text-[#DC2626] text-xs font-bold uppercase tracking-[0.2em]">
+        <div className="text-center mb-14">
+          {/* Badge pill */}
+          <div className="inline-flex items-center gap-2 mb-6">
+            <span className="inline-flex items-center gap-2 bg-[#DC2626]/10 border border-[#DC2626]/40 text-[#DC2626] text-sm font-bold uppercase tracking-[0.2em] px-5 py-2 rounded-full shadow-lg shadow-[#DC2626]/10">
+              <span className="w-2 h-2 rounded-full bg-[#DC2626] animate-pulse" />
               {settings.badge}
             </span>
-            <div className="h-px w-8 bg-[#DC2626]/50" />
           </div>
-          <h2 className="font-display font-bold text-3xl sm:text-4xl text-white">
+
+          {/* Heading */}
+          <h2 className="font-display font-bold text-4xl sm:text-5xl lg:text-6xl text-white leading-tight">
             {settings.heading}
           </h2>
-          <p className="text-slate-400 mt-4 max-w-xl mx-auto leading-relaxed font-light">
+
+          {/* Subtext — thin */}
+          <p className="text-slate-400 mt-5 max-w-2xl mx-auto leading-relaxed font-thin text-base sm:text-lg">
             {settings.subtext}
           </p>
+
+          {/* Decorative divider */}
+          <div className="flex items-center justify-center gap-3 mt-7">
+            <div className="h-px w-20 bg-gradient-to-r from-transparent to-[#DC2626]/50" />
+            <div className="w-2 h-2 rounded-full bg-[#DC2626]/70" />
+            <div className="h-px w-20 bg-gradient-to-l from-transparent to-[#DC2626]/50" />
+          </div>
         </div>
 
         {/* Cards */}
