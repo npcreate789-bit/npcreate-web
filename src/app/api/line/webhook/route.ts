@@ -8,6 +8,10 @@ function verifySignature(rawBody: string, signature: string, secret: string): bo
   return hash === signature
 }
 
+// Rate-limit magic link generation per LINE user (1 request per 60 s)
+const loginCooldowns = new Map<string, number>()
+const LOGIN_COOLDOWN_MS = 60_000
+
 type LineEvent = {
   type:       string
   replyToken: string
@@ -17,6 +21,19 @@ type LineEvent = {
 
 // สร้าง magic link สำหรับ LINE user แล้วส่งกลับใน LINE chat
 async function handleLoginCommand(lineUserId: string) {
+  const now  = Date.now()
+  const last = loginCooldowns.get(lineUserId)
+  if (last && now - last < LOGIN_COOLDOWN_MS) {
+    await pushLineMessage(lineUserId, "⏳ กรุณารอ 1 นาทีก่อนขอลิงก์เข้าสู่ระบบใหม่")
+    return
+  }
+  loginCooldowns.set(lineUserId, now)
+  // Purge stale entries to prevent unbounded memory growth
+  if (loginCooldowns.size > 10_000) {
+    const cutoff = now - LOGIN_COOLDOWN_MS * 2
+    for (const [k, v] of loginCooldowns) if (v < cutoff) loginCooldowns.delete(k)
+  }
+
   const base        = process.env.NEXT_PUBLIC_SITE_URL!
   const serviceKey  = process.env.SUPABASE_SERVICE_ROLE_KEY ?? ""
   if (!serviceKey.startsWith("eyJ")) {
