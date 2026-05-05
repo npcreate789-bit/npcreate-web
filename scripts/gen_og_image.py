@@ -4,7 +4,7 @@ Generate og-image.png (1200x630) for NP Create
 from PIL import Image, ImageDraw, ImageFont
 import math, os
 
-W, H = 1200, 630
+W, H = 1200, 1200
 OUT = os.path.join(os.path.dirname(__file__), "..", "public", "og-image.png")
 
 def rgb(h):
@@ -17,8 +17,9 @@ def rgba(h, a=255):
 img = Image.new("RGBA", (W, H), rgb("#0A0808"))
 draw = ImageDraw.Draw(img, "RGBA")
 
-BD  = "C:/Windows/Fonts/tahomabd.ttf"
-REG = "C:/Windows/Fonts/tahoma.ttf"
+FONT_DIR = os.path.join(os.path.dirname(__file__), "font")
+BD  = os.path.join(FONT_DIR, "NotoSansThai-Bold.ttf")
+REG = os.path.join(FONT_DIR, "NotoSansThai-Regular.ttf")
 
 f_hero   = ImageFont.truetype(BD,  58)
 f_hero2  = ImageFont.truetype(BD,  52)
