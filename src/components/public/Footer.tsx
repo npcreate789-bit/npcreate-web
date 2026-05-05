@@ -92,7 +92,7 @@ export async function Footer({ lineHref = "/api/auth/line" }: { lineHref?: strin
         </div>
 
         {/* ── Separator ── */}
-        <div className="border-t border-white/5" />
+        <div className="h-px bg-gradient-to-r from-transparent via-[#DC2626]/40 to-transparent" />
 
         {/* ── Bottom bar: Contact · Copyright ── */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
