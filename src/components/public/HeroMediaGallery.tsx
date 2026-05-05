@@ -41,7 +41,7 @@ export function HeroMediaGallery({ items }: Props) {
 
         {/* Slide track */}
         <div
-          className="relative w-[min(240px,calc(100vw-7.5rem))] sm:w-[280px] md:w-[320px] overflow-hidden rounded-2xl"
+          className="relative w-[min(300px,calc(100vw-7.5rem))] sm:w-[340px] md:w-[400px] overflow-hidden rounded-2xl"
           style={{ aspectRatio: "9/16" }}
         >
           <div
