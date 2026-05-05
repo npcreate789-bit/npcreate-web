@@ -83,7 +83,7 @@ export function HeroMediaForm({ heroMedia }: Props) {
   }
 
   return (
-    <div className="grid xl:grid-cols-[1fr_200px] gap-8 items-start">
+    <div className="grid xl:grid-cols-[1fr_260px] gap-8 items-start">
 
       {/* ── Form ── */}
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
@@ -248,7 +248,10 @@ export function HeroMediaForm({ heroMedia }: Props) {
             <VideoPreview url={watchedMediaUrl} caption={watch("caption") ?? null} />
           )}
         </div>
-        <p className="text-slate-600 text-[10px] text-center">ขนาดจริง 9:16 แนวตั้ง</p>
+        {!watchedMediaUrl && (
+          <p className="text-slate-600 text-[10px] text-center">อัพโหลดหรือใส่ URL เพื่อดูตัวอย่าง</p>
+        )}
+        <p className="text-slate-600 text-[10px] text-center">สัดส่วน 9:16 แนวตั้ง</p>
       </div>
     </div>
   )
@@ -258,20 +261,21 @@ export function HeroMediaForm({ heroMedia }: Props) {
 
 function ImagePreview({ url, caption }: { url: string; caption: string | null }) {
   return (
-    <div className="relative w-[120px]" style={{ aspectRatio: "9/16" }}>
+    <div className="relative w-[200px]" style={{ aspectRatio: "9/16" }}>
       <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#DC2626]/60 via-rose-500/30 to-[#DC2626]/10 p-[1.5px]">
         <div className="relative w-full h-full rounded-2xl overflow-hidden bg-slate-800">
           {url ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={url} alt={caption ?? ""} className="w-full h-full object-cover" />
+            <img src={url} alt={caption ?? ""} className="w-full h-full object-contain" />
           ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <span className="text-slate-600 text-[10px]">ไม่มีรูป</span>
+            <div className="w-full h-full flex flex-col items-center justify-center gap-2">
+              <span className="text-4xl opacity-20">🖼</span>
+              <span className="text-slate-600 text-xs">ยังไม่มีรูป</span>
             </div>
           )}
           {caption && (
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent pt-6 pb-2 px-2">
-              <p className="text-[#F59E0B] text-[8px] font-bold leading-tight text-center">{caption}</p>
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent pt-8 pb-3 px-3">
+              <p className="text-[#F59E0B] text-[10px] font-bold leading-tight text-center">{caption}</p>
             </div>
           )}
         </div>
@@ -282,9 +286,9 @@ function ImagePreview({ url, caption }: { url: string; caption: string | null })
 
 function VideoPreview({ url, caption }: { url: string; caption: string | null }) {
   return (
-    <div className="relative w-[120px]" style={{ aspectRatio: "9/16" }}>
-      <div className="absolute inset-0 rounded-[22px] border-[3px] border-slate-600 bg-black overflow-hidden shadow-xl shadow-black/50">
-        <div className="absolute top-2 left-1/2 -translate-x-1/2 w-8 h-1.5 bg-slate-700 rounded-full z-10" />
+    <div className="relative w-[200px]" style={{ aspectRatio: "9/16" }}>
+      <div className="absolute inset-0 rounded-[28px] border-[3px] border-slate-600 bg-black overflow-hidden shadow-xl shadow-black/50">
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 w-10 h-1.5 bg-slate-700 rounded-full z-10" />
         {url ? (
           <video
             src={url}
@@ -295,13 +299,14 @@ function VideoPreview({ url, caption }: { url: string; caption: string | null })
             className="w-full h-full object-cover"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <span className="text-slate-600 text-[10px]">ไม่มีวิดีโอ</span>
+          <div className="w-full h-full flex flex-col items-center justify-center gap-2">
+            <span className="text-4xl opacity-20">▶</span>
+            <span className="text-slate-600 text-xs">ยังไม่มีวิดีโอ</span>
           </div>
         )}
         {caption && (
-          <div className="absolute bottom-3 left-0 right-0 px-2">
-            <p className="text-[#F59E0B] text-[8px] font-bold text-center leading-tight bg-black/60 rounded-full px-2 py-0.5">{caption}</p>
+          <div className="absolute bottom-3 left-0 right-0 px-3">
+            <p className="text-[#F59E0B] text-[9px] font-bold text-center leading-tight bg-black/60 rounded-full px-2 py-0.5">{caption}</p>
           </div>
         )}
       </div>
