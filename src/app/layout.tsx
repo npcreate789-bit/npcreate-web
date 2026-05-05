@@ -44,13 +44,13 @@ export async function generateMetadata(): Promise<Metadata> {
       siteName: info.site_name,
       title: info.seo_title,
       description: info.seo_description,
-      images: [{ url: "/og-image.png?v=2", width: 1200, height: 1200, alt: info.site_name }],
+      images: [{ url: "/og-image.png?v=3", width: 1200, height: 630, alt: info.site_name }],
     },
     twitter: {
       card: "summary_large_image",
       title: info.seo_title,
       description: info.seo_description,
-      images: ["/og-image.png?v=2"],
+      images: ["/og-image.png?v=3"],
     },
     robots: { index: true, follow: true },
   }
