@@ -43,14 +43,17 @@ export function HeroSection({ settings, media, lineHref = "/api/auth/line" }: Pr
           </div>
         )}
 
-        {/* 3 — คำอธิบาย */}
+        {/* 3 — รูป/วิดีโอ */}
+        {media && media.length > 0 && <HeroMediaGallery items={media} />}
+
+        {/* 4 — คำอธิบาย */}
         {hero.subtext && (
           <p className="text-slate-400 text-lg sm:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
             {hero.subtext}
           </p>
         )}
 
-        {/* 4 — ตัวเลขสถิติ */}
+        {/* 5 — ตัวเลขสถิติ */}
         {stats.length > 0 && (
           <div className="mb-10 grid grid-cols-3 gap-6 max-w-lg mx-auto">
             {stats.map((stat) => (
@@ -63,9 +66,6 @@ export function HeroSection({ settings, media, lineHref = "/api/auth/line" }: Pr
             ))}
           </div>
         )}
-
-        {/* 5 — รูป/วิดีโอ */}
-        {media && media.length > 0 && <HeroMediaGallery items={media} />}
 
         {/* 6 — ปุ่ม CTA */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
