@@ -47,36 +47,52 @@ export function ProcessSection({
   const items = steps && steps.length > 0 ? steps : DEFAULT_STEPS
 
   return (
-    <section className="py-20 bg-[#0A0404]">
+    <section className="py-14 bg-[#0A0404]">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
-        <div className="text-center mb-14">
-          <span className="text-[#DC2626] text-sm font-semibold uppercase tracking-widest">
+
+        <div className="text-center mb-10">
+          <span className="text-[#DC2626] text-xs font-bold uppercase tracking-[0.2em]">
             {label}
           </span>
-          <h2 className="font-display font-bold text-3xl sm:text-4xl text-white mt-3">
+          <h2 className="font-display font-bold text-3xl sm:text-4xl text-white mt-3 leading-snug">
             {heading}
           </h2>
           {subtext && (
-            <p className="text-slate-400 mt-4 max-w-xl mx-auto">{subtext}</p>
+            <p className="text-slate-400 text-sm mt-3 max-w-md mx-auto">{subtext}</p>
           )}
         </div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 relative">
-          <div className="hidden lg:block absolute top-8 left-[12.5%] right-[12.5%] h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 relative">
+          {/* Connector line (desktop) */}
+          <div className="hidden lg:block absolute top-[22px] left-[calc(12.5%+16px)] right-[calc(12.5%+16px)] h-px bg-gradient-to-r from-[#DC2626]/20 via-[#DC2626]/40 to-[#DC2626]/20" />
 
-          {items.map((step) => (
+          {items.map((step, i) => (
             <div
               key={step.step}
-              className="relative bg-[#1C0D0D] border border-white/5 rounded-2xl p-6"
+              className="relative bg-[#1C0D0D] border border-white/5 hover:border-[#DC2626]/20 rounded-2xl p-6 transition-all duration-200 hover:shadow-lg hover:shadow-black/20 group"
             >
-              <div className="w-12 h-12 rounded-xl bg-[#DC2626]/10 border border-[#DC2626]/20 flex items-center justify-center mb-5">
-                <span className="font-display font-bold text-[#DC2626] text-sm">{step.step}</span>
+              {/* Step badge */}
+              <div className="relative w-11 h-11 mb-5">
+                <div className="absolute inset-0 bg-[#DC2626]/10 rounded-xl border border-[#DC2626]/20 group-hover:bg-[#DC2626]/15 transition-colors duration-200" />
+                <span className="relative z-10 w-full h-full flex items-center justify-center font-display font-bold text-[#DC2626] text-sm">
+                  {step.step}
+                </span>
               </div>
-              <span className="text-[#DC2626] text-xs font-medium">{step.duration}</span>
-              <h3 className="font-display font-semibold text-white text-base mt-2 mb-3">
+
+              <span className="inline-block text-[#DC2626]/70 text-[11px] font-semibold mb-2">
+                {step.duration}
+              </span>
+              <h3 className="font-display font-semibold text-white text-sm sm:text-base leading-snug mb-2.5">
                 {step.title}
               </h3>
-              <p className="text-slate-400 text-sm leading-relaxed">{step.description}</p>
+              <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">
+                {step.description}
+              </p>
+
+              {/* Step connector dot (desktop) */}
+              {i < items.length - 1 && (
+                <div className="hidden lg:block absolute -right-2 top-[22px] w-4 h-4 bg-[#DC2626]/20 border border-[#DC2626]/30 rounded-full z-10" />
+              )}
             </div>
           ))}
         </div>

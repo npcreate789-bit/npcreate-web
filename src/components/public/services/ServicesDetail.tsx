@@ -4,15 +4,14 @@ import {
   CheckCircle2, type LucideIcon,
 } from "lucide-react"
 import type { Service } from "@/types/database"
+import { cn } from "@/lib/utils"
 
-// Map icon name string → lucide component
 const ICON_MAP: Record<string, LucideIcon> = {
   TrendingUp, Target, Film, BarChart3,
   Zap, ShoppingBag, Rocket, Megaphone,
 }
 
-// Hardcoded fallback shown before any DB data exists
-const FALLBACK: Omit<Service, "id" | "slug" | "category" | "starting_price" | "cta" | "badge" | "is_popular" | "display_order" | "is_active" | "created_at" | "updated_at" | "full_desc">[] = [
+const FALLBACK: Omit<Service, "id"|"slug"|"category"|"starting_price"|"cta"|"badge"|"is_popular"|"display_order"|"is_active"|"created_at"|"updated_at"|"full_desc">[] = [
   {
     title: "ยิงแอด GMV Max",
     tagline: "เพิ่มยอดขายด้วย ROI สูงสุด",
@@ -79,58 +78,66 @@ export function ServicesDetail({ services }: Props) {
   const items = services && services.length > 0 ? services : FALLBACK
 
   return (
-    <section className="py-20 bg-[#0A0808]">
+    <section className="pt-2 pb-14 bg-[#0A0808]">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
-        <div className="space-y-6">
+        <div className="space-y-5">
           {items.map((service, i) => {
             const Icon = ICON_MAP[service.icon ?? ""] ?? null
             const isEven = i % 2 === 0
             return (
               <div
                 key={service.title}
-                className="grid md:grid-cols-2 gap-0 bg-[#1C0D0D] border border-white/5 rounded-2xl overflow-hidden"
+                className="group grid md:grid-cols-2 gap-0 bg-[#1C0D0D] border border-white/5 hover:border-white/10 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-black/30"
               >
                 {/* Visual side */}
                 <div
-                  className={`relative p-10 bg-gradient-to-br ${service.color} flex flex-col justify-between min-h-56 ${isEven ? "md:order-first" : "md:order-last"}`}
+                  className={cn(
+                    "relative p-8 sm:p-10 bg-gradient-to-br flex flex-col justify-between min-h-52 transition-all duration-300",
+                    service.color,
+                    isEven ? "md:order-first" : "md:order-last"
+                  )}
                 >
-                  <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center">
+                  {/* Icon */}
+                  <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
                     {Icon
-                      ? <Icon size={26} className="text-white" />
-                      : <span className="text-white text-2xl">{service.icon}</span>
+                      ? <Icon size={22} className="text-white" />
+                      : <span className="text-white text-xl">{service.icon}</span>
                     }
                   </div>
+
                   <div>
                     {service.highlight && (
-                      <div className="inline-block bg-black/20 text-white text-xs font-medium px-3 py-1 rounded-full mb-3">
+                      <div className="inline-flex items-center gap-1.5 bg-black/25 text-white text-xs font-medium px-3 py-1 rounded-full mb-3">
                         {service.highlight}
                       </div>
                     )}
-                    <h3 className="font-display font-bold text-white text-2xl sm:text-3xl leading-tight">
+                    <h3 className="font-display font-bold text-white text-xl sm:text-2xl leading-snug">
                       {service.title}
                     </h3>
                     {service.tagline && (
-                      <p className="text-white/60 text-sm mt-2">{service.tagline}</p>
+                      <p className="text-white/60 text-sm mt-1.5">{service.tagline}</p>
                     )}
                   </div>
-                  <span className="absolute top-4 right-6 font-display font-black text-7xl text-white/10 select-none leading-none">
+
+                  {/* Background number */}
+                  <span className="absolute top-3 right-5 font-display font-black text-6xl text-white/10 select-none leading-none">
                     {String(i + 1).padStart(2, "0")}
                   </span>
                 </div>
 
                 {/* Content side */}
-                <div className="p-8 sm:p-10 flex flex-col justify-center">
+                <div className="p-8 sm:p-10 flex flex-col justify-center bg-[#1C0D0D] group-hover:bg-[#1f0e0e] transition-colors duration-300">
                   {service.short_desc && (
-                    <p className="text-slate-400 text-sm leading-relaxed mb-6">
+                    <p className="text-slate-400 text-sm leading-relaxed mb-5">
                       {service.short_desc}
                     </p>
                   )}
                   {service.features.length > 0 && (
-                    <ul className="space-y-3">
+                    <ul className="space-y-2.5">
                       {service.features.map((benefit, j) => (
                         <li key={j} className="flex items-start gap-3">
-                          <CheckCircle2 size={16} className="text-[#DC2626] shrink-0 mt-0.5" />
-                          <span className="text-slate-300 text-sm">{benefit}</span>
+                          <CheckCircle2 size={15} className="text-[#DC2626] shrink-0 mt-0.5" />
+                          <span className="text-slate-300 text-sm leading-snug">{benefit}</span>
                         </li>
                       ))}
                     </ul>

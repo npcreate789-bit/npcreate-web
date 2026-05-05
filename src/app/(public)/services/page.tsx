@@ -28,8 +28,10 @@ export default async function ServicesPage() {
   const page = mergeServicesPage((pageData?.value ?? {}) as Record<string, unknown>)
 
   return (
-    <main className="min-h-screen bg-[#0A0808] pt-24">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-16">
+    <main className="bg-[#0A0808] pt-24">
+
+      {/* ── Page header ── */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-10 pb-8">
         <div className="max-w-2xl">
           <span
             className="text-sm font-semibold uppercase tracking-widest"
@@ -37,7 +39,7 @@ export default async function ServicesPage() {
           >
             {page.label}
           </span>
-          <h1 className="font-display font-bold text-4xl sm:text-5xl text-white mt-3 mb-5 leading-snug">
+          <h1 className="font-display font-bold text-4xl sm:text-5xl text-white mt-3 mb-4 leading-snug">
             {page.heading1}
             <span className="block" style={{ color: page.heading2_color }}>
               {page.heading2}

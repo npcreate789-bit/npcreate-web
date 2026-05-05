@@ -73,16 +73,16 @@ export function PricingSection({
   const items: PlanItem[] = plans && plans.length > 0 ? plans : FALLBACK
 
   return (
-    <section className="py-20 bg-[#0A0808]">
+    <section className="py-14 bg-[#0A0808]">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
-        <div className="text-center mb-14">
-          <span className="text-[#DC2626] text-sm font-semibold uppercase tracking-widest">
+        <div className="text-center mb-10">
+          <span className="text-[#DC2626] text-xs font-bold uppercase tracking-[0.2em]">
             {label}
           </span>
-          <h2 className="font-display font-bold text-3xl sm:text-4xl text-white mt-3">
+          <h2 className="font-display font-bold text-3xl sm:text-4xl text-white mt-3 leading-snug">
             {heading}
           </h2>
-          {subtext && <p className="text-slate-400 mt-4">{subtext}</p>}
+          {subtext && <p className="text-slate-400 text-sm mt-3">{subtext}</p>}
         </div>
 
         <div className="grid md:grid-cols-3 gap-6">

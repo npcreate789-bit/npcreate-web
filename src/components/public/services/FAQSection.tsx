@@ -44,11 +44,11 @@ export function FAQSection({ faqs, lineHref = "/api/auth/line" }: Props) {
   const toggle = (i: number) => setOpenIndex(openIndex === i ? null : i)
 
   return (
-    <section className="py-20 bg-[#0A0404]">
+    <section className="py-14 pb-20 bg-[#0A0404]">
       <div className="max-w-3xl mx-auto px-4 sm:px-6">
-        <div className="text-center mb-12">
-          <span className="text-[#DC2626] text-sm font-semibold uppercase tracking-widest">FAQ</span>
-          <h2 className="font-display font-bold text-3xl sm:text-4xl text-white mt-3">
+        <div className="text-center mb-10">
+          <span className="text-[#DC2626] text-xs font-bold uppercase tracking-[0.2em]">FAQ</span>
+          <h2 className="font-display font-bold text-3xl sm:text-4xl text-white mt-3 leading-snug">
             คำถามที่พบบ่อย
           </h2>
         </div>
