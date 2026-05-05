@@ -1,4 +1,6 @@
-const steps = [
+import type { ProcessStep } from "@/lib/data/services-page"
+
+const DEFAULT_STEPS: ProcessStep[] = [
   {
     step: "01",
     title: "วิเคราะห์ Shop ของคุณ",
@@ -29,7 +31,13 @@ const steps = [
   },
 ]
 
-export function ProcessSection() {
+interface Props {
+  steps?: ProcessStep[]
+}
+
+export function ProcessSection({ steps }: Props) {
+  const items = steps && steps.length > 0 ? steps : DEFAULT_STEPS
+
   return (
     <section className="py-20 bg-[#0A0404]">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
@@ -46,11 +54,13 @@ export function ProcessSection() {
         </div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 relative">
-          {/* Connector line */}
           <div className="hidden lg:block absolute top-8 left-[12.5%] right-[12.5%] h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
-          {steps.map((step) => (
-            <div key={step.step} className="relative bg-[#1C0D0D] border border-white/5 rounded-2xl p-6">
+          {items.map((step) => (
+            <div
+              key={step.step}
+              className="relative bg-[#1C0D0D] border border-white/5 rounded-2xl p-6"
+            >
               <div className="w-12 h-12 rounded-xl bg-[#DC2626]/10 border border-[#DC2626]/20 flex items-center justify-center mb-5">
                 <span className="font-display font-bold text-[#DC2626] text-sm">{step.step}</span>
               </div>

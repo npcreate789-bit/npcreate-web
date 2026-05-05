@@ -39,16 +39,18 @@ export default async function ServicesPage() {
           </span>
           <h1 className="font-display font-bold text-4xl sm:text-5xl text-white mt-3 mb-5 leading-snug">
             {page.heading1}
-            <span className="block" style={{ color: page.heading2_color }}>{page.heading2}</span>
+            <span className="block" style={{ color: page.heading2_color }}>
+              {page.heading2}
+            </span>
           </h1>
           <p className="text-slate-400 text-lg leading-relaxed">{page.description}</p>
         </div>
       </div>
 
       <ServicesDetail services={serviceList} />
-      <ProcessSection />
+      <ProcessSection steps={page.process_steps} />
       <PricingSection plans={plans} lineHref="/contact" />
-      <FAQSection lineHref="/contact" />
+      <FAQSection faqs={page.faqs} lineHref="/contact" />
     </main>
   )
 }

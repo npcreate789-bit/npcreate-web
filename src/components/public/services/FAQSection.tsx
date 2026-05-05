@@ -3,8 +3,9 @@
 import { useState } from "react"
 import { ChevronDown } from "lucide-react"
 import { cn } from "@/lib/utils"
+import type { FAQItem } from "@/lib/data/services-page"
 
-const faqs = [
+const DEFAULT_FAQS: FAQItem[] = [
   {
     q: "GMV Max คืออะไร และต่างจากโฆษณา TikTok ปกติอย่างไร?",
     a: "GMV Max เป็นระบบโฆษณาของ TikTok Shop ที่ออปติไมซ์เพื่อเพิ่ม Gross Merchandise Value (ยอดขายรวม) โดยตรง ต่างจากโฆษณาปกติที่เน้น reach หรือ engagement — GMV Max วัดผลที่ยอดขายจริง ทำให้วัด ROI ได้ชัดเจนและแม่นยำกว่า",
@@ -31,8 +32,14 @@ const faqs = [
   },
 ]
 
-export function FAQSection({ lineHref = "/api/auth/line" }: { lineHref?: string }) {
+interface Props {
+  faqs?: FAQItem[]
+  lineHref?: string
+}
+
+export function FAQSection({ faqs, lineHref = "/api/auth/line" }: Props) {
   const [openIndex, setOpenIndex] = useState<number | null>(null)
+  const items = faqs && faqs.length > 0 ? faqs : DEFAULT_FAQS
 
   const toggle = (i: number) => setOpenIndex(openIndex === i ? null : i)
 
@@ -47,7 +54,7 @@ export function FAQSection({ lineHref = "/api/auth/line" }: { lineHref?: string 
         </div>
 
         <div className="space-y-3">
-          {faqs.map((faq, i) => (
+          {items.map((faq, i) => (
             <div
               key={i}
               className="bg-[#1C0D0D] border border-white/5 rounded-xl overflow-hidden"
