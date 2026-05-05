@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { useRouter } from "next/navigation"
 import { Store, TrendingUp, ChevronRight, Loader2, Video, Radio, Layers } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { saveRoleAndInfo, type RoleInfoInput } from "@/app/register/actions"
@@ -17,7 +16,6 @@ const CONTENT_OPTIONS: { value: ContentType; icon: React.ReactNode; label: strin
 ]
 
 export function SetupRoleClient() {
-  const router = useRouter()
   const [step, setStep]   = useState<Step>("role")
   const [role, setRole]   = useState<RoleChoice>(null)
   const [storeName, setStoreName]               = useState("")
@@ -43,9 +41,7 @@ export function SetupRoleClient() {
 
     start(async () => {
       const result = await saveRoleAndInfo(input)
-      if ("error" in result) { setError(result.error); return }
-      router.push(result.redirectTo)
-      router.refresh()
+      if (result && "error" in result) setError(result.error)
     })
   }
 

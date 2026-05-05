@@ -1,6 +1,8 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
+import { redirect } from "next/navigation"
+import { revalidatePath } from "next/cache"
 import { z } from "zod"
 
 const httpsUrl = z.string().max(500).refine(
@@ -26,7 +28,9 @@ export type RoleInfoInput = z.infer<typeof roleInfoSchema>
 
 export async function saveRoleAndInfo(
   input: RoleInfoInput,
-): Promise<{ redirectTo: string } | { error: string }> {
+): Promise<{ error: string }> {
+  let redirectPath: string
+
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -53,30 +57,35 @@ export async function saveRoleAndInfo(
         })
         .eq("id", user.id)
       if (error) return { error: error.message }
-      return { redirectTo: "/marketplace" }
+      redirectPath = "/member/marketplace"
+    } else {
+      // Seller: update profile + upsert store
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update({ role: "seller", role_confirmed: true, is_active: true })
+        .eq("id", user.id)
+      if (profileError) return { error: profileError.message }
+
+      const { error: storeError } = await supabase
+        .from("stores")
+        .upsert(
+          {
+            seller_id: user.id,
+            name: data.store_name,
+            tiktok_shop_url: data.store_tiktok_url?.trim() || null,
+          },
+          { onConflict: "seller_id" },
+        )
+      if (storeError) return { error: storeError.message }
+
+      redirectPath = "/member/store"
     }
-
-    // Seller: update profile + upsert store
-    const { error: profileError } = await supabase
-      .from("profiles")
-      .update({ role: "seller", role_confirmed: true, is_active: true })
-      .eq("id", user.id)
-    if (profileError) return { error: profileError.message }
-
-    const { error: storeError } = await supabase
-      .from("stores")
-      .upsert(
-        {
-          seller_id: user.id,
-          name: data.store_name,
-          tiktok_shop_url: data.store_tiktok_url?.trim() || null,
-        },
-        { onConflict: "seller_id" },
-      )
-    if (storeError) return { error: storeError.message }
-
-    return { redirectTo: "/member/store" }
   } catch (e) {
     return { error: e instanceof Error ? e.message : "เกิดข้อผิดพลาด กรุณาลองใหม่" }
   }
+
+  // redirect() is called outside try/catch so it is never swallowed by the catch block.
+  // On success it throws a NEXT_REDIRECT that Next.js handles as a client navigation.
+  revalidatePath("/member", "layout")
+  redirect(redirectPath)
 }

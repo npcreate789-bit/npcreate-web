@@ -256,9 +256,7 @@ function OtpRegisterFlow() {
 
     startTransition(async () => {
       const result = await saveRoleAndInfo(input)
-      if ("error" in result) { setError(result.error); return }
-      router.push(result.redirectTo)
-      router.refresh()
+      if (result && "error" in result) setError(result.error)
     })
   }
 
@@ -447,7 +445,6 @@ function PasswordRegisterFlow() {
       }
 
       toast.success("สมัครสมาชิกสำเร็จ!")
-      window.location.href = result.redirectTo
     } catch (err) {
       const msg = err instanceof Error ? err.message : "OTP ไม่ถูกต้องหรือหมดอายุ"
       setError(msg)

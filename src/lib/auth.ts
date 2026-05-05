@@ -10,11 +10,12 @@ export async function requireAdmin() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, is_active")
     .eq("id", user.id)
     .maybeSingle()
 
   if (profile?.role !== "admin") throw new Error("Unauthorized")
+  if (!profile?.is_active) throw new Error("Unauthorized")
 
   return { supabase, user }
 }
@@ -27,11 +28,12 @@ export async function requireSeller() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, is_active")
     .eq("id", user.id)
     .maybeSingle()
 
   if (profile?.role !== "seller") throw new Error("Unauthorized")
+  if (!profile?.is_active) throw new Error("บัญชีถูกระงับการใช้งาน")
 
   return { supabase, user }
 }
@@ -44,11 +46,12 @@ export async function requireAffiliate() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, is_active")
     .eq("id", user.id)
     .maybeSingle()
 
   if (profile?.role !== "affiliate") throw new Error("Unauthorized")
+  if (!profile?.is_active) throw new Error("บัญชีถูกระงับการใช้งาน")
 
   return { supabase, user }
 }

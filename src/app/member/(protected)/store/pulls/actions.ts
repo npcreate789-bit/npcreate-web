@@ -45,7 +45,7 @@ export async function getStorePulls(opts?: { status?: string; productId?: string
     .select("id")
     .eq("store_id", storeId)
 
-  const productIds = products?.map(p => p.id) ?? []
+  const productIds = (products?.map(p => p.id) ?? []).slice(0, 500)
   if (productIds.length === 0) return []
 
   let query = supabase
@@ -101,6 +101,7 @@ export async function updateSampleStatus(pullId: string, newStatus: SampleStatus
     .from("affiliate_pulls")
     .update({ sample_status: parsed.data })
     .eq("id", pullId)
+    .eq("product_id", pull.product_id)
 
   if (error) throw new Error(error.message)
   revalidatePath("/member/store/pulls")
@@ -132,6 +133,7 @@ export async function updateSellerNote(pullId: string, note: string) {
     .from("affiliate_pulls")
     .update({ seller_note: note.trim() || null })
     .eq("id", pullId)
+    .eq("product_id", pull.product_id)
 
   if (error) throw new Error(error.message)
   revalidatePath("/member/store/pulls")
