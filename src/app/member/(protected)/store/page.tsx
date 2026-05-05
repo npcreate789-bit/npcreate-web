@@ -8,7 +8,7 @@ import {
 } from "lucide-react"
 import { getMyStore, getStoreDashboardStats } from "./actions"
 import { StoreSetupForm } from "./_components/StoreSetupForm"
-import { cn } from "@/lib/utils"
+import { cn, safeUrl } from "@/lib/utils"
 
 export default async function StoreDashboardPage() {
   const supabase = await createClient()

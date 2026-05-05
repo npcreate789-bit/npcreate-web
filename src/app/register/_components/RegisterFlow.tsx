@@ -340,6 +340,7 @@ function OtpRegisterFlow() {
 // ─── Password Register Flow ───────────────────────────────────────────────────
 
 function PasswordRegisterFlow() {
+  const router = useRouter()
   const [step, setStep]               = useState<PasswordStep>("account")
   const [email, setEmail]             = useState("")
   const [password, setPassword]       = useState("")
