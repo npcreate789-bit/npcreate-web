@@ -131,47 +131,82 @@ export function PromoBannerForm({ banner }: Props) {
           </div>
 
           {uploadMode === "upload" ? (
-            <div className="mt-3">
-              <label className={cn(
-                "flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-xl px-4 py-8 cursor-pointer transition-colors",
-                uploading
-                  ? "border-white/20 opacity-60 cursor-not-allowed"
-                  : "border-white/10 hover:border-[#DC2626]/50",
-              )}>
-                {uploading ? (
-                  <div className="flex items-center gap-2 text-slate-400 text-sm">
-                    <Loader2 size={16} className="animate-spin" />
-                    กำลังอัพโหลด...
-                  </div>
-                ) : (
-                  <>
-                    <span className="text-slate-400 text-sm">คลิกเพื่อเลือกรูปแบนเนอร์</span>
-                    <span className="text-slate-600 text-xs">JPG, PNG, WEBP · สูงสุด 10 MB · แนะนำสัดส่วน 16:9</span>
-                  </>
-                )}
-                <input
-                  type="file"
-                  accept="image/*"
-                  disabled={uploading}
-                  className="sr-only"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0]
-                    if (file) void handleFileUpload(file)
-                  }}
-                />
-              </label>
-              {uploadError && <p className="text-red-400 text-xs mt-1.5">{uploadError}</p>}
-              {watchedUrl && !uploading && (
-                <p className="text-emerald-400 text-xs mt-1.5 truncate">อัพโหลดแล้ว: {watchedUrl}</p>
+            <div className="mt-3 space-y-2">
+              {watchedUrl && !uploading ? (
+                /* ── มีรูปแล้ว: แสดง preview + hover เพื่อเปลี่ยน ── */
+                <div className="relative group rounded-xl overflow-hidden border border-white/10 bg-black/20">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={watchedUrl}
+                    alt="banner preview"
+                    className="w-full object-contain"
+                  />
+                  <label className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                    <span className="text-white text-sm font-semibold bg-black/70 px-5 py-2.5 rounded-xl">
+                      คลิกเพื่อเปลี่ยนรูป
+                    </span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="sr-only"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0]
+                        if (file) void handleFileUpload(file)
+                      }}
+                    />
+                  </label>
+                </div>
+              ) : (
+                /* ── ยังไม่มีรูป: แสดง drop zone ── */
+                <label className={cn(
+                  "flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-xl px-4 py-10 cursor-pointer transition-colors",
+                  uploading
+                    ? "border-white/20 opacity-60 cursor-not-allowed"
+                    : "border-white/10 hover:border-[#DC2626]/50",
+                )}>
+                  {uploading ? (
+                    <div className="flex items-center gap-2 text-slate-400 text-sm">
+                      <Loader2 size={16} className="animate-spin" />
+                      กำลังอัพโหลด...
+                    </div>
+                  ) : (
+                    <>
+                      <span className="text-slate-400 text-sm">คลิกเพื่อเลือกรูปแบนเนอร์</span>
+                      <span className="text-slate-600 text-xs">JPG, PNG, WEBP · สูงสุด 10 MB</span>
+                    </>
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    disabled={uploading}
+                    className="sr-only"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (file) void handleFileUpload(file)
+                    }}
+                  />
+                </label>
               )}
+              {uploadError && <p className="text-red-400 text-xs">{uploadError}</p>}
             </div>
           ) : (
-            <div className="mt-3">
+            /* ── URL mode: input + inline preview ── */
+            <div className="mt-3 space-y-3">
               <input
                 {...register("banner_url")}
                 placeholder="https://example.com/banner.jpg"
                 className={inputClass(!!errors.banner_url)}
               />
+              {watchedUrl && (
+                <div className="rounded-xl overflow-hidden border border-white/10 bg-black/20">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={watchedUrl}
+                    alt="banner preview"
+                    className="w-full object-contain"
+                  />
+                </div>
+              )}
             </div>
           )}
         </Section>
@@ -281,9 +316,9 @@ function BannerPreview({
       )}
       {bannerUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={bannerUrl} alt="" className="w-full aspect-video object-cover" />
+        <img src={bannerUrl} alt="" className="w-full object-contain bg-black/20" />
       ) : (
-        <div className="w-full aspect-video bg-white/5 flex items-center justify-center">
+        <div className="w-full h-28 bg-white/5 flex items-center justify-center">
           <span className="text-slate-600 text-xs">รูปแบนเนอร์</span>
         </div>
       )}
@@ -329,7 +364,7 @@ function Field({ label, children, error }: { label: string; children: React.Reac
 
 function inputClass(hasError: boolean) {
   return cn(
-    "w-full bg-[#0A0808] border rounded-xl px-3 py-2 text-white text-sm placeholder:text-slate-600",
+    "w-full bg-[#0A0808] border rounded-xl px-3 py-2 text-white text-base placeholder:text-slate-600",
     "focus:outline-none focus:ring-2 transition-colors appearance-none",
     hasError
       ? "border-red-500/50 focus:ring-red-500/30"
