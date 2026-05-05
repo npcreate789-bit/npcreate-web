@@ -13,7 +13,6 @@ export function StoreSetupForm() {
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
   const [category, setCategory] = useState("อื่นๆ")
-  const [tiktokUrl, setTiktokUrl] = useState("")
   const [logoUrl, setLogoUrl] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [pending, start] = useTransition()
@@ -24,7 +23,7 @@ export function StoreSetupForm() {
     setError(null)
     start(async () => {
       try {
-        await createStore({ name, description, category, tiktok_shop_url: tiktokUrl, logo_url: logoUrl })
+        await createStore({ name, description, category, logo_url: logoUrl })
         router.refresh()
       } catch (err) {
         setError(err instanceof Error ? err.message : "เกิดข้อผิดพลาด")
@@ -46,9 +45,6 @@ export function StoreSetupForm() {
       </Field>
       <Field label="คำอธิบายร้าน">
         <textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} placeholder="บอกเล่าเกี่ยวกับร้านของคุณ..." className={cn(inputCls(), "resize-none")} />
-      </Field>
-      <Field label="ลิงก์ TikTok Shop (ถ้ามี)">
-        <input value={tiktokUrl} onChange={e => setTiktokUrl(e.target.value)} placeholder="https://shop.tiktok.com/..." className={inputCls()} />
       </Field>
       <Field label="URL โลโก้ร้านค้า (ถ้ามี)">
         <input value={logoUrl} onChange={e => setLogoUrl(e.target.value)} placeholder="https://..." className={inputCls()} />

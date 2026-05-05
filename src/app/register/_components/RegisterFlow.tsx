@@ -104,18 +104,17 @@ function RoleCard({ active, onClick, icon, color, title, titleColor, desc }: {
 
 function RoleInfoForm({ role, onSubmit, loading, error }: {
   role: "seller" | "affiliate"
-  onSubmit: (data: { storeName?: string; storeTiktokUrl?: string; tiktokChannelUrl?: string }) => void
+  onSubmit: (data: { storeName?: string; tiktokChannelUrl?: string }) => void
   loading: boolean
   error: string | null
 }) {
   const [storeName, setStoreName] = useState("")
-  const [storeTiktokUrl, setStoreTiktokUrl] = useState("")
   const [tiktokChannelUrl, setTiktokChannelUrl] = useState("")
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (role === "seller") {
-      onSubmit({ storeName, storeTiktokUrl })
+      onSubmit({ storeName })
     } else {
       onSubmit({ tiktokChannelUrl })
     }
@@ -133,11 +132,6 @@ function RoleInfoForm({ role, onSubmit, loading, error }: {
           <Field label="ชื่อร้านค้า / แบรนด์ *">
             <input value={storeName} onChange={e => setStoreName(e.target.value)}
               placeholder="เช่น NP Shop, My Brand TH" required autoFocus
-              className={inputCls()} />
-          </Field>
-          <Field label="ลิงก์ TikTok Shop (ถ้ามี)">
-            <input value={storeTiktokUrl} onChange={e => setStoreTiktokUrl(e.target.value)}
-              placeholder="https://shop.tiktok.com/..." type="url"
               className={inputCls()} />
           </Field>
         </>
@@ -248,10 +242,10 @@ function OtpRegisterFlow() {
     setStep("role_info")
   }
 
-  function handleRoleInfoSubmit(data: { storeName?: string; storeTiktokUrl?: string; tiktokChannelUrl?: string }) {
+  function handleRoleInfoSubmit(data: { storeName?: string; tiktokChannelUrl?: string }) {
     if (!role) return
     const input: RoleInfoInput = role === "seller"
-      ? { role: "seller", store_name: data.storeName ?? "", store_tiktok_url: data.storeTiktokUrl }
+      ? { role: "seller", store_name: data.storeName ?? "" }
       : { role: "affiliate", tiktok_channel_url: data.tiktokChannelUrl }
 
     startTransition(async () => {
@@ -360,7 +354,7 @@ function PasswordRegisterFlow() {
   const [error, setError]             = useState<string | null>(null)
   const [signupOtp, setSignupOtp]     = useState("")
   const [pendingRoleInfo, setPendingRoleInfo] = useState<{
-    storeName?: string; storeTiktokUrl?: string; tiktokChannelUrl?: string
+    storeName?: string; tiktokChannelUrl?: string
   } | null>(null)
   const steps: PasswordStep[] = ["account", "profile", "role", "role_info"]
   const stepLabels = ["บัญชี", "โปรไฟล์", "ประเภท", "ข้อมูล"]
@@ -390,7 +384,7 @@ function PasswordRegisterFlow() {
     setStep("role_info")
   }
 
-  async function handleRoleInfoSubmit(data: { storeName?: string; storeTiktokUrl?: string; tiktokChannelUrl?: string }) {
+  async function handleRoleInfoSubmit(data: { storeName?: string; tiktokChannelUrl?: string }) {
     if (!role) return
     setError(null); setLoading(true)
     try {
@@ -434,7 +428,7 @@ function PasswordRegisterFlow() {
       // 4. บันทึก role
       if (!role || !pendingRoleInfo) throw new Error("ข้อมูลไม่ครบ กรุณาลองสมัครใหม่")
       const input: RoleInfoInput = role === "seller"
-        ? { role: "seller", store_name: pendingRoleInfo.storeName ?? "", store_tiktok_url: pendingRoleInfo.storeTiktokUrl }
+        ? { role: "seller", store_name: pendingRoleInfo.storeName ?? "" }
         : { role: "affiliate", tiktok_channel_url: pendingRoleInfo.tiktokChannelUrl }
 
       const result = await saveRoleAndInfo(input)

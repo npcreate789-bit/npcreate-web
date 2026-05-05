@@ -13,7 +13,6 @@ const httpsUrl = z.string().max(500).refine(
 const sellerSchema = z.object({
   role: z.literal("seller"),
   store_name: z.string().min(1, "กรุณากรอกชื่อร้านค้า").max(100).trim(),
-  store_tiktok_url: httpsUrl.optional().or(z.literal("")),
 })
 
 const affiliateSchema = z.object({
@@ -69,11 +68,7 @@ export async function saveRoleAndInfo(
       const { error: storeError } = await supabase
         .from("stores")
         .upsert(
-          {
-            seller_id: user.id,
-            name: data.store_name,
-            tiktok_shop_url: data.store_tiktok_url?.trim() || null,
-          },
+          { seller_id: user.id, name: data.store_name },
           { onConflict: "seller_id" },
         )
       if (storeError) return { error: storeError.message }

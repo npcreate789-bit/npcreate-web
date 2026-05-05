@@ -34,7 +34,6 @@ export async function createStore(data: {
   name: string
   description: string
   category: string
-  tiktok_shop_url: string
   logo_url: string
 }) {
   const { supabase, user } = await getSellerUser()
@@ -43,7 +42,6 @@ export async function createStore(data: {
     name: data.name.trim(),
     description: data.description.trim() || null,
     category: data.category,
-    tiktok_shop_url: validateUrlField(data.tiktok_shop_url, "tiktok_shop_url"),
     logo_url: validateUrlField(data.logo_url, "logo_url"),
   })
   if (error) throw new Error(error.message)
@@ -54,7 +52,6 @@ export async function updateStore(id: string, data: {
   name: string
   description: string
   category: string
-  tiktok_shop_url: string
   logo_url: string
 }) {
   const { supabase, user } = await getSellerUser()
@@ -62,7 +59,6 @@ export async function updateStore(id: string, data: {
     name: data.name.trim(),
     description: data.description.trim() || null,
     category: data.category,
-    tiktok_shop_url: validateUrlField(data.tiktok_shop_url, "tiktok_shop_url"),
     logo_url: validateUrlField(data.logo_url, "logo_url"),
     updated_at: new Date().toISOString(),
   }).eq("id", id).eq("seller_id", user.id)

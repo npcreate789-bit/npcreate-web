@@ -3,7 +3,7 @@ import { redirect } from "next/navigation"
 import Link from "next/link"
 import {
   Package, Megaphone, Users, Clock,
-  Plus, ChevronRight, CheckCircle2, ExternalLink,
+  Plus, ChevronRight, CheckCircle2,
   Store as StoreIcon,
 } from "lucide-react"
 import { getMyStore, getStoreDashboardStats } from "./actions"
@@ -62,12 +62,6 @@ export default async function StoreDashboardPage() {
             <span className="inline-flex items-center gap-1 text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2.5 py-1 rounded-full shrink-0">
               <CheckCircle2 size={11} /> ยืนยันแล้ว
             </span>
-          )}
-          {safeUrl(store.tiktok_shop_url) && (
-            <a href={safeUrl(store.tiktok_shop_url)} target="_blank" rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-white border border-white/10 hover:border-white/20 px-3 py-1.5 rounded-lg transition-colors shrink-0">
-              <ExternalLink size={12} /> TikTok Shop
-            </a>
           )}
         </div>
 

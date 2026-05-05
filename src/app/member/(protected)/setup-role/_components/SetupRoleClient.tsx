@@ -19,7 +19,6 @@ export function SetupRoleClient() {
   const [step, setStep]   = useState<Step>("role")
   const [role, setRole]   = useState<RoleChoice>(null)
   const [storeName, setStoreName]               = useState("")
-  const [storeTiktokUrl, setStoreTiktokUrl]     = useState("")
   const [tiktokChannelUrl, setTiktokChannelUrl] = useState("")
   const [contentType, setContentType]           = useState<ContentType | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -36,7 +35,7 @@ export function SetupRoleClient() {
     setError(null)
 
     const input: RoleInfoInput = role === "seller"
-      ? { role: "seller", store_name: storeName, store_tiktok_url: storeTiktokUrl }
+      ? { role: "seller", store_name: storeName }
       : { role: "affiliate", tiktok_channel_url: tiktokChannelUrl, content_type: contentType ?? undefined }
 
     start(async () => {
@@ -95,10 +94,6 @@ export function SetupRoleClient() {
                   <Field label="ชื่อร้านค้า / แบรนด์ *">
                     <input value={storeName} onChange={e => setStoreName(e.target.value)}
                       placeholder="เช่น My Brand TH" required autoFocus className={inputCls()} />
-                  </Field>
-                  <Field label="ลิงก์ TikTok Shop (ถ้ามี)">
-                    <input value={storeTiktokUrl} onChange={e => setStoreTiktokUrl(e.target.value)}
-                      placeholder="https://shop.tiktok.com/..." type="url" className={inputCls()} />
                   </Field>
                 </>
               ) : (
