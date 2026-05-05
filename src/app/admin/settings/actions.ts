@@ -1,29 +1,42 @@
 "use server"
 
+import { z } from "zod"
 import { requireAdmin } from "@/lib/auth"
 import { revalidatePath } from "next/cache"
-import type { SiteInfo } from "@/lib/data/site-info"
 
-export async function updateSiteInfo(data: SiteInfo) {
+const urlOrEmpty = z.string().trim().max(500).refine(
+  v => v === "" || /^https?:\/\/.+/.test(v),
+  { message: "URL ต้องขึ้นต้นด้วย https://" }
+)
+
+const siteInfoSchema = z.object({
+  site_name:       z.string().trim().min(1).max(100),
+  tagline:         z.string().trim().max(300),
+  line_oa_url:     urlOrEmpty,
+  line_oa_id:      z.string().trim().max(100),
+  phone:           z.string().trim().max(20),
+  email:           z.string().trim().email().max(255).or(z.literal("")),
+  address:         z.string().trim().max(500),
+  facebook_url:    urlOrEmpty,
+  tiktok_url:      urlOrEmpty,
+  instagram_url:   urlOrEmpty,
+  youtube_url:     urlOrEmpty,
+  ga4_id:          z.string().trim().max(50).regex(/^(G-[A-Z0-9]+)?$/).or(z.literal("")),
+  fb_pixel_id:     z.string().trim().max(50).regex(/^\d*$/),
+  seo_title:       z.string().trim().min(1).max(160),
+  seo_description: z.string().trim().max(320),
+  seo_keywords:    z.string().trim().max(500),
+})
+
+const passwordSchema = z.object({
+  newPassword: z.string().min(8).max(128)
+    .regex(/[A-Z]/, "ต้องมีตัวพิมพ์ใหญ่")
+    .regex(/[0-9]/, "ต้องมีตัวเลข"),
+})
+
+export async function updateSiteInfo(data: unknown) {
   const { supabase } = await requireAdmin()
-  const clean: SiteInfo = {
-    site_name:       data.site_name.trim(),
-    tagline:         data.tagline.trim(),
-    line_oa_url:     data.line_oa_url.trim(),
-    line_oa_id:      data.line_oa_id.trim(),
-    phone:           data.phone.trim(),
-    email:           data.email.trim(),
-    address:         data.address.trim(),
-    facebook_url:    data.facebook_url.trim(),
-    tiktok_url:      data.tiktok_url.trim(),
-    instagram_url:   data.instagram_url.trim(),
-    youtube_url:     data.youtube_url.trim(),
-    ga4_id:          data.ga4_id.trim(),
-    fb_pixel_id:     data.fb_pixel_id.trim(),
-    seo_title:       data.seo_title.trim(),
-    seo_description: data.seo_description.trim(),
-    seo_keywords:    data.seo_keywords.trim(),
-  }
+  const clean = siteInfoSchema.parse(data)
   const { error } = await supabase
     .from("site_settings")
     .upsert({ key: "site_info", value: clean }, { onConflict: "key" })
@@ -33,8 +46,8 @@ export async function updateSiteInfo(data: SiteInfo) {
 
 export async function changePassword(currentPassword: string, newPassword: string) {
   const { supabase, user } = await requireAdmin()
+  passwordSchema.parse({ newPassword })
 
-  // Verify current password before allowing change
   const { error: verifyError } = await supabase.auth.signInWithPassword({
     email: user.email!,
     password: currentPassword,

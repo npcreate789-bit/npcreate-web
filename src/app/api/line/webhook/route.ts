@@ -1,11 +1,15 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { createHmac } from "crypto"
+import { createHmac, timingSafeEqual } from "crypto"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { pushLineMessage } from "@/lib/line/messaging"
 
 function verifySignature(rawBody: string, signature: string, secret: string): boolean {
   const hash = createHmac("sha256", secret).update(rawBody).digest("base64")
-  return hash === signature
+  try {
+    return timingSafeEqual(Buffer.from(hash), Buffer.from(signature))
+  } catch {
+    return false
+  }
 }
 
 type LineEvent = {

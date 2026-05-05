@@ -1,6 +1,14 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { createHmac } from "crypto"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
+
+function signSession(data: object): string {
+  const secret  = process.env.LINE_LOGIN_CLIENT_SECRET ?? "fallback-secret"
+  const payload = JSON.stringify(data)
+  const sig     = createHmac("sha256", secret).update(payload).digest("hex")
+  return Buffer.from(JSON.stringify({ d: payload, s: sig })).toString("base64url")
+}
 
 type LineTokenResponse = {
   access_token: string
@@ -208,8 +216,8 @@ export async function GET(req: NextRequest) {
       return clearCookies(NextResponse.redirect(confirmUrl.toString()))
     }
 
-    // ── ยังไม่ได้ Login (contact form flow) → เก็บใน cookie ────────────────────
-    const session = JSON.stringify({
+    // ── ยังไม่ได้ Login (contact form flow) → เก็บใน cookie พร้อม HMAC signature ─
+    const session = signSession({
       userId:      profile.userId,
       displayName: profile.displayName,
       pictureUrl:  profile.pictureUrl ?? "",
@@ -221,7 +229,7 @@ export async function GET(req: NextRequest) {
       httpOnly: true,
       secure:   process.env.NODE_ENV === "production",
       sameSite: "lax",
-      maxAge:   60 * 30,   // 30 นาที — ใช้แค่ช่วงกรอกฟอร์ม
+      maxAge:   60 * 30,
       path:     "/",
     })
     return res

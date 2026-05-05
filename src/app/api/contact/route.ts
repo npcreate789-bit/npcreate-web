@@ -1,8 +1,36 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { cookies } from "next/headers"
+import { createHmac, timingSafeEqual } from "crypto"
 import { z } from "zod"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
+
+// ─── IP rate limit (in-memory) ────────────────────────────────────────────────
+const ipHits = new Map<string, number[]>()
+const IP_MAX = 10
+const IP_WINDOW = 60 * 60 * 1000
+
+function checkIpRate(ip: string): boolean {
+  const now  = Date.now()
+  const hits = (ipHits.get(ip) ?? []).filter(t => now - t < IP_WINDOW)
+  hits.push(now)
+  ipHits.set(ip, hits)
+  return hits.length <= IP_MAX
+}
+
+// ─── LINE session cookie verification ────────────────────────────────────────
+function verifySession(raw: string): { userId: string; displayName: string; pictureUrl: string } | null {
+  try {
+    const secret  = process.env.LINE_LOGIN_CLIENT_SECRET ?? "fallback-secret"
+    const { d, s } = JSON.parse(Buffer.from(raw, "base64url").toString())
+    if (typeof d !== "string" || typeof s !== "string") return null
+    const expected = createHmac("sha256", secret).update(d).digest("hex")
+    if (!timingSafeEqual(Buffer.from(s, "hex"), Buffer.from(expected, "hex"))) return null
+    return JSON.parse(d)
+  } catch {
+    return null
+  }
+}
 
 // ─── HTML escape helper (ป้องกัน XSS injection ใน email) ─────────────────────
 
@@ -218,17 +246,21 @@ export async function POST(req: NextRequest) {
 
   const data = result.data
 
-  // อ่าน LINE session จาก server-side cookie เท่านั้น — ไม่รับ line_user_id จาก client body
+  // IP rate limit
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown"
+  if (!checkIpRate(ip)) {
+    return NextResponse.json({ error: "too_many_requests" }, { status: 429 })
+  }
+
+  // อ่าน LINE session จาก server-side cookie พร้อม verify HMAC signature
   const cookieStore = await cookies()
   const lineRaw = cookieStore.get("line_session")?.value ?? ""
   let lineUserId: string | null = null
   let lineDisplayName: string | null = null
   if (lineRaw) {
-    try {
-      const ls = JSON.parse(lineRaw)
-      lineUserId    = typeof ls.userId      === "string" ? ls.userId      : null
-      lineDisplayName = typeof ls.displayName === "string" ? ls.displayName : null
-    } catch { /* ignore malformed cookie */ }
+    const ls = verifySession(lineRaw)
+    lineUserId      = ls?.userId      ?? null
+    lineDisplayName = ls?.displayName ?? null
   }
 
   const userSupabase = await createClient()
