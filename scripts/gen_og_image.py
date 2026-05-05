@@ -7,6 +7,10 @@ import math, os
 W, H = 1200, 1200
 OUT = os.path.join(os.path.dirname(__file__), "..", "public", "og-image.png")
 
+FONT_DIR = os.path.join(os.path.dirname(__file__), "font")
+BD  = os.path.join(FONT_DIR, "NotoSansThai-Bold.ttf")
+REG = os.path.join(FONT_DIR, "NotoSansThai-Regular.ttf")
+
 def rgb(h):
     h = h.lstrip("#")
     return tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
@@ -14,34 +18,14 @@ def rgb(h):
 def rgba(h, a=255):
     return (*rgb(h), a)
 
-img = Image.new("RGBA", (W, H), rgb("#0A0808"))
-draw = ImageDraw.Draw(img, "RGBA")
-
-FONT_DIR = os.path.join(os.path.dirname(__file__), "font")
-BD  = os.path.join(FONT_DIR, "NotoSansThai-Bold.ttf")
-REG = os.path.join(FONT_DIR, "NotoSansThai-Regular.ttf")
-
-f_hero   = ImageFont.truetype(BD,  80)
-f_hero2  = ImageFont.truetype(BD,  72)
-f_tag    = ImageFont.truetype(BD,  32)
-f_body   = ImageFont.truetype(REG, 26)
-f_stat_v = ImageFont.truetype(BD,  56)
-f_stat_l = ImageFont.truetype(REG, 24)
-f_badge  = ImageFont.truetype(BD,  22)
-f_pill   = ImageFont.truetype(REG, 22)
-f_line   = ImageFont.truetype(BD,  26)
-f_domain = ImageFont.truetype(REG, 26)
-f_desc   = ImageFont.truetype(REG, 28)
-
-# ── Background orbs ───────────────────────────────────────────────────────────
-def orb(cx, cy, r, color_hex, peak=55):
+def orb(img, cx, cy, r, color_hex, peak=55):
+    cr, cg, cb = rgb(color_hex)
     for px in range(max(0, cx-r), min(W, cx+r)):
         for py in range(max(0, cy-r), min(H, cy+r)):
             d = math.sqrt((px-cx)**2 + (py-cy)**2)
             if d < r:
                 t = (1 - d/r) ** 2
                 a = int(peak * t)
-                cr, cg, cb = rgb(color_hex)
                 cur = img.getpixel((px, py))
                 img.putpixel((px, py), (
                     min(255, cur[0] + cr*a//255),
@@ -50,179 +34,254 @@ def orb(cx, cy, r, color_hex, peak=55):
                     255
                 ))
 
-orb(-80,  200, 560, "#DC2626", 46)
-orb(1180, 600, 500, "#DC2626", 28)
-orb(600,  1000, 480, "#DC2626", 14)
+# ── Canvas ────────────────────────────────────────────────────────────────────
+img = Image.new("RGBA", (W, H), rgb("#080606"))
+orb(img, -60,  120,  580, "#DC2626", 42)
+orb(img, 1260, 1080, 520, "#DC2626", 32)
+orb(img, 580,  600,  700, "#DC2626",  7)
 
 draw = ImageDraw.Draw(img, "RGBA")
 
-# ── Top & bottom gradient lines ───────────────────────────────────────────────
+# ── Fonts ─────────────────────────────────────────────────────────────────────
+f_h1      = ImageFont.truetype(BD,  68)
+f_h2      = ImageFont.truetype(BD,  70)
+f_sub     = ImageFont.truetype(BD,  30)
+f_section = ImageFont.truetype(BD,  20)
+f_card    = ImageFont.truetype(BD,  24)
+f_card_sm = ImageFont.truetype(REG, 19)
+f_stat_v  = ImageFont.truetype(BD,  62)
+f_stat_l  = ImageFont.truetype(REG, 22)
+f_badge   = ImageFont.truetype(BD,  21)
+f_live    = ImageFont.truetype(BD,  15)
+f_footer  = ImageFont.truetype(REG, 25)
+f_footer_b= ImageFont.truetype(BD,  25)
+
+TX = 90  # left margin
+
+# ── Top / bottom edge glow ────────────────────────────────────────────────────
 for x in range(W):
-    g = math.exp(-((x/W - 0.5)**2) / (2*0.12**2))
-    draw.line([(x, 0), (x, 3)],   fill=(220, 38, 38, int(200*g)))
-    draw.line([(x, H-3), (x, H)], fill=(220, 38, 38, int(100*g)))
-
-# ── Right decoration: rings + dot grid ───────────────────────────────────────
-cx_r, cy_r = 980, 340
-
-for ring_r, alpha in [(260, 12), (200, 18), (145, 26), (90, 38)]:
-    steps = max(180, ring_r * 4)
-    for i in range(steps):
-        rad = 2 * math.pi * i / steps
-        px = int(cx_r + ring_r * math.cos(rad))
-        py = int(cy_r + ring_r * math.sin(rad))
-        if 0 <= px < W and 0 <= py < H:
-            draw.point((px, py), fill=(220, 38, 38, alpha))
-
-for ring_r in range(46, 0, -1):
-    a = int(90 * (1 - ring_r/46)**1.5)
-    steps = max(60, ring_r * 5)
-    for i in range(steps):
-        rad = 2 * math.pi * i / steps
-        px = int(cx_r + ring_r * math.cos(rad))
-        py = int(cy_r + ring_r * math.sin(rad))
-        if 0 <= px < W and 0 <= py < H:
-            draw.point((px, py), fill=(220, 38, 38, a))
-
-for r in range(12):
-    for c in range(10):
-        px = 780 + c * 44
-        py = 100 + r * 44
-        dc = math.sqrt((px - cx_r)**2 + (py - cy_r)**2)
-        a = max(0, int(55 - dc * 0.09))
-        if a > 4:
-            draw.ellipse([px-2, py-2, px+2, py+2], fill=rgba("#DC2626", a))
-
-draw.ellipse([cx_r-6, cy_r-6, cx_r+6, cy_r+6], fill=rgba("#FCA5A5", 200))
-draw.ellipse([cx_r-2, cy_r-2, cx_r+2, cy_r+2], fill=rgba("#FFFFFF", 255))
-
-# ── Bottom-right second ring cluster ─────────────────────────────────────────
-cx_b, cy_b = 1050, 920
-for ring_r, alpha in [(160, 8), (110, 14), (66, 22)]:
-    steps = max(120, ring_r * 3)
-    for i in range(steps):
-        rad = 2 * math.pi * i / steps
-        px = int(cx_b + ring_r * math.cos(rad))
-        py = int(cy_b + ring_r * math.sin(rad))
-        if 0 <= px < W and 0 <= py < H:
-            draw.point((px, py), fill=(220, 38, 38, alpha))
+    g = math.exp(-((x/W - 0.5)**2) / (2*0.15**2))
+    draw.line([(x, 0), (x, 3)],   fill=(220, 38, 38, int(220*g)))
+    draw.line([(x, H-3), (x, H)], fill=(220, 38, 38, int(120*g)))
 
 # ── Left accent bar ───────────────────────────────────────────────────────────
-for y in range(200, 900):
-    t = (y - 200) / 700
-    a = int(200 * math.sin(math.pi * t))
-    draw.line([(66, y), (71, y)], fill=(220, 38, 38, a))
+for y in range(140, 980):
+    t = (y - 140) / 840
+    a = int(210 * math.sin(math.pi * t))
+    draw.line([(60, y), (65, y)], fill=(220, 38, 38, a))
 
-TX = 110
+# ── Subtle dot grid (top-right corner) ───────────────────────────────────────
+for r in range(8):
+    for c in range(8):
+        px = 880 + c * 38
+        py =  80 + r * 38
+        if px < W and py < H:
+            draw.ellipse([px-1, py-1, px+1, py+1], fill=rgba("#DC2626", 28))
 
 # ── Badge ─────────────────────────────────────────────────────────────────────
-bx, by = TX, 148
-draw.rounded_rectangle([bx, by, bx+158, by+40], radius=20,
-    fill=rgba("#DC2626", 40), outline=rgba("#DC2626", 110), width=1)
-draw.text((bx+16, by+8), "NP Create", font=f_badge, fill=rgba("#FCA5A5"))
+bx, by = TX, 82
+draw.rounded_rectangle([bx, by, bx+162, by+42], radius=21,
+    fill=rgba("#DC2626", 38), outline=rgba("#DC2626", 120), width=1)
+draw.ellipse([bx+14, by+16, bx+22, by+26], fill=rgba("#FCA5A5", 200))
+draw.text((bx+30, by+9), "NP Create", font=f_badge, fill=rgba("#FCA5A5"))
 
-# ── Headings ──────────────────────────────────────────────────────────────────
-draw.text((TX, 210), "รับดูแลแบรนด์ ร้านค้า", font=f_hero,  fill=rgb("#FFFFFF"))
-draw.text((TX, 306), "ทำการตลาดครบวงจร",      font=f_hero2, fill=rgb("#DC2626"))
+# ── Headline ──────────────────────────────────────────────────────────────────
+draw.text((TX, 148), "รับดูแลแบรนด์ ร้านค้า",  font=f_h1, fill=rgb("#FFFFFF"))
+draw.text((TX, 232), "TikTok Shop ครบวงจร",    font=f_h2, fill=rgb("#DC2626"))
+draw.text((TX, 320), "GMV Max & TikTok Live", font=f_sub, fill=rgba("#64748B"))
 
-# ── Sub label ────────────────────────────────────────────────────────────────
-draw.text((TX, 396), "GMV Max & TikTok Shop Expert", font=f_tag, fill=rgba("#94A3B8"))
+# ── Section divider ───────────────────────────────────────────────────────────
+def hdivider(y, x0=TX, x1=W-TX, color="#DC2626", alpha=60):
+    for x in range(x0, x1):
+        t = (x - x0) / (x1 - x0)
+        a = int(alpha * math.sin(math.pi * t))
+        draw.point((x, y), fill=(*rgb(color), a))
 
-# ── Service pills row ─────────────────────────────────────────────────────────
-services = ["จัดหา Affiliate", "ทำคลิป", "ทีมไลฟ์สด", "ติดตั้งระบบไลฟ์สด"]
-pill_x = TX
-pill_y = 452
-pill_h = 38
-pill_gap = 10
+hdivider(386)
 
-for svc in services:
-    bbox = f_pill.getbbox(svc)
-    tw = bbox[2] - bbox[0]
-    pw = tw + 28
-    draw.rounded_rectangle(
-        [pill_x, pill_y, pill_x + pw, pill_y + pill_h],
-        radius=19,
-        fill=rgba("#FFFFFF", 8),
-        outline=rgba("#FFFFFF", 20),
+# ── Section label ─────────────────────────────────────────────────────────────
+draw.text((TX, 402), "บริการของเรา", font=f_section, fill=rgba("#475569"))
+lbl_bbox = f_section.getbbox("บริการของเรา")
+lw = lbl_bbox[2] - lbl_bbox[0]
+draw.line([(TX + lw + 12, 413), (TX + lw + 80, 413)], fill=rgba("#DC2626", 60), width=1)
+
+# ── Service cards 3 × 2 ───────────────────────────────────────────────────────
+SERVICES = [
+    # (label, sublabel, color, highlight?)
+    ("ยิงแอด GMV Max",       "ROI 30+ ดูแล 24 ชม.", "#DC2626", False),
+    ("จัดหา Affiliate",      "ด้วยระบบของเราเอง",  "#F59E0B", False),
+    ("Content & Creative",   "A/B Testing ทุกชิ้น","#6366F1", False),
+    ("วางกลยุทธ์",           "แผนรายเดือน",        "#EC4899", False),
+    ("ทีมไลฟ์สด",            "มืออาชีพ 24 ชม.",   "#10B981", True ),
+    ("ติดตั้งระบบไลฟ์สด",   "ครบ จบในที่เดียว",  "#06B6D4", True ),
+]
+
+cols      = 3
+card_gap  = 14
+card_h    = 96
+card_y0   = 436
+avail_w   = W - TX * 2
+card_w    = (avail_w - card_gap * (cols - 1)) // cols
+
+# use a separate overlay so alpha compositing works correctly
+card_overlay = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+ov = ImageDraw.Draw(card_overlay)
+
+for i, (label, sub, color, highlight) in enumerate(SERVICES):
+    row = i // cols
+    col = i % cols
+    cx  = TX + col * (card_w + card_gap)
+    cy  = card_y0 + row * (card_h + card_gap)
+    cr, cg, cb = rgb(color)
+
+    fill_a   = 38 if highlight else 18
+    border_a = 130 if highlight else 65
+
+    ov.rounded_rectangle(
+        [cx, cy, cx + card_w, cy + card_h],
+        radius=18,
+        fill=(cr, cg, cb, fill_a),
+        outline=(cr, cg, cb, border_a),
         width=1,
     )
-    draw.text((pill_x + 14, pill_y + 7), svc, font=f_pill, fill=rgba("#94A3B8"))
-    pill_x += pw + pill_gap
 
-# ── Divider ───────────────────────────────────────────────────────────────────
-for x in range(TX, TX + 680):
-    t = (x - TX) / 680
-    a = int(90 * (1 - t**1.5))
-    draw.point((x, 514), fill=(220, 38, 38, a))
+    # top accent stripe
+    stripe_a = 90 if highlight else 50
+    for sx in range(cx + 2, cx + card_w - 2):
+        t = (sx - cx) / card_w
+        ga = int(stripe_a * math.sin(math.pi * t))
+        ov.line([(sx, cy + 1), (sx, cy + 2)], fill=(cr, cg, cb, ga))
+
+    # color dot
+    ov.ellipse([cx+18, cy+20, cx+30, cy+32], fill=(cr, cg, cb, 200))
+
+    # LIVE badge for highlighted
+    if highlight:
+        lb_w, lb_h = 46, 22
+        lbx = cx + card_w - lb_w - 12
+        lby = cy + 10
+        ov.rounded_rectangle([lbx, lby, lbx+lb_w, lby+lb_h], radius=11,
+            fill=(cr, cg, cb, 55), outline=(cr, cg, cb, 160), width=1)
+        ov.text((lbx+8, lby+3), "LIVE", font=f_live, fill=(cr, cg, cb, 255))
+
+# composite cards onto main image
+img = Image.alpha_composite(img, card_overlay)
+draw = ImageDraw.Draw(img, "RGBA")
+
+# draw text on cards (text after compositing for sharpness)
+for i, (label, sub, color, highlight) in enumerate(SERVICES):
+    row = i // cols
+    col = i % cols
+    cx  = TX + col * (card_w + card_gap)
+    cy  = card_y0 + row * (card_h + card_gap)
+    cr, cg, cb = rgb(color)
+    text_col = rgba("#F1F5F9") if highlight else rgba("#CBD5E1")
+    draw.text((cx+44, cy+14), label, font=f_card,    fill=text_col)
+    draw.text((cx+44, cy+50), sub,   font=f_card_sm, fill=(cr, cg, cb, 180))
+
+# ── Divider after grid ────────────────────────────────────────────────────────
+grid_bottom = card_y0 + 2 * card_h + card_gap + 16
+hdivider(grid_bottom)
 
 # ── Stats ─────────────────────────────────────────────────────────────────────
-stats = [("500+", "แบรนด์ที่ดูแล"), ("800M+", "ยอดขาย (฿)"), ("30x", "ROI สูงสุด")]
+stats = [("500+", "แบรนด์ที่ดูแล"), ("800M+", "ยอดขาย (฿)"), ("30+", "ROI สูงสุด")]
+stat_y = grid_bottom + 30
 sx = TX
+stat_col_w = (W - TX * 2) // len(stats)
 for i, (val, lbl) in enumerate(stats):
-    draw.text((sx, 534), val, font=f_stat_v, fill=rgb("#F59E0B"))
-    draw.text((sx, 604), lbl, font=f_stat_l, fill=rgba("#475569"))
+    draw.text((sx, stat_y),      val, font=f_stat_v, fill=rgb("#F59E0B"))
+    draw.text((sx, stat_y + 72), lbl, font=f_stat_l, fill=rgba("#475569"))
     if i < len(stats) - 1:
-        draw.line([(sx + 210, 540), (sx + 210, 630)], fill=rgba("#FFFFFF", 10), width=1)
-    sx += 228
+        sep_x = sx + stat_col_w - 10
+        draw.line([(sep_x, stat_y+4), (sep_x, stat_y+90)],
+                  fill=rgba("#FFFFFF", 10), width=1)
+    sx += stat_col_w
 
 # ── Divider ───────────────────────────────────────────────────────────────────
-for x in range(TX, W - TX):
-    t = (x - TX) / (W - TX * 2)
-    a = int(22 * math.sin(math.pi * t))
-    draw.point((x, 660), fill=(255, 255, 255, a))
+stat_bottom = stat_y + 110
+hdivider(stat_bottom, alpha=30)
 
-# ── Description block ────────────────────────────────────────────────────────
-desc_lines = [
-    "ทีมผู้เชี่ยวชาญด้าน TikTok Shop และ GMV Max",
-    "ครบวงจร ตั้งแต่วางกลยุทธ์ ยิงแอด ผลิตคอนเทนต์",
-    "ไปจนถึงวิเคราะห์ผลและรีพอร์ตรายสัปดาห์",
+# ── System section: ระบบรับงานเฉพาะ ──────────────────────────────────────────
+sys_y = stat_bottom + 22
+
+# Background box with overlay
+sys_ov_img = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+sys_ov = ImageDraw.Draw(sys_ov_img)
+sys_ov.rounded_rectangle(
+    [TX, sys_y, W - TX, sys_y + 190],
+    radius=22,
+    fill=(220, 38, 38, 10),
+    outline=(220, 38, 38, 35),
+    width=1,
+)
+img = Image.alpha_composite(img, sys_ov_img)
+draw = ImageDraw.Draw(img, "RGBA")
+
+# Section header inside box
+draw.text((TX + 24, sys_y + 18),
+    "ระบบรับงานเฉพาะของเรา", font=f_section, fill=rgba("#DC2626"))
+lbbox2 = f_section.getbbox("ระบบรับงานเฉพาะของเรา")
+lw2 = lbbox2[2] - lbbox2[0]
+draw.line([(TX + 24 + lw2 + 10, sys_y + 29), (TX + 24 + lw2 + 70, sys_y + 29)],
+          fill=rgba("#DC2626", 50), width=1)
+draw.text((TX + 24 + lw2 + 80, sys_y + 16),
+    "· ให้บริการระหว่าง", font=f_section, fill=rgba("#475569"))
+
+# Audience cards (3 cols)
+AUDIENCES = [
+    ("ร้านค้า",          "TikTok Shop",         "#10B981"),
+    ("แบรนด์",           "เจ้าของสินค้า",        "#6366F1"),
+    ("นายหน้า",          "Affiliate",             "#F59E0B"),
 ]
-dy = 696
-for line in desc_lines:
-    draw.text((TX, dy), line, font=f_desc, fill=rgba("#475569"))
-    dy += 44
+aud_col_w = (W - TX * 2 - 24 * 2 - 20 * 2) // 3
+aud_gap   = 20
+aud_y     = sys_y + 56
+ax        = TX + 24
 
-# ── Feature cards row ────────────────────────────────────────────────────────
-features = [
-    ("ยิงแอด GMV Max",    "#DC2626"),
-    ("วางกลยุทธ์",        "#6366F1"),
-    ("คอนเทนต์ & Creative","#10B981"),
-    ("รายงานผลรายสัปดาห์","#F59E0B"),
-]
-card_w, card_h = 242, 72
-card_gap = 16
-card_x = TX
-card_y = 840
+aud_overlay = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+aov = ImageDraw.Draw(aud_overlay)
 
-for label, color in features:
+for title, sub, color in AUDIENCES:
     cr, cg, cb = rgb(color)
-    draw.rounded_rectangle(
-        [card_x, card_y, card_x + card_w, card_y + card_h],
+    aov.rounded_rectangle(
+        [ax, aud_y, ax + aud_col_w, aud_y + 108],
         radius=16,
-        fill=(cr, cg, cb, 18),
-        outline=(cr, cg, cb, 55),
+        fill=(cr, cg, cb, 28),
+        outline=(cr, cg, cb, 90),
         width=1,
     )
-    draw.rounded_rectangle(
-        [card_x + 16, card_y + card_h//2 - 6, card_x + 28, card_y + card_h//2 + 6],
-        radius=3,
-        fill=(cr, cg, cb, 200),
-    )
-    draw.text((card_x + 38, card_y + 20), label, font=f_pill, fill=rgba("#E2E8F0"))
-    card_x += card_w + card_gap
+    # top stripe
+    for sx in range(ax + 2, ax + aud_col_w - 2):
+        t = (sx - ax) / aud_col_w
+        ga = int(70 * math.sin(math.pi * t))
+        aov.line([(sx, aud_y + 1), (sx, aud_y + 2)], fill=(cr, cg, cb, ga))
+    # dot
+    aov.ellipse([ax+16, aud_y+20, ax+28, aud_y+32], fill=(cr, cg, cb, 200))
+    ax += aud_col_w + aud_gap
 
-# ── Divider ───────────────────────────────────────────────────────────────────
-for x in range(TX, W - TX):
-    t = (x - TX) / (W - TX * 2)
-    a = int(18 * math.sin(math.pi * t))
-    draw.point((x, 946), fill=(255, 255, 255, a))
+img = Image.alpha_composite(img, aud_overlay)
+draw = ImageDraw.Draw(img, "RGBA")
 
-# ── Bottom info ───────────────────────────────────────────────────────────────
-line_x = TX
-draw.ellipse([line_x, 974, line_x+14, 988], fill=rgba("#06C755", 220))
-draw.text((line_x + 22, 966), "Line OA:", font=f_domain, fill=rgba("#64748B"))
-draw.text((line_x + 106, 966), "@npcreate", font=f_line, fill=rgba("#06C755", 210))
-draw.text((TX + 380, 966), "npcreate.co.th", font=f_domain, fill=rgba("#374151"))
+# Text inside audience cards
+ax = TX + 24
+for title, sub, color in AUDIENCES:
+    cr, cg, cb = rgb(color)
+    draw.text((ax + 42, aud_y + 14), title, font=f_card,    fill=rgba("#F1F5F9"))
+    draw.text((ax + 42, aud_y + 50), sub,   font=f_card_sm, fill=(cr, cg, cb, 170))
+    ax += aud_col_w + aud_gap
+
+# ── Footer divider ────────────────────────────────────────────────────────────
+footer_y = H - 112
+hdivider(footer_y, alpha=20)
+
+# ── Footer ────────────────────────────────────────────────────────────────────
+fy = footer_y + 24
+draw.ellipse([TX, fy+6, TX+12, fy+18], fill=rgba("#06C755", 220))
+draw.text((TX+20, fy),   "Line OA",         font=f_footer,   fill=rgba("#475569"))
+loa_bbox = f_footer.getbbox("Line OA")
+loa_w = loa_bbox[2] - loa_bbox[0]
+draw.text((TX + 20 + loa_w + 18, fy), "@npcreate", font=f_footer_b, fill=rgba("#06C755", 220))
+draw.text((TX+440, fy), "npcreate.co.th",  font=f_footer,   fill=rgba("#2D3748"))
 
 # ── Save ──────────────────────────────────────────────────────────────────────
 img.convert("RGB").save(OUT, "PNG", optimize=True)
