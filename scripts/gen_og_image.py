@@ -17,19 +17,21 @@ def rgba(h, a=255):
 img = Image.new("RGBA", (W, H), rgb("#0A0808"))
 draw = ImageDraw.Draw(img, "RGBA")
 
-# ── Fonts (Tahoma supports Thai) ──────────────────────────────────────────────
 BD  = "C:/Windows/Fonts/tahomabd.ttf"
 REG = "C:/Windows/Fonts/tahoma.ttf"
 
-f_hero   = ImageFont.truetype(BD,  68)
-f_sub    = ImageFont.truetype(BD,  44)
-f_body   = ImageFont.truetype(REG, 26)
-f_stat_v = ImageFont.truetype(BD,  40)
-f_stat_l = ImageFont.truetype(REG, 20)
-f_badge  = ImageFont.truetype(BD,  18)
-f_domain = ImageFont.truetype(REG, 20)
+f_hero   = ImageFont.truetype(BD,  58)
+f_hero2  = ImageFont.truetype(BD,  52)
+f_tag    = ImageFont.truetype(BD,  26)
+f_body   = ImageFont.truetype(REG, 21)
+f_stat_v = ImageFont.truetype(BD,  36)
+f_stat_l = ImageFont.truetype(REG, 17)
+f_badge  = ImageFont.truetype(BD,  16)
+f_pill   = ImageFont.truetype(REG, 15)
+f_line   = ImageFont.truetype(BD,  17)
+f_domain = ImageFont.truetype(REG, 17)
 
-# ── Background radial orbs ────────────────────────────────────────────────────
+# ── Background orbs ───────────────────────────────────────────────────────────
 def orb(cx, cy, r, color_hex, peak=55):
     for px in range(max(0, cx-r), min(W, cx+r)):
         for py in range(max(0, cy-r), min(H, cy+r)):
@@ -46,83 +48,126 @@ def orb(cx, cy, r, color_hex, peak=55):
                     255
                 ))
 
-orb(-60,  200, 500, "#DC2626", 50)
-orb(1260, 550, 420, "#DC2626", 35)
-orb(600,  315, 600, "#DC2626", 18)
+orb(-80,  150, 510, "#DC2626", 46)
+orb(1120, 480, 440, "#DC2626", 28)
+orb(680,  300, 560, "#DC2626", 12)
 
 draw = ImageDraw.Draw(img, "RGBA")
 
 # ── Top & bottom gradient lines ───────────────────────────────────────────────
 for x in range(W):
-    g = math.exp(-((x/W - 0.5)**2) / (2*0.1**2))
-    draw.line([(x, 0), (x, 2)],   fill=(220, 38, 38, int(160*g)))
-    draw.line([(x, H-2), (x, H)], fill=(220, 38, 38, int(100*g)))
+    g = math.exp(-((x/W - 0.5)**2) / (2*0.12**2))
+    draw.line([(x, 0), (x, 2)],   fill=(220, 38, 38, int(180*g)))
+    draw.line([(x, H-2), (x, H)], fill=(220, 38, 38, int(90*g)))
 
-# ── Left red accent bar ───────────────────────────────────────────────────────
-for y in range(190, 420):
-    t = (y-190)/230
-    a = int(220 * math.sin(math.pi*t))
-    draw.line([(72, y), (75, y)], fill=(220, 38, 38, a))
+# ── Right decoration: rings + dot grid ───────────────────────────────────────
+cx_r, cy_r = 1000, 285
 
-# ── Right decorative pattern (dots, not big blocks) ──────────────────────────
-dot_x0, dot_y0 = 820, 140
-cols, rows, gap = 9, 8, 38
-for r in range(rows):
-    for c in range(cols):
-        cx = dot_x0 + c*gap
-        cy = dot_y0 + r*gap
-        dc = math.sqrt((c - cols/2)**2 + (r - rows/2)**2)
-        a = max(0, int(80 - dc*10))
-        if a > 0:
-            draw.ellipse([cx-3, cy-3, cx+3, cy+3], fill=rgba("#DC2626", a))
+for ring_r, alpha in [(210, 14), (162, 20), (115, 30), (70, 44)]:
+    steps = max(180, ring_r * 4)
+    for i in range(steps):
+        rad = 2 * math.pi * i / steps
+        px = int(cx_r + ring_r * math.cos(rad))
+        py = int(cy_r + ring_r * math.sin(rad))
+        if 0 <= px < W and 0 <= py < H:
+            draw.point((px, py), fill=(220, 38, 38, alpha))
 
-# Highlight dot cluster in center-ish
-for r in range(2, 5):
-    for c in range(3, 6):
-        cx = dot_x0 + c*gap
-        cy = dot_y0 + r*gap
-        draw.ellipse([cx-5, cy-5, cx+5, cy+5], fill=rgba("#DC2626", 140))
-draw.ellipse([dot_x0+4*gap-6, dot_y0+3*gap-6, dot_x0+4*gap+6, dot_y0+3*gap+6],
-             fill=rgba("#FCA5A5", 200))
+for ring_r in range(38, 0, -1):
+    a = int(80 * (1 - ring_r/38)**1.5)
+    steps = max(60, ring_r * 5)
+    for i in range(steps):
+        rad = 2 * math.pi * i / steps
+        px = int(cx_r + ring_r * math.cos(rad))
+        py = int(cy_r + ring_r * math.sin(rad))
+        if 0 <= px < W and 0 <= py < H:
+            draw.point((px, py), fill=(220, 38, 38, a))
+
+for r in range(10):
+    for c in range(9):
+        px = 830 + c * 40
+        py = 110 + r * 40
+        dc = math.sqrt((px - cx_r)**2 + (py - cy_r)**2)
+        a = max(0, int(60 - dc * 0.1))
+        if a > 4:
+            draw.ellipse([px-2, py-2, px+2, py+2], fill=rgba("#DC2626", a))
+
+draw.ellipse([cx_r-5, cy_r-5, cx_r+5, cy_r+5], fill=rgba("#FCA5A5", 200))
+draw.ellipse([cx_r-2, cy_r-2, cx_r+2, cy_r+2], fill=rgba("#FFFFFF", 255))
+
+# ── Left accent bar ───────────────────────────────────────────────────────────
+for y in range(148, 500):
+    t = (y - 148) / 352
+    a = int(220 * math.sin(math.pi * t))
+    draw.line([(66, y), (70, y)], fill=(220, 38, 38, a))
+
+TX = 92
 
 # ── Badge ─────────────────────────────────────────────────────────────────────
-bx, by, bw, bh = 100, 118, 132, 34
-draw.rounded_rectangle([bx, by, bx+bw, by+bh], radius=17,
-                       fill=rgba("#DC2626", 45), outline=rgba("#DC2626", 110), width=1)
-draw.text((bx+16, by+8), "NP Create", font=f_badge, fill=rgba("#FCA5A5"))
+bx, by = TX, 96
+draw.rounded_rectangle([bx, by, bx+124, by+30], radius=15,
+    fill=rgba("#DC2626", 40), outline=rgba("#DC2626", 110), width=1)
+draw.text((bx+13, by+7), "NP Create", font=f_badge, fill=rgba("#FCA5A5"))
 
-# ── Hero text ─────────────────────────────────────────────────────────────────
-TX = 100
+# ── Headings ──────────────────────────────────────────────────────────────────
+draw.text((TX, 144), "รับดูแลแบรนด์ ร้านค้า", font=f_hero, fill=rgb("#FFFFFF"))
+draw.text((TX, 212), "ทำการตลาดครบวงจร", font=f_hero2, fill=rgb("#DC2626"))
 
-# Line 1: white
-draw.text((TX, 172), "NP Create", font=f_hero, fill=rgb("#FFFFFF"))
+# ── Sub label ────────────────────────────────────────────────────────────────
+draw.text((TX, 278), "GMV Max & TikTok Shop Expert", font=f_tag, fill=rgba("#94A3B8"))
 
-# Line 2: red (smaller to fit)
-draw.text((TX, 252), "GMV Max &", font=f_sub, fill=rgb("#DC2626"))
-draw.text((TX, 302), "TikTok Shop", font=f_sub, fill=rgb("#DC2626"))
+# ── Service pills row ─────────────────────────────────────────────────────────
+services = ["จัดหา Affiliate", "ทำคลิป", "ทีมไลฟ์สด", "ติดตั้งระบบไลฟ์สด"]
+pill_x = TX
+pill_y = 320
+pill_h = 26
+pill_gap = 8
 
-# Subtext
-draw.text((TX, 370), "ปั้นยอดขาย TikTok Shop ของคุณให้โตอย่างต่อเนื่อง", font=f_body, fill=rgba("#94A3B8"))
+for svc in services:
+    # measure text width approx
+    bbox = f_pill.getbbox(svc)
+    tw = bbox[2] - bbox[0]
+    pw = tw + 20
+
+    draw.rounded_rectangle(
+        [pill_x, pill_y, pill_x + pw, pill_y + pill_h],
+        radius=13,
+        fill=rgba("#FFFFFF", 8),
+        outline=rgba("#FFFFFF", 20),
+        width=1,
+    )
+    draw.text((pill_x + 10, pill_y + 5), svc, font=f_pill, fill=rgba("#94A3B8"))
+    pill_x += pw + pill_gap
 
 # ── Divider ───────────────────────────────────────────────────────────────────
-for x in range(TX, TX+440):
-    t = (x-TX)/440
-    a = int(100 * (1 - t))
-    draw.point((x, 415), fill=(220, 38, 38, a))
+for x in range(TX, TX + 520):
+    t = (x - TX) / 520
+    a = int(80 * (1 - t**1.5))
+    draw.point((x, 362), fill=(220, 38, 38, a))
 
 # ── Stats ─────────────────────────────────────────────────────────────────────
-stats = [("500+", "แบรนด์"), ("800M+", "ยอดขาย (฿)"), ("30+", "Roiสูงสุด")]
+stats = [("500+", "แบรนด์ที่ดูแล"), ("800M+", "ยอดขาย (฿)"), ("30x", "ROI สูงสุด")]
 sx = TX
-for val, lbl in stats:
-    draw.text((sx, 428), val, font=f_stat_v, fill=rgb("#F59E0B"))
-    draw.text((sx, 476), lbl, font=f_stat_l, fill=rgba("#64748B"))
-    # separator
-    if val != stats[-1][0]:
-        draw.line([(sx+195, 430), (sx+195, 510)], fill=rgba("#FFFFFF", 15), width=1)
-    sx += 210
+for i, (val, lbl) in enumerate(stats):
+    draw.text((sx, 375), val, font=f_stat_v, fill=rgb("#F59E0B"))
+    draw.text((sx, 419), lbl, font=f_stat_l, fill=rgba("#475569"))
+    if i < len(stats) - 1:
+        draw.line([(sx + 178, 378), (sx + 178, 444)], fill=rgba("#FFFFFF", 10), width=1)
+    sx += 192
 
-# ── Domain ────────────────────────────────────────────────────────────────────
-draw.text((TX, 570), "npcreate.co.th", font=f_domain, fill=rgba("#475569"))
+# ── Bottom bar ────────────────────────────────────────────────────────────────
+for x in range(TX, W - TX):
+    t = (x - TX) / (W - TX * 2)
+    a = int(18 * math.sin(math.pi * t))
+    draw.point((x, 470), fill=(255, 255, 255, a))
+
+# LINE OA (green)
+line_x = TX
+draw.ellipse([line_x, 484, line_x+10, 494], fill=rgba("#06C755", 220))
+draw.text((line_x + 16, 481), "Line OA:", font=f_domain, fill=rgba("#64748B"))
+draw.text((line_x + 74, 481), "@npcreate", font=f_line, fill=rgba("#06C755", 210))
+
+# Domain (right-aligned bottom)
+draw.text((TX + 280, 481), "npcreate.co.th", font=f_domain, fill=rgba("#374151"))
 
 # ── Save ──────────────────────────────────────────────────────────────────────
 img.convert("RGB").save(OUT, "PNG", optimize=True)
