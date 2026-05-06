@@ -43,10 +43,10 @@ export function PortfolioModal({ item, onClose, lineHref = "/api/auth/line" }: P
         {/* Close */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-10 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+          className="absolute top-3 right-3 z-10 w-10 h-10 rounded-full bg-black/60 hover:bg-[#DC2626] border border-white/20 hover:border-[#DC2626] flex items-center justify-center transition-all shadow-lg"
           aria-label="ปิด"
         >
-          <X size={15} className="text-white" />
+          <X size={18} className="text-white" strokeWidth={2.5} />
         </button>
 
         <div className="grid md:grid-cols-2">
