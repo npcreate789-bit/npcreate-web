@@ -3,11 +3,17 @@
 import { useState } from "react"
 import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Loader2, Play, Zap, TrendingUp } from "lucide-react"
+import { Loader2, Play } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { portfolioSchema, type PortfolioInput } from "../schema"
 import { createPortfolio, updatePortfolio, uploadPortfolioCover } from "../actions"
 import type { Portfolio } from "@/types/database"
+
+function parseTikTokId(input: string): string | undefined {
+  if (!input) return undefined
+  const match = input.match(/\/video\/(\d+)/)
+  return match ? match[1] : /^\d+$/.test(input.trim()) ? input.trim() : undefined
+}
 
 function toSlug(text: string) {
   return (
@@ -113,11 +119,13 @@ export function PortfolioForm({ portfolio }: Props) {
         },
   })
 
-  const watched      = useWatch({ control })
-  const serviceType  = watched.service_type ?? []
-  const mediaType    = watched.media_type ?? "image"
-  const gradient     = watched.gradient ?? GRADIENT_OPTIONS[0]
-  const industryLabel = INDUSTRY_OPTIONS.find((o) => o.value === watched.industry)?.label ?? ""
+  const watched         = useWatch({ control })
+  const serviceType     = watched.service_type ?? []
+  const mediaType       = watched.media_type ?? "image"
+  const gradient        = watched.gradient ?? GRADIENT_OPTIONS[0]
+  const industryLabel   = INDUSTRY_OPTIONS.find((o) => o.value === watched.industry)?.label ?? ""
+  const watchedVideoId  = watched.video_id ?? ""
+  const tiktokPreviewId = mediaType === "tiktok" ? parseTikTokId(watchedVideoId) : undefined
 
   async function handleCoverUpload(file: File) {
     setCoverUploading(true)
@@ -230,6 +238,44 @@ export function PortfolioForm({ portfolio }: Props) {
             </div>
           </Field>
 
+          {/* Image type — upload cover image directly */}
+          {mediaType === "image" && (
+            <div className="space-y-2">
+              <p className="text-slate-300 text-xs font-medium">รูปภาพหลัก</p>
+              {watched.cover_image && !coverUploading ? (
+                <div className="relative group rounded-xl overflow-hidden border border-white/10 bg-black/20">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={watched.cover_image} alt="cover preview" className="w-full object-cover aspect-[3/4]" />
+                  <label className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                    <span className="text-white text-sm font-semibold bg-black/70 px-5 py-2.5 rounded-xl">คลิกเพื่อเปลี่ยนรูป</span>
+                    <input type="file" accept="image/*" className="sr-only"
+                      onChange={(e) => { const f = e.target.files?.[0]; if (f) void handleCoverUpload(f) }} />
+                  </label>
+                </div>
+              ) : (
+                <label className={cn(
+                  "flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-xl px-4 py-10 cursor-pointer transition-colors",
+                  coverUploading ? "border-white/20 opacity-60 cursor-not-allowed" : "border-white/10 hover:border-[#DC2626]/50"
+                )}>
+                  {coverUploading ? (
+                    <div className="flex items-center gap-2 text-slate-400 text-sm">
+                      <Loader2 size={16} className="animate-spin" />
+                      กำลังอัพโหลด...
+                    </div>
+                  ) : (
+                    <>
+                      <span className="text-slate-400 text-sm">คลิกเพื่อเลือกรูปภาพ</span>
+                      <span className="text-slate-600 text-xs">JPG, PNG, WEBP · สูงสุด 10 MB</span>
+                    </>
+                  )}
+                  <input type="file" accept="image/*" disabled={coverUploading} className="sr-only"
+                    onChange={(e) => { const f = e.target.files?.[0]; if (f) void handleCoverUpload(f) }} />
+                </label>
+              )}
+              {coverUploadError && <p className="text-red-400 text-xs">{coverUploadError}</p>}
+            </div>
+          )}
+
           {mediaType === "video" && (
             <Field label="YouTube Video ID">
               <input
@@ -240,6 +286,17 @@ export function PortfolioForm({ portfolio }: Props) {
               <p className="text-slate-500 text-xs mt-1.5">
                 copy จาก URL: youtube.com/watch?v=<span className="text-slate-400">VIDEO_ID</span>
               </p>
+              {watchedVideoId && (
+                <div className="rounded-xl overflow-hidden aspect-video bg-black mt-2">
+                  <iframe
+                    src={`https://www.youtube.com/embed/${watchedVideoId}`}
+                    className="w-full h-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    title="YouTube preview"
+                  />
+                </div>
+              )}
             </Field>
           )}
 
@@ -253,6 +310,20 @@ export function PortfolioForm({ portfolio }: Props) {
               <p className="text-slate-500 text-xs mt-1.5">
                 วาง URL เต็มจาก TikTok — ระบบจะดึง Video ID ให้อัตโนมัติ
               </p>
+              {tiktokPreviewId ? (
+                <div className="rounded-xl overflow-hidden bg-black mt-2 flex justify-center" style={{ minHeight: 560 }}>
+                  <iframe
+                    src={`https://www.tiktok.com/embed/v2/${tiktokPreviewId}`}
+                    className="w-full"
+                    style={{ minHeight: 560 }}
+                    allow="autoplay; encrypted-media"
+                    allowFullScreen
+                    title="TikTok preview"
+                  />
+                </div>
+              ) : watchedVideoId ? (
+                <p className="text-amber-400 text-xs mt-1">ไม่สามารถแยก Video ID จาก URL นี้ได้ — ตรวจสอบรูปแบบ URL อีกครั้ง</p>
+              ) : null}
             </Field>
           )}
 
@@ -345,8 +416,8 @@ export function PortfolioForm({ portfolio }: Props) {
           <p className="text-slate-600 text-xs mt-1">แสดงเป็นแท็กใต้คำอธิบายในการ์ด</p>
         </Section>
 
-        {/* รูปภาพปก */}
-        <Section title="รูปภาพปก (ถ้ามี)">
+        {/* รูปภาพปก — แสดงเฉพาะ video/tiktok (image type จัดการใน media section แล้ว) */}
+        {mediaType !== "image" && <Section title="รูปภาพปก / Thumbnail (ถ้ามี)">
           {/* Tab switcher */}
           <div className="flex gap-1 bg-white/5 p-1 rounded-xl">
             {([
@@ -445,7 +516,7 @@ export function PortfolioForm({ portfolio }: Props) {
               )}
             </div>
           )}
-        </Section>
+        </Section>}
 
         {/* การแสดงผล */}
         <Section title="การแสดงผล">
