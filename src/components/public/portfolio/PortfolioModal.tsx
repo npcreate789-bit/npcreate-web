@@ -12,9 +12,9 @@ interface Props {
   lineHref?: string
 }
 
-// Resolve which image to show in the left panel: cover > bg > gradient
+// Modal left panel: bg_image (16:9 upload) takes priority, fallback to cover_image then gradient
 function panelImage(item: PortfolioItem): string | undefined {
-  return item.coverImage || item.bgImage || undefined
+  return item.bgImage || item.coverImage || undefined
 }
 
 export function PortfolioModal({ item, onClose, lineHref = "/api/auth/line" }: Props) {
