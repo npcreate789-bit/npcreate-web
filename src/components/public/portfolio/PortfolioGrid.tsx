@@ -30,10 +30,12 @@ function toItem(p: Portfolio): PortfolioItem {
     type:        p.media_type === "image" ? "image" : "video",
     gradient:    p.gradient ?? "from-red-800 via-rose-700 to-red-600",
     stats: {
-      gmv:       fmtGMV(p.gmv_after),
-      gmvBefore: fmtGMV(p.gmv_before),
-      roas:      p.roas           ? `${p.roas}x`            : "—",
-      growth:    p.gmv_growth_pct ? `+${p.gmv_growth_pct}%` : "—",
+      gmv:          fmtGMV(p.gmv_after),
+      gmvBefore:    fmtGMV(p.gmv_before),
+      roas:         p.roas             ? `${p.roas}x`              : "—",
+      roasBefore:   p.roas_before      ? `${p.roas_before}x`       : "—",
+      growth:       p.gmv_growth_pct   ? `+${p.gmv_growth_pct}%`   : "—",
+      growthBefore: p.growth_pct_before ? `+${p.growth_pct_before}%` : "—",
     },
     description: p.short_desc ?? "",
     tags:        p.service_type ?? [],
@@ -177,31 +179,50 @@ function PortfolioCard({ item, onClick }: { item: PortfolioItem; onClick: () => 
 
       {/* Hover overlay — slides up on hover */}
       <div className="absolute inset-0 bg-black/85 backdrop-blur-[2px] translate-y-full group-hover:translate-y-0 transition-transform duration-300 flex flex-col justify-center p-5">
-        {/* GMV before → after */}
-        <div className="bg-white/5 rounded-xl px-3 py-2 flex items-center justify-center gap-3 mb-3">
-          <div className="text-center">
-            <div className="text-white/40 text-[9px] leading-none mb-0.5">ก่อนดูแล</div>
-            <div className="text-white/70 font-bold text-sm leading-none">{item.stats.gmvBefore}</div>
+        {/* Before → After comparison table */}
+        <div className="bg-white/5 rounded-xl overflow-hidden mb-3">
+          {/* Header */}
+          <div className="grid grid-cols-[1fr_auto_1fr] text-center border-b border-white/5 px-3 py-1.5">
+            <span className="text-white/40 text-[9px]">ก่อนดูแล</span>
+            <span className="invisible text-[9px] px-2">→</span>
+            <span className="text-[#10B981] text-[9px]">หลังดูแล</span>
           </div>
-          <div className="text-[#F59E0B] font-bold text-base">→</div>
-          <div className="text-center">
-            <div className="text-[#10B981] text-[9px] leading-none mb-0.5">หลังดูแล</div>
-            <div className="text-[#F59E0B] font-display font-bold text-base leading-none">{item.stats.gmv}</div>
-          </div>
-        </div>
-        {/* ROI + Growth */}
-        <div className="grid grid-cols-2 gap-2 mb-3">
-          {[
-            { label: "ROI",    value: item.stats.roas },
-            { label: "Growth", value: item.stats.growth },
-          ].map((stat) => (
-            <div key={stat.label} className="text-center">
-              <div className="text-[#F59E0B] font-display font-bold text-base sm:text-xl leading-none mb-1">
-                {stat.value}
-              </div>
-              <div className="text-white/40 text-[10px]">{stat.label}</div>
+          {/* GMV row */}
+          <div className="grid grid-cols-[1fr_auto_1fr] items-center text-center px-3 py-2 border-b border-white/5">
+            <div>
+              <div className="text-white/30 text-[8px] leading-none mb-0.5">GMV</div>
+              <div className="text-white/70 font-bold text-sm leading-none">{item.stats.gmvBefore}</div>
             </div>
-          ))}
+            <span className="text-[#F59E0B] font-bold text-sm px-2">→</span>
+            <div>
+              <div className="text-white/30 text-[8px] leading-none mb-0.5">GMV</div>
+              <div className="text-[#F59E0B] font-display font-bold text-sm leading-none">{item.stats.gmv}</div>
+            </div>
+          </div>
+          {/* ROI row */}
+          <div className="grid grid-cols-[1fr_auto_1fr] items-center text-center px-3 py-2 border-b border-white/5">
+            <div>
+              <div className="text-white/30 text-[8px] leading-none mb-0.5">ROI</div>
+              <div className="text-white/60 font-bold text-sm leading-none">{item.stats.roasBefore}</div>
+            </div>
+            <span className="text-[#F59E0B] font-bold text-sm px-2">→</span>
+            <div>
+              <div className="text-white/30 text-[8px] leading-none mb-0.5">ROI</div>
+              <div className="text-[#F59E0B] font-display font-bold text-sm leading-none">{item.stats.roas}</div>
+            </div>
+          </div>
+          {/* Growth row */}
+          <div className="grid grid-cols-[1fr_auto_1fr] items-center text-center px-3 py-2">
+            <div>
+              <div className="text-white/30 text-[8px] leading-none mb-0.5">Growth</div>
+              <div className="text-white/60 font-bold text-sm leading-none">{item.stats.growthBefore}</div>
+            </div>
+            <span className="text-[#F59E0B] font-bold text-sm px-2">→</span>
+            <div>
+              <div className="text-white/30 text-[8px] leading-none mb-0.5">Growth</div>
+              <div className="text-[#F59E0B] font-display font-bold text-sm leading-none">{item.stats.growth}</div>
+            </div>
+          </div>
         </div>
 
         <p className="text-white font-semibold text-sm mb-0.5">{item.brand}</p>

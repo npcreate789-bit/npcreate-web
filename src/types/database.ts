@@ -14,6 +14,8 @@ export type Portfolio = {
   gmv_after: number | null
   gmv_growth_pct: number | null
   roas: number | null
+  roas_before: number | null
+  growth_pct_before: number | null
   ad_spend: number | null
   duration_days: number | null
   cover_image: string | null

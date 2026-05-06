@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect } from "react"
-import { X, Zap, TrendingUp } from "lucide-react"
+import { X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { PortfolioItem } from "@/lib/data/portfolio"
 import { categoryLabel } from "@/lib/data/portfolio"
@@ -61,33 +61,50 @@ export function PortfolioModal({ item, onClose, lineHref = "/api/auth/line" }: P
             </div>
 
             {/* Stats overlay */}
-            <div className="absolute bottom-0 left-0 right-0 p-4 space-y-2">
-              {/* GMV before → after */}
-              <div className="bg-black/40 backdrop-blur-sm rounded-xl px-4 py-3 flex items-center gap-3">
-                <div className="flex-1 text-center">
-                  <div className="text-white/40 text-[9px] mb-0.5">ก่อนดูแล</div>
-                  <div className="text-white font-bold text-lg leading-none">{item.stats.gmvBefore}</div>
-                  <div className="text-white/30 text-[8px] mt-0.5">บาท/6เดือน</div>
+            <div className="absolute bottom-0 left-0 right-0 p-4">
+              <div className="bg-black/50 backdrop-blur-sm rounded-xl overflow-hidden">
+                {/* Header */}
+                <div className="grid grid-cols-[1fr_auto_1fr] text-center border-b border-white/10 px-4 py-2">
+                  <span className="text-white/50 text-[10px]">ก่อนดูแล</span>
+                  <span className="invisible text-[10px] px-3">→</span>
+                  <span className="text-[#10B981] text-[10px]">หลังดูแล</span>
                 </div>
-                <div className="text-[#F59E0B] font-bold text-xl">→</div>
-                <div className="flex-1 text-center">
-                  <div className="text-[#10B981] text-[9px] mb-0.5">หลังดูแล</div>
-                  <div className="font-display font-bold text-[#F59E0B] text-xl leading-none">{item.stats.gmv}</div>
-                  <div className="text-white/30 text-[8px] mt-0.5">บาท/6เดือน</div>
-                </div>
-              </div>
-              {/* ROI + Growth */}
-              <div className="grid grid-cols-2 gap-2">
-                {[
-                  { Icon: Zap,        label: "ROI",    value: item.stats.roas },
-                  { Icon: TrendingUp, label: "Growth", value: item.stats.growth },
-                ].map(({ Icon, label, value }) => (
-                  <div key={label} className="bg-black/30 backdrop-blur-sm rounded-xl p-2.5 text-center">
-                    <Icon size={12} className="text-[#F59E0B] mx-auto mb-1" />
-                    <div className="font-display font-bold text-[#F59E0B] text-lg leading-none">{value}</div>
-                    <div className="text-white/50 text-[9px] mt-0.5">{label}</div>
+                {/* GMV row */}
+                <div className="grid grid-cols-[1fr_auto_1fr] items-center text-center px-4 py-2.5 border-b border-white/5">
+                  <div>
+                    <div className="text-white/40 text-[9px] mb-0.5">GMV /6เดือน</div>
+                    <div className="text-white font-bold text-base leading-none">{item.stats.gmvBefore}</div>
                   </div>
-                ))}
+                  <span className="text-[#F59E0B] font-bold text-lg px-3">→</span>
+                  <div>
+                    <div className="text-[#10B981] text-[9px] mb-0.5">GMV /6เดือน</div>
+                    <div className="font-display font-bold text-[#F59E0B] text-lg leading-none">{item.stats.gmv}</div>
+                  </div>
+                </div>
+                {/* ROI row */}
+                <div className="grid grid-cols-[1fr_auto_1fr] items-center text-center px-4 py-2.5 border-b border-white/5">
+                  <div>
+                    <div className="text-white/40 text-[9px] mb-0.5">ROI</div>
+                    <div className="text-white/70 font-bold text-base leading-none">{item.stats.roasBefore}</div>
+                  </div>
+                  <span className="text-[#F59E0B] font-bold text-lg px-3">→</span>
+                  <div>
+                    <div className="text-white/40 text-[9px] mb-0.5">ROI</div>
+                    <div className="font-display font-bold text-[#F59E0B] text-lg leading-none">{item.stats.roas}</div>
+                  </div>
+                </div>
+                {/* Growth row */}
+                <div className="grid grid-cols-[1fr_auto_1fr] items-center text-center px-4 py-2.5">
+                  <div>
+                    <div className="text-white/40 text-[9px] mb-0.5">Growth</div>
+                    <div className="text-white/70 font-bold text-base leading-none">{item.stats.growthBefore}</div>
+                  </div>
+                  <span className="text-[#F59E0B] font-bold text-lg px-3">→</span>
+                  <div>
+                    <div className="text-white/40 text-[9px] mb-0.5">Growth</div>
+                    <div className="font-display font-bold text-[#F59E0B] text-lg leading-none">{item.stats.growth}</div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

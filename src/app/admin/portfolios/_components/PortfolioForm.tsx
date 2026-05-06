@@ -87,11 +87,13 @@ export function PortfolioForm({ portfolio }: Props) {
           industry:       portfolio.industry ?? "",
           service_type:   portfolio.service_type ?? [],
           short_desc:     portfolio.short_desc ?? "",
-          gmv_before:     portfolio.gmv_before,
-          gmv_after:      portfolio.gmv_after,
-          gmv_growth_pct: portfolio.gmv_growth_pct,
-          roas:           portfolio.roas,
-          duration_days:  portfolio.duration_days,
+          gmv_before:        portfolio.gmv_before,
+          gmv_after:         portfolio.gmv_after,
+          gmv_growth_pct:    portfolio.gmv_growth_pct,
+          roas:              portfolio.roas,
+          roas_before:       portfolio.roas_before,
+          growth_pct_before: portfolio.growth_pct_before,
+          duration_days:     portfolio.duration_days,
           cover_image:    portfolio.cover_image ?? "",
           media_type:     portfolio.media_type ?? "image",
           video_id:       portfolio.video_id ?? "",
@@ -104,7 +106,7 @@ export function PortfolioForm({ portfolio }: Props) {
           title: "", slug: "", client_name: "", industry: "",
           service_type: [], short_desc: "",
           gmv_before: null, gmv_after: null, gmv_growth_pct: null,
-          roas: null, duration_days: null,
+          roas: null, roas_before: null, growth_pct_before: null, duration_days: null,
           cover_image: "",
           media_type: "image", video_id: "", gradient: GRADIENT_OPTIONS[0],
           is_featured: false, is_published: false, display_order: 0,
@@ -277,45 +279,48 @@ export function PortfolioForm({ portfolio }: Props) {
 
         {/* ตัวเลขผลลัพธ์ */}
         <Section title="ตัวเลขผลลัพธ์ (แสดงบนการ์ด)">
-          {/* GMV before → after */}
+          {/* Header row */}
+          <div className="grid grid-cols-[1fr_auto_1fr] gap-x-3 items-center mb-1 px-1">
+            <span className="text-slate-500 text-[10px] text-center">ก่อนดูแล</span>
+            <span className="invisible text-xl">→</span>
+            <span className="text-[#10B981] text-[10px] text-center">หลังดูแล</span>
+          </div>
+
+          {/* GMV row */}
           <div>
-            <p className="text-slate-300 text-xs font-medium mb-3">
-              GMV เปรียบเทียบ <span className="text-slate-500 font-normal">(บาท / 6 เดือน)</span>
+            <p className="text-slate-400 text-[10px] font-medium mb-1.5 px-1">
+              GMV <span className="text-slate-600">(บาท / 6 เดือน)</span>
             </p>
-            <div className="flex items-end gap-3">
-              <div className="flex-1 space-y-1.5">
-                <span className="text-slate-500 text-[10px]">ก่อนดูแล</span>
-                <input
-                  type="number"
-                  {...register("gmv_before", { setValueAs: toNum })}
-                  placeholder="200000"
-                  className={inputClass(false)}
-                />
-              </div>
-              <div className="pb-2.5 text-[#F59E0B] font-bold text-xl flex-shrink-0">→</div>
-              <div className="flex-1 space-y-1.5">
-                <span className="text-[#10B981] text-[10px]">หลังดูแล</span>
-                <input
-                  type="number"
-                  {...register("gmv_after", { setValueAs: toNum })}
-                  placeholder="2400000"
-                  className={inputClass(false)}
-                />
-              </div>
+            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-x-3">
+              <input type="number" {...register("gmv_before", { setValueAs: toNum })} placeholder="200000" className={inputClass(false)} />
+              <span className="text-[#F59E0B] font-bold text-xl">→</span>
+              <input type="number" {...register("gmv_after", { setValueAs: toNum })} placeholder="2400000" className={inputClass(false)} />
             </div>
           </div>
 
-          <div className="grid sm:grid-cols-3 gap-4">
-            <Field label="ROI (เท่า)">
+          {/* ROI row */}
+          <div>
+            <p className="text-slate-400 text-[10px] font-medium mb-1.5 px-1">ROI (เท่า)</p>
+            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-x-3">
+              <input type="number" step="0.1" {...register("roas_before", { setValueAs: toNum })} placeholder="—" className={inputClass(false)} />
+              <span className="text-[#F59E0B] font-bold text-xl">→</span>
               <input type="number" step="0.1" {...register("roas", { setValueAs: toNum })} placeholder="9" className={inputClass(false)} />
-            </Field>
-            <Field label="Growth (%)">
-              <input type="number" {...register("gmv_growth_pct", { setValueAs: toNum })} placeholder="280" className={inputClass(false)} />
-            </Field>
-            <Field label="ระยะเวลา (วัน)">
-              <input type="number" {...register("duration_days", { setValueAs: toNum })} placeholder="180" className={inputClass(false)} />
-            </Field>
+            </div>
           </div>
+
+          {/* Growth row */}
+          <div>
+            <p className="text-slate-400 text-[10px] font-medium mb-1.5 px-1">Growth (%)</p>
+            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-x-3">
+              <input type="number" {...register("growth_pct_before", { setValueAs: toNum })} placeholder="—" className={inputClass(false)} />
+              <span className="text-[#F59E0B] font-bold text-xl">→</span>
+              <input type="number" {...register("gmv_growth_pct", { setValueAs: toNum })} placeholder="280" className={inputClass(false)} />
+            </div>
+          </div>
+
+          <Field label="ระยะเวลา (วัน)">
+            <input type="number" {...register("duration_days", { setValueAs: toNum })} placeholder="180" className={cn(inputClass(false), "max-w-[160px]")} />
+          </Field>
         </Section>
 
         {/* แท็กบริการ */}
@@ -487,7 +492,9 @@ export function PortfolioForm({ portfolio }: Props) {
           gmv={fmtGMV(watched.gmv_after)}
           gmvBefore={fmtGMV(watched.gmv_before)}
           roi={watched.roas ? `${watched.roas}x` : "—"}
+          roiBefore={watched.roas_before ? `${watched.roas_before}x` : "—"}
           growth={watched.gmv_growth_pct ? `+${watched.gmv_growth_pct}%` : "—"}
+          growthBefore={watched.growth_pct_before ? `+${watched.growth_pct_before}%` : "—"}
           desc={watched.short_desc || "คำอธิบายสั้นของผลงาน จะแสดงเมื่อ hover บนการ์ด"}
           tags={serviceType}
         />
@@ -502,10 +509,12 @@ export function PortfolioForm({ portfolio }: Props) {
 // ── Live preview card ──────────────────────────────────────────────────────────
 
 function CardPreview({
-  brand, category, mediaType, gradient, gmv, gmvBefore, roi, growth, desc, tags,
+  brand, category, mediaType, gradient,
+  gmv, gmvBefore, roi, roiBefore, growth, growthBefore, desc, tags,
 }: {
   brand: string; category: string; mediaType: string; gradient: string
-  gmv: string; gmvBefore: string; roi: string; growth: string; desc: string; tags: string[]
+  gmv: string; gmvBefore: string; roi: string; roiBefore: string
+  growth: string; growthBefore: string; desc: string; tags: string[]
 }) {
   return (
     <div className="relative aspect-[3/4] rounded-2xl overflow-hidden w-full max-w-[260px] mx-auto ring-1 ring-white/10">
@@ -537,30 +546,50 @@ function CardPreview({
 
       {/* Hover overlay — always visible in preview */}
       <div className="absolute inset-0 bg-black/85 backdrop-blur-[2px] flex flex-col justify-center p-4">
-        {/* GMV before → after */}
-        <div className="bg-black/30 backdrop-blur-sm rounded-lg px-3 py-2 flex items-center justify-between gap-1 mb-2">
-          <div className="text-center flex-1">
-            <div className="text-white/40 text-[8px] leading-none mb-0.5">ก่อน</div>
-            <div className="text-white/70 font-bold text-xs leading-none">{gmvBefore}</div>
+        {/* Before → After comparison table */}
+        <div className="bg-black/30 rounded-lg overflow-hidden mb-3">
+          {/* Header */}
+          <div className="grid grid-cols-[1fr_auto_1fr] text-center border-b border-white/5 px-2 py-1">
+            <span className="text-white/40 text-[8px]">ก่อนดูแล</span>
+            <span className="invisible text-[8px]">→</span>
+            <span className="text-[#10B981] text-[8px]">หลังดูแล</span>
           </div>
-          <div className="text-[#F59E0B] font-bold text-sm">→</div>
-          <div className="text-center flex-1">
-            <div className="text-[#10B981] text-[8px] leading-none mb-0.5">หลัง/6เดือน</div>
-            <div className="text-[#F59E0B] font-bold text-xs leading-none">{gmv}</div>
-          </div>
-        </div>
-        {/* ROI + Growth */}
-        <div className="grid grid-cols-2 gap-1.5 mb-4">
-          {[
-            { Icon: Zap,        label: "ROI",    value: roi },
-            { Icon: TrendingUp, label: "Growth", value: growth },
-          ].map(({ Icon, label, value }) => (
-            <div key={label} className="bg-black/30 backdrop-blur-sm rounded-lg p-2 text-center">
-              <Icon size={11} className="text-[#F59E0B] mx-auto mb-1" />
-              <div className="text-[#F59E0B] font-bold text-sm leading-none">{value}</div>
-              <div className="text-white/40 text-[9px] mt-0.5">{label}</div>
+          {/* GMV row */}
+          <div className="grid grid-cols-[1fr_auto_1fr] items-center text-center px-2 py-1.5 border-b border-white/5">
+            <div>
+              <div className="text-white/30 text-[7px] leading-none mb-0.5">GMV</div>
+              <div className="text-white/70 font-bold text-[11px] leading-none">{gmvBefore}</div>
             </div>
-          ))}
+            <span className="text-[#F59E0B] font-bold text-xs mx-1">→</span>
+            <div>
+              <div className="text-white/30 text-[7px] leading-none mb-0.5">GMV</div>
+              <div className="text-[#F59E0B] font-bold text-[11px] leading-none">{gmv}</div>
+            </div>
+          </div>
+          {/* ROI row */}
+          <div className="grid grid-cols-[1fr_auto_1fr] items-center text-center px-2 py-1.5 border-b border-white/5">
+            <div>
+              <div className="text-white/30 text-[7px] leading-none mb-0.5">ROI</div>
+              <div className="text-white/60 font-bold text-[11px] leading-none">{roiBefore}</div>
+            </div>
+            <span className="text-[#F59E0B] font-bold text-xs mx-1">→</span>
+            <div>
+              <div className="text-white/30 text-[7px] leading-none mb-0.5">ROI</div>
+              <div className="text-[#F59E0B] font-bold text-[11px] leading-none">{roi}</div>
+            </div>
+          </div>
+          {/* Growth row */}
+          <div className="grid grid-cols-[1fr_auto_1fr] items-center text-center px-2 py-1.5">
+            <div>
+              <div className="text-white/30 text-[7px] leading-none mb-0.5">Growth</div>
+              <div className="text-white/60 font-bold text-[11px] leading-none">{growthBefore}</div>
+            </div>
+            <span className="text-[#F59E0B] font-bold text-xs mx-1">→</span>
+            <div>
+              <div className="text-white/30 text-[7px] leading-none mb-0.5">Growth</div>
+              <div className="text-[#F59E0B] font-bold text-[11px] leading-none">{growth}</div>
+            </div>
+          </div>
         </div>
 
         <p className="text-white font-semibold text-sm leading-tight mb-0.5">{brand}</p>
