@@ -169,13 +169,17 @@ export function PortfolioModal({ item, onClose, lineHref = "/api/auth/line" }: P
               </div>
             )}
 
-            {/* TikTok embed — portrait 9:16, centered */}
+            {/* TikTok embed — crop out header (~50px) and bottom chrome (~110px) */}
             {item.tiktokId && (
               <div className="flex justify-center">
-                <div className="w-full max-w-[260px] aspect-[9/16] rounded-xl overflow-hidden bg-black ring-1 ring-white/10">
+                <div
+                  className="relative w-full max-w-[240px] overflow-hidden rounded-xl ring-1 ring-white/10 bg-black"
+                  style={{ height: 400 }}
+                >
                   <iframe
                     src={`https://www.tiktok.com/embed/v2/${item.tiktokId}`}
-                    className="w-full h-full"
+                    className="absolute left-0 w-full border-0"
+                    style={{ top: -50, height: 560 }}
                     allow="autoplay; encrypted-media"
                     allowFullScreen
                     title={`${item.brand} — TikTok`}
