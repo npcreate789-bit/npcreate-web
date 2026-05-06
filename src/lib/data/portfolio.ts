@@ -20,6 +20,7 @@ export type PortfolioItem = {
   videoId?: string
   tiktokId?: string
   coverImage?: string
+  bgImage?: string
 }
 
 export const categoryOptions: { value: PortfolioCategory; label: string }[] = [

@@ -42,6 +42,7 @@ function toItem(p: Portfolio): PortfolioItem {
     videoId:     p.media_type === "video"  ? (p.video_id  ?? undefined) : undefined,
     tiktokId:    p.media_type === "tiktok" ? parseTikTokId(p.video_id ?? "") : undefined,
     coverImage:  p.cover_image ?? undefined,
+    bgImage:     p.bg_image ?? undefined,
   }
 }
 
@@ -133,11 +134,11 @@ function PortfolioCard({ item, onClick }: { item: PortfolioItem; onClick: () => 
       onClick={onClick}
       className="group relative aspect-[3/4] rounded-2xl overflow-hidden cursor-pointer"
     >
-      {/* Background: cover image OR gradient */}
-      {item.coverImage ? (
+      {/* Background: cover image > bg image > gradient */}
+      {item.coverImage || item.bgImage ? (
         <div
           className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
-          style={{ backgroundImage: `url(${item.coverImage})` }}
+          style={{ backgroundImage: `url(${item.coverImage ?? item.bgImage})` }}
         />
       ) : (
         <div className={cn(
@@ -146,8 +147,8 @@ function PortfolioCard({ item, onClick }: { item: PortfolioItem; onClick: () => 
         )} />
       )}
 
-      {/* Brand initial watermark (when no cover image) */}
-      {!item.coverImage && (
+      {/* Brand initial watermark (when no image) */}
+      {!item.coverImage && !item.bgImage && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <span className="font-display font-black text-[80px] text-white/10 select-none leading-none">
             {item.brand[0]}

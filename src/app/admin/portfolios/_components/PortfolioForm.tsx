@@ -37,6 +37,45 @@ function fmtGMV(val: number | null | undefined) {
   return val.toLocaleString()
 }
 
+// Resize any image to 540×960 (9:16 portrait) with center-crop using Canvas API
+function resizeTo9x16(file: File): Promise<File> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => {
+      const targetW = 540
+      const targetH = 960
+      const canvas = document.createElement("canvas")
+      canvas.width  = targetW
+      canvas.height = targetH
+      const ctx = canvas.getContext("2d")
+      if (!ctx) { URL.revokeObjectURL(img.src); return resolve(file) }
+      // Center-crop to 9:16
+      const srcRatio = img.width / img.height
+      const dstRatio = targetW / targetH
+      let sx = 0, sy = 0, sw = img.width, sh = img.height
+      if (srcRatio > dstRatio) {
+        sw = img.height * dstRatio
+        sx = (img.width - sw) / 2
+      } else {
+        sh = img.width / dstRatio
+        sy = (img.height - sh) / 2
+      }
+      ctx.drawImage(img, sx, sy, sw, sh, 0, 0, targetW, targetH)
+      URL.revokeObjectURL(img.src)
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) return resolve(file)
+          resolve(new File([blob], file.name.replace(/\.[^.]+$/, ".jpg"), { type: "image/jpeg" }))
+        },
+        "image/jpeg",
+        0.92
+      )
+    }
+    img.onerror = () => { URL.revokeObjectURL(img.src); reject(new Error("โหลดรูปล้มเหลว")) }
+    img.src = URL.createObjectURL(file)
+  })
+}
+
 // These gradient strings must be here as literals so Tailwind's JIT includes them
 const GRADIENT_OPTIONS = [
   "from-red-800 via-rose-700 to-red-600",
@@ -73,9 +112,11 @@ interface Props {
 export function PortfolioForm({ portfolio }: Props) {
   const isEdit = !!portfolio
   const [serverError, setServerError] = useState<string | null>(null)
-  const [coverUploadMode, setCoverUploadMode] = useState<"upload" | "url">("upload")
-  const [coverUploading, setCoverUploading]   = useState(false)
+  const [coverUploadMode, setCoverUploadMode]   = useState<"upload" | "url">("upload")
+  const [coverUploading, setCoverUploading]     = useState(false)
   const [coverUploadError, setCoverUploadError] = useState<string | null>(null)
+  const [bgUploading, setBgUploading]           = useState(false)
+  const [bgUploadError, setBgUploadError]       = useState<string | null>(null)
 
   const {
     register,
@@ -104,6 +145,7 @@ export function PortfolioForm({ portfolio }: Props) {
           media_type:     portfolio.media_type ?? "image",
           video_id:       portfolio.video_id ?? "",
           gradient:       portfolio.gradient ?? GRADIENT_OPTIONS[0],
+          bg_image:       portfolio.bg_image ?? "",
           is_featured:    portfolio.is_featured,
           is_published:   portfolio.is_published,
           display_order:  portfolio.display_order,
@@ -114,7 +156,7 @@ export function PortfolioForm({ portfolio }: Props) {
           gmv_before: null, gmv_after: null, gmv_growth_pct: null,
           roas: null, roas_before: null, growth_pct_before: null, duration_days: null,
           cover_image: "",
-          media_type: "image", video_id: "", gradient: GRADIENT_OPTIONS[0],
+          media_type: "image", video_id: "", gradient: GRADIENT_OPTIONS[0], bg_image: "",
           is_featured: false, is_published: false, display_order: 0,
         },
   })
@@ -139,6 +181,22 @@ export function PortfolioForm({ portfolio }: Props) {
       setCoverUploadError(e instanceof Error ? e.message : "อัพโหลดล้มเหลว")
     } finally {
       setCoverUploading(false)
+    }
+  }
+
+  async function handleBgUpload(file: File) {
+    setBgUploading(true)
+    setBgUploadError(null)
+    try {
+      const resized = await resizeTo9x16(file)
+      const formData = new FormData()
+      formData.append("file", resized)
+      const url = await uploadPortfolioCover(formData)
+      setValue("bg_image", url)
+    } catch (e) {
+      setBgUploadError(e instanceof Error ? e.message : "อัพโหลดล้มเหลว")
+    } finally {
+      setBgUploading(false)
     }
   }
 
@@ -387,42 +445,76 @@ export function PortfolioForm({ portfolio }: Props) {
               )}
             </div>
 
-            {/* ── Right: สีธีมการ์ด ── */}
+            {/* ── Right: รูป Background 9:16 ── */}
             <div className="space-y-3">
               <div>
-                <p className="text-slate-300 text-xs font-medium">สีธีมการ์ด</p>
-                <p className="text-slate-500 text-[11px] mt-0.5">ใช้เป็น background เมื่อไม่มีรูปปก</p>
+                <p className="text-slate-300 text-xs font-medium">รูป Background (9:16)</p>
+                <p className="text-slate-500 text-[11px] mt-0.5">ใช้เป็น background ใน popup เมื่อไม่มีรูปปก — ระบบ resize อัตโนมัติ</p>
               </div>
 
-              {/* Gradient preview */}
-              <div className={cn(
-                "w-full aspect-[3/4] rounded-xl bg-gradient-to-br transition-all",
-                gradient
-              )}>
-                <div className="w-full h-full flex items-center justify-center">
-                  <span className="font-bold text-[60px] text-white/10 select-none leading-none">
-                    {(watched.client_name?.[0] ?? watched.title?.[0] ?? "N").toUpperCase()}
-                  </span>
-                </div>
-              </div>
-
-              {/* Swatches */}
-              <div className="flex flex-wrap gap-2">
-                {GRADIENT_OPTIONS.map((g) => (
+              {/* Upload zone or preview */}
+              {watched.bg_image && !bgUploading ? (
+                <div className="relative group rounded-xl overflow-hidden border border-white/10 bg-black/20">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={watched.bg_image} alt="bg preview" className="w-full object-cover aspect-[9/16]" />
+                  <label className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                    <span className="text-white text-sm font-semibold bg-black/70 px-4 py-2 rounded-xl">
+                      คลิกเพื่อเปลี่ยนรูป
+                    </span>
+                    <input type="file" accept="image/*" className="sr-only"
+                      onChange={(e) => { const f = e.target.files?.[0]; if (f) void handleBgUpload(f) }} />
+                  </label>
                   <button
-                    key={g}
                     type="button"
-                    onClick={() => setValue("gradient", g)}
-                    title={g}
-                    className={cn(
-                      "w-8 h-8 rounded-lg bg-gradient-to-br border-2 transition-all",
-                      g,
-                      gradient === g
-                        ? "border-white shadow-lg scale-110"
-                        : "border-transparent opacity-60 hover:opacity-90 hover:scale-105"
-                    )}
-                  />
-                ))}
+                    onClick={() => setValue("bg_image", "")}
+                    className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/60 hover:bg-red-700 flex items-center justify-center text-white/70 hover:text-white transition-colors text-xs"
+                    aria-label="ลบรูป"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ) : (
+                <label className={cn(
+                  "flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-xl px-3 cursor-pointer transition-colors aspect-[9/16]",
+                  bgUploading ? "border-white/20 opacity-60 cursor-not-allowed" : "border-white/10 hover:border-[#DC2626]/50"
+                )}>
+                  {bgUploading ? (
+                    <div className="flex items-center gap-2 text-slate-400 text-sm">
+                      <Loader2 size={16} className="animate-spin" />
+                      กำลังอัพโหลด...
+                    </div>
+                  ) : (
+                    <>
+                      <span className="text-slate-400 text-sm text-center">คลิกเพื่อเลือกรูปภาพ</span>
+                      <span className="text-slate-600 text-[11px] text-center">JPG, PNG, WEBP<br />ระบบจะ resize เป็น 9:16<br />อัตโนมัติ</span>
+                    </>
+                  )}
+                  <input type="file" accept="image/*" disabled={bgUploading} className="sr-only"
+                    onChange={(e) => { const f = e.target.files?.[0]; if (f) void handleBgUpload(f) }} />
+                </label>
+              )}
+              {bgUploadError && <p className="text-red-400 text-xs">{bgUploadError}</p>}
+
+              {/* Gradient fallback — small swatches */}
+              <div>
+                <p className="text-slate-600 text-[10px] mb-2">— หรือใช้สีธีม (fallback) —</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {GRADIENT_OPTIONS.map((g) => (
+                    <button
+                      key={g}
+                      type="button"
+                      onClick={() => setValue("gradient", g)}
+                      title={g}
+                      className={cn(
+                        "w-6 h-6 rounded-md bg-gradient-to-br border-2 transition-all",
+                        g,
+                        gradient === g
+                          ? "border-white shadow-md scale-110"
+                          : "border-transparent opacity-50 hover:opacity-80 hover:scale-105"
+                      )}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
 

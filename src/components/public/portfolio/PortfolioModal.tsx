@@ -12,6 +12,11 @@ interface Props {
   lineHref?: string
 }
 
+// Resolve which image to show in the left panel: cover > bg > gradient
+function panelImage(item: PortfolioItem): string | undefined {
+  return item.coverImage ?? item.bgImage
+}
+
 export function PortfolioModal({ item, onClose, lineHref = "/api/auth/line" }: Props) {
   useEffect(() => {
     document.body.style.overflow = "hidden"
@@ -49,19 +54,19 @@ export function PortfolioModal({ item, onClose, lineHref = "/api/auth/line" }: P
           <div
             className={cn(
               "relative min-h-64 md:min-h-full rounded-t-2xl md:rounded-l-2xl md:rounded-tr-none overflow-hidden",
-              item.coverImage ? "bg-black" : cn("bg-gradient-to-br", item.gradient)
+              panelImage(item) ? "bg-black" : cn("bg-gradient-to-br", item.gradient)
             )}
           >
-            {/* Cover image (for image type) */}
-            {item.coverImage && (
+            {/* Cover / bg image */}
+            {panelImage(item) && (
               <div
                 className="absolute inset-0 bg-cover bg-center"
-                style={{ backgroundImage: `url(${item.coverImage})` }}
+                style={{ backgroundImage: `url(${panelImage(item)})` }}
               />
             )}
 
-            {/* Brand watermark (only when no cover image) */}
-            {!item.coverImage && (
+            {/* Brand watermark (only when no image) */}
+            {!panelImage(item) && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <span className="font-display font-black text-[120px] text-white/10 select-none">
                 {item.brand[0]}

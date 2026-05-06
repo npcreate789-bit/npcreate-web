@@ -22,6 +22,7 @@ export type Portfolio = {
   media_type: "image" | "video" | "tiktok"
   video_id: string | null
   gradient: string | null
+  bg_image: string | null
   is_featured: boolean
   is_published: boolean
   display_order: number

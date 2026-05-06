@@ -18,6 +18,7 @@ export const portfolioSchema = z.object({
   media_type: z.enum(["image", "video", "tiktok"]),
   video_id: z.string().optional().nullable(),
   gradient: z.string().optional().nullable(),
+  bg_image: z.string().optional().nullable(),
   is_featured: z.boolean(),
   is_published: z.boolean(),
   display_order: z.number(),
