@@ -23,6 +23,7 @@ const securityHeaders = [
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data: blob: https:",
       "media-src 'self' blob: https:",
+      "frame-src 'self' https://www.tiktok.com https://www.youtube.com",
       "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.line.me https://access.line.me",
       "frame-ancestors 'none'",
       "base-uri 'self'",
