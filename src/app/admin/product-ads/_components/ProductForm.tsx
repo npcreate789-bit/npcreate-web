@@ -7,6 +7,7 @@ import { Loader2, Package } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { productSchema, type ProductInput } from "../schema"
 import { createProduct, updateProduct } from "../actions"
+import { ImageUploader } from "./ImageUploader"
 import type { Product, Store } from "@/types/database"
 
 function toNum(v: unknown) {
@@ -189,22 +190,36 @@ export function ProductForm({ product, stores }: Props) {
           )}
         </Section>
 
-        {/* ลิงก์และรูป */}
-        <Section title="ลิงก์และรูปภาพ">
-          <Field label="URL รูปภาพสินค้า">
-            <input
-              {...register("image_url")}
-              placeholder="https://..."
-              className={inputClass(false)}
-            />
-          </Field>
-          <Field label="ลิงก์สินค้า TikTok Shop">
-            <input
-              {...register("tiktok_product_url")}
-              placeholder="https://shop.tiktok.com/..."
-              className={inputClass(false)}
-            />
-          </Field>
+        {/* รูปภาพและลิงก์ */}
+        <Section title="รูปภาพสินค้า">
+          <div className="flex flex-col sm:flex-row gap-6">
+            {/* uploader */}
+            <div className="shrink-0">
+              <p className="text-slate-300 text-xs font-medium mb-2">
+                รูปภาพสินค้า
+                <span className="text-slate-600 ml-1">(แนะนำ 1:1)</span>
+              </p>
+              <ImageUploader
+                value={watched.image_url ?? ""}
+                onChange={(url) => setValue("image_url", url, { shouldValidate: true })}
+                error={errors.image_url?.message}
+              />
+            </div>
+
+            {/* TikTok URL beside uploader */}
+            <div className="flex-1 flex flex-col justify-end">
+              <Field label="ลิงก์สินค้า TikTok Shop">
+                <input
+                  {...register("tiktok_product_url")}
+                  placeholder="https://shop.tiktok.com/..."
+                  className={inputClass(false)}
+                />
+              </Field>
+              <p className="text-slate-600 text-[11px] mt-2 leading-relaxed">
+                ลิงก์นี้ใช้สำหรับให้ Affiliate กดไปยังหน้าสินค้าบน TikTok Shop
+              </p>
+            </div>
+          </div>
         </Section>
 
         {/* สถานะ */}
@@ -361,7 +376,7 @@ function MiniCardPreview({
       <div className="relative aspect-square bg-white/[0.03]">
         {imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={imageUrl} alt={name} className="w-full h-full object-cover" />
+          <img src={imageUrl} alt={name} className="w-full h-full object-cover transition-all duration-300" />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
             <Package size={28} className="text-slate-700" />
