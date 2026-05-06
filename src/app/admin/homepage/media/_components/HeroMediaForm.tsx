@@ -336,7 +336,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 function inputClass(hasError: boolean) {
   return cn(
-    "w-full bg-[#0A0808] border rounded-xl px-3 py-2 text-white text-sm placeholder:text-slate-600",
+    "w-full bg-[#0A0808] border rounded-xl px-3 py-2 text-white text-base placeholder:text-slate-600",
     "focus:outline-none focus:ring-2 transition-colors appearance-none",
     hasError
       ? "border-red-500/50 focus:ring-red-500/30"
