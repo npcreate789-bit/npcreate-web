@@ -68,8 +68,8 @@ export function PortfolioModal({ item, onClose, lineHref = "/api/auth/line" }: P
               />
             )}
 
-            {/* Gradient overlay for readability */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+            {/* Bottom gradient fade */}
+            <div className="absolute bottom-0 left-0 right-0 h-2/3 bg-gradient-to-t from-black via-black/40 to-transparent" />
 
             {/* Brand watermark (only when no image) */}
             {!panelImage(item) && (
