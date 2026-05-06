@@ -31,33 +31,36 @@ export function PortfolioModal({ item, onClose, lineHref = "/api/auth/line" }: P
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
       onClick={onClose}
     >
       <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
 
+      {/* Modal container — no visible scrollbar */}
       <div
         className="relative z-10 w-full max-w-3xl max-h-[90vh] overflow-y-auto bg-[#1C0D0D] rounded-2xl shadow-2xl"
+        style={{ scrollbarWidth: "none", msOverflowStyle: "none" } as React.CSSProperties}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close */}
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 z-10 w-10 h-10 rounded-full bg-black/60 hover:bg-[#DC2626] border border-white/20 hover:border-[#DC2626] flex items-center justify-center transition-all shadow-lg"
+          className="absolute top-3 right-3 z-20 w-10 h-10 rounded-full bg-black/60 hover:bg-[#DC2626] border border-white/20 hover:border-[#DC2626] flex items-center justify-center transition-all shadow-lg"
           aria-label="ปิด"
         >
           <X size={18} className="text-white" strokeWidth={2.5} />
         </button>
 
         <div className="grid md:grid-cols-2">
-          {/* Left — visual panel */}
+
+          {/* ── Left: visual panel ── */}
           <div
             className={cn(
-              "relative min-h-64 md:min-h-full rounded-t-2xl md:rounded-l-2xl md:rounded-tr-none overflow-hidden",
+              "relative min-h-56 md:min-h-full rounded-t-2xl md:rounded-l-2xl md:rounded-tr-none overflow-hidden",
               panelImage(item) ? "bg-black" : cn("bg-gradient-to-br", item.gradient)
             )}
           >
-            {/* Cover / bg image */}
+            {/* Background image */}
             {panelImage(item) && (
               <div
                 className="absolute inset-0 bg-cover bg-center"
@@ -65,25 +68,26 @@ export function PortfolioModal({ item, onClose, lineHref = "/api/auth/line" }: P
               />
             )}
 
+            {/* Gradient overlay for readability */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+
             {/* Brand watermark (only when no image) */}
             {!panelImage(item) && (
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <span className="font-display font-black text-[120px] text-white/10 select-none">
-                {item.brand[0]}
-              </span>
-            </div>
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <span className="font-display font-black text-[120px] text-white/10 select-none">
+                  {item.brand[0]}
+                </span>
+              </div>
             )}
 
             {/* Stats overlay */}
             <div className="absolute bottom-0 left-0 right-0 p-4">
-              <div className="bg-black/50 backdrop-blur-sm rounded-xl overflow-hidden">
-                {/* Header */}
+              <div className="bg-black/55 backdrop-blur-md rounded-xl overflow-hidden">
                 <div className="grid grid-cols-[1fr_auto_1fr] text-center border-b border-white/10 px-4 py-2">
                   <span className="text-white/50 text-[10px]">ก่อนดูแล</span>
                   <span className="invisible text-[10px] px-3">→</span>
                   <span className="text-[#10B981] text-[10px]">หลังดูแล</span>
                 </div>
-                {/* GMV row */}
                 <div className="grid grid-cols-[1fr_auto_1fr] items-center text-center px-4 py-2.5 border-b border-white/5">
                   <div>
                     <div className="text-white/40 text-[9px] mb-0.5">GMV /6เดือน</div>
@@ -95,7 +99,6 @@ export function PortfolioModal({ item, onClose, lineHref = "/api/auth/line" }: P
                     <div className="font-display font-bold text-[#F59E0B] text-lg leading-none">{item.stats.gmv}</div>
                   </div>
                 </div>
-                {/* ROI row */}
                 <div className="grid grid-cols-[1fr_auto_1fr] items-center text-center px-4 py-2.5 border-b border-white/5">
                   <div>
                     <div className="text-white/40 text-[9px] mb-0.5">ROI</div>
@@ -107,7 +110,6 @@ export function PortfolioModal({ item, onClose, lineHref = "/api/auth/line" }: P
                     <div className="font-display font-bold text-[#F59E0B] text-lg leading-none">{item.stats.roas}</div>
                   </div>
                 </div>
-                {/* Growth row */}
                 <div className="grid grid-cols-[1fr_auto_1fr] items-center text-center px-4 py-2.5">
                   <div>
                     <div className="text-white/40 text-[9px] mb-0.5">Growth</div>
@@ -123,9 +125,10 @@ export function PortfolioModal({ item, onClose, lineHref = "/api/auth/line" }: P
             </div>
           </div>
 
-          {/* Right — info panel */}
-          <div className="p-6 sm:p-8 flex flex-col">
-            <div className="flex items-center gap-2 mb-4">
+          {/* ── Right: info + media panel ── */}
+          <div className="p-5 sm:p-7 flex flex-col gap-4">
+            {/* Badges */}
+            <div className="flex items-center gap-2 pr-10">
               <span className="text-xs bg-[#DC2626]/20 text-[#FCA5A5] px-2.5 py-1 rounded-full font-medium">
                 {categoryLabel[item.category]}
               </span>
@@ -134,23 +137,28 @@ export function PortfolioModal({ item, onClose, lineHref = "/api/auth/line" }: P
               </span>
             </div>
 
-            <h2 className="font-display font-bold text-white text-2xl mb-3">{item.brand}</h2>
-            <p className="text-slate-400 text-sm leading-relaxed mb-5">{item.description}</p>
-
-            <div className="flex flex-wrap gap-2 mb-6">
-              {item.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="text-xs bg-[#0A0808] text-slate-400 px-3 py-1 rounded-full border border-white/5"
-                >
-                  {tag}
-                </span>
-              ))}
+            <div>
+              <h2 className="font-display font-bold text-white text-xl leading-snug mb-2">{item.brand}</h2>
+              <p className="text-slate-400 text-sm leading-relaxed">{item.description}</p>
             </div>
+
+            {/* Tags */}
+            {item.tags.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {item.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="text-xs bg-[#0A0808] text-slate-400 px-2.5 py-1 rounded-full border border-white/5"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
 
             {/* YouTube embed */}
             {item.type === "video" && item.videoId && (
-              <div className="rounded-xl overflow-hidden aspect-video bg-black mb-6">
+              <div className="rounded-xl overflow-hidden aspect-video bg-black ring-1 ring-white/10">
                 <iframe
                   src={`https://www.youtube.com/embed/${item.videoId}`}
                   className="w-full h-full"
@@ -161,20 +169,22 @@ export function PortfolioModal({ item, onClose, lineHref = "/api/auth/line" }: P
               </div>
             )}
 
-            {/* TikTok embed */}
+            {/* TikTok embed — portrait 9:16, centered */}
             {item.tiktokId && (
-              <div className="rounded-xl overflow-hidden bg-black mb-6 flex justify-center" style={{ minHeight: 560 }}>
-                <iframe
-                  src={`https://www.tiktok.com/embed/v2/${item.tiktokId}`}
-                  className="w-full"
-                  style={{ minHeight: 560 }}
-                  allow="autoplay; encrypted-media"
-                  allowFullScreen
-                  title={`${item.brand} — TikTok`}
-                />
+              <div className="flex justify-center">
+                <div className="w-full max-w-[260px] aspect-[9/16] rounded-xl overflow-hidden bg-black ring-1 ring-white/10">
+                  <iframe
+                    src={`https://www.tiktok.com/embed/v2/${item.tiktokId}`}
+                    className="w-full h-full"
+                    allow="autoplay; encrypted-media"
+                    allowFullScreen
+                    title={`${item.brand} — TikTok`}
+                  />
+                </div>
               </div>
             )}
 
+            {/* CTA */}
             <a
               href={lineHref}
               className="mt-auto w-full inline-flex items-center justify-center bg-[#DC2626] hover:bg-[#B91C1C] text-white font-semibold py-3 rounded-xl transition-colors text-sm"
@@ -182,6 +192,7 @@ export function PortfolioModal({ item, onClose, lineHref = "/api/auth/line" }: P
               ต้องการผลลัพธ์แบบนี้ — ติดต่อเลย
             </a>
           </div>
+
         </div>
       </div>
     </div>
