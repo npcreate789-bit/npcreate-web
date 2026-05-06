@@ -63,7 +63,7 @@ export function PortfolioModal({ item, onClose, lineHref = "/api/auth/line" }: P
             {/* Background image */}
             {panelImage(item) && (
               <div
-                className="absolute inset-0 bg-cover bg-center"
+                className="absolute inset-0 bg-cover bg-top"
                 style={{ backgroundImage: `url(${panelImage(item)})` }}
               />
             )}

@@ -104,7 +104,7 @@ function PortfolioCard({ item, onClick }: { item: PortfolioItem; onClick: () => 
       {/* Background: cover image > bg image > gradient */}
       {item.coverImage || item.bgImage ? (
         <div
-          className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
+          className="absolute inset-0 bg-cover bg-top transition-transform duration-500 group-hover:scale-105"
           style={{ backgroundImage: `url(${item.coverImage ?? item.bgImage})` }}
         />
       ) : (
