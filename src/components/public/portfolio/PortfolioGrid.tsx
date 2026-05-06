@@ -41,8 +41,8 @@ function toItem(p: Portfolio): PortfolioItem {
     tags:        p.service_type ?? [],
     videoId:     p.media_type === "video"  ? (p.video_id  ?? undefined) : undefined,
     tiktokId:    p.media_type === "tiktok" ? parseTikTokId(p.video_id ?? "") : undefined,
-    coverImage:  p.cover_image ?? undefined,
-    bgImage:     p.bg_image ?? undefined,
+    coverImage:  p.cover_image || undefined,
+    bgImage:     p.bg_image || undefined,
   }
 }
 

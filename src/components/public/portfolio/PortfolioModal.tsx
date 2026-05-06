@@ -14,7 +14,7 @@ interface Props {
 
 // Resolve which image to show in the left panel: cover > bg > gradient
 function panelImage(item: PortfolioItem): string | undefined {
-  return item.coverImage ?? item.bgImage
+  return item.coverImage || item.bgImage || undefined
 }
 
 export function PortfolioModal({ item, onClose, lineHref = "/api/auth/line" }: Props) {
