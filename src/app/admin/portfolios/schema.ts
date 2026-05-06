@@ -15,7 +15,7 @@ export const portfolioSchema = z.object({
   growth_pct_before: z.number().nullable().optional(),
   duration_days: z.number().nullable(),
   cover_image: z.string().refine((v) => !v || /^https?:\/\//.test(v), "URL ต้องเป็น https://").optional().nullable(),
-  media_type: z.enum(["image", "video", "tiktok"]),
+  media_type: z.enum(["image"]),
   video_id: z.string().optional().nullable(),
   gradient: z.string().optional().nullable(),
   bg_image: z.string().optional().nullable(),

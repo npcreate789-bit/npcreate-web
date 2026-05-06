@@ -3,17 +3,11 @@
 import { useState } from "react"
 import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Loader2, Play } from "lucide-react"
+import { Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { portfolioSchema, type PortfolioInput } from "../schema"
 import { createPortfolio, updatePortfolio, uploadPortfolioCover } from "../actions"
 import type { Portfolio } from "@/types/database"
-
-function parseTikTokId(input: string): string | undefined {
-  if (!input) return undefined
-  const match = input.match(/\/video\/(\d+)/)
-  return match ? match[1] : /^\d+$/.test(input.trim()) ? input.trim() : undefined
-}
 
 function toSlug(text: string) {
   return (
@@ -142,8 +136,8 @@ export function PortfolioForm({ portfolio }: Props) {
           growth_pct_before: portfolio.growth_pct_before ?? null,
           duration_days:     portfolio.duration_days,
           cover_image:    portfolio.cover_image ?? "",
-          media_type:     portfolio.media_type ?? "image",
-          video_id:       portfolio.video_id ?? "",
+          media_type:     "image",
+          video_id:       "",
           gradient:       portfolio.gradient ?? GRADIENT_OPTIONS[0],
           bg_image:       portfolio.bg_image ?? "",
           is_featured:    portfolio.is_featured,
@@ -161,13 +155,10 @@ export function PortfolioForm({ portfolio }: Props) {
         },
   })
 
-  const watched         = useWatch({ control })
-  const serviceType     = watched.service_type ?? []
-  const mediaType       = watched.media_type ?? "image"
-  const gradient        = watched.gradient ?? GRADIENT_OPTIONS[0]
-  const industryLabel   = INDUSTRY_OPTIONS.find((o) => o.value === watched.industry)?.label ?? ""
-  const watchedVideoId  = watched.video_id ?? ""
-  const tiktokPreviewId = mediaType === "tiktok" ? parseTikTokId(watchedVideoId) : undefined
+  const watched       = useWatch({ control })
+  const serviceType   = watched.service_type ?? []
+  const gradient      = watched.gradient ?? GRADIENT_OPTIONS[0]
+  const industryLabel = INDUSTRY_OPTIONS.find((o) => o.value === watched.industry)?.label ?? ""
 
   async function handleCoverUpload(file: File) {
     setCoverUploading(true)
@@ -270,90 +261,7 @@ export function PortfolioForm({ portfolio }: Props) {
           </Field>
         </Section>
 
-        {/* ── Section 1: ประเภทสื่อ ── */}
-        <Section title="ประเภทสื่อ">
-          <div className="flex gap-2">
-            {([
-              { value: "image",  label: "🖼 รูปภาพ",   desc: "แสดงรูปบนการ์ดและ popup" },
-              { value: "video",  label: "▶ YouTube",   desc: "เล่น YouTube ใน popup" },
-              { value: "tiktok", label: "♪ TikTok",    desc: "เล่น TikTok ใน popup" },
-            ] as const).map((t) => (
-              <button
-                key={t.value}
-                type="button"
-                onClick={() => setValue("media_type", t.value)}
-                className={cn(
-                  "flex-1 py-2.5 rounded-xl text-sm font-medium border transition-all",
-                  mediaType === t.value
-                    ? "bg-[#DC2626] border-[#DC2626] text-white"
-                    : "bg-transparent border-white/10 text-slate-400 hover:text-white"
-                )}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
-          <p className="text-slate-500 text-xs -mt-1">
-            {mediaType === "image"
-              ? "รูปภาพปกจะแสดงบนการ์ดและ popup — ตั้งค่าได้ที่ section รูปภาพปกด้านล่าง"
-              : mediaType === "video"
-              ? "วิดีโอจะเปิดใน popup เมื่อคลิกการ์ด — รูปบนการ์ดตั้งค่าที่ section รูปภาพปก"
-              : "วิดีโอจะเปิดใน popup เมื่อคลิกการ์ด — รูปบนการ์ดตั้งค่าที่ section รูปภาพปก"}
-          </p>
-
-          {mediaType === "video" && (
-            <Field label="YouTube Video ID">
-              <input
-                {...register("video_id")}
-                placeholder="เช่น dQw4w9WgXcQ"
-                className={inputClass(false)}
-              />
-              <p className="text-slate-500 text-xs mt-1">
-                copy จาก URL: youtube.com/watch?v=<span className="text-slate-400">VIDEO_ID</span>
-              </p>
-              {watchedVideoId && (
-                <div className="rounded-xl overflow-hidden aspect-video bg-black mt-2">
-                  <iframe
-                    src={`https://www.youtube.com/embed/${watchedVideoId}`}
-                    className="w-full h-full"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    title="YouTube preview"
-                  />
-                </div>
-              )}
-            </Field>
-          )}
-
-          {mediaType === "tiktok" && (
-            <Field label="TikTok Video URL">
-              <input
-                {...register("video_id")}
-                placeholder="https://www.tiktok.com/@username/video/7123456789"
-                className={inputClass(false)}
-              />
-              <p className="text-slate-500 text-xs mt-1">
-                วาง URL เต็มจาก TikTok — ระบบจะดึง Video ID ให้อัตโนมัติ
-              </p>
-              {tiktokPreviewId ? (
-                <div className="rounded-xl overflow-hidden bg-black mt-2 flex justify-center" style={{ minHeight: 560 }}>
-                  <iframe
-                    src={`https://www.tiktok.com/embed/v2/${tiktokPreviewId}`}
-                    className="w-full"
-                    style={{ minHeight: 560 }}
-                    allow="autoplay; encrypted-media"
-                    allowFullScreen
-                    title="TikTok preview"
-                  />
-                </div>
-              ) : watchedVideoId ? (
-                <p className="text-amber-400 text-xs mt-1">ไม่สามารถแยก Video ID จาก URL นี้ได้ — ตรวจสอบรูปแบบ URL อีกครั้ง</p>
-              ) : null}
-            </Field>
-          )}
-        </Section>
-
-        {/* ── Section 2+3: รูปภาพปก + สีธีม (side by side) ── */}
+        {/* ── รูปภาพปก + สีธีม (side by side) ── */}
         <div className="bg-[#1C0D0D] border border-white/5 rounded-2xl p-6 space-y-4">
           <h2 className="text-white font-semibold text-sm">รูปภาพปกและสีธีมการ์ด</h2>
 
@@ -362,14 +270,8 @@ export function PortfolioForm({ portfolio }: Props) {
             {/* ── Left: รูปภาพปก ── */}
             <div className="space-y-3">
               <div>
-                <p className="text-slate-300 text-xs font-medium">
-                  {mediaType === "image" ? "รูปภาพปก *" : "รูปภาพปก / Thumbnail"}
-                </p>
-                <p className="text-slate-500 text-[11px] mt-0.5">
-                  {mediaType === "image"
-                    ? "แสดงบนการ์ดและ popup"
-                    : "แสดงบนการ์ด — ถ้าไม่มีใช้สีธีมแทน"}
-                </p>
+                <p className="text-slate-300 text-xs font-medium">รูปภาพปก</p>
+                <p className="text-slate-500 text-[11px] mt-0.5">แสดงบนการ์ดและ popup</p>
               </div>
 
               {/* Tab: upload / URL */}
@@ -629,7 +531,6 @@ export function PortfolioForm({ portfolio }: Props) {
         <CardPreview
           brand={watched.client_name || watched.title || "ชื่อแบรนด์"}
           category={industryLabel}
-          mediaType={mediaType}
           gradient={gradient}
           gmv={fmtGMV(watched.gmv_after)}
           gmvBefore={fmtGMV(watched.gmv_before)}
@@ -651,10 +552,10 @@ export function PortfolioForm({ portfolio }: Props) {
 // ── Live preview card ──────────────────────────────────────────────────────────
 
 function CardPreview({
-  brand, category, mediaType, gradient,
+  brand, category, gradient,
   gmv, gmvBefore, roi, roiBefore, growth, growthBefore, desc, tags,
 }: {
-  brand: string; category: string; mediaType: string; gradient: string
+  brand: string; category: string; gradient: string
   gmv: string; gmvBefore: string; roi: string; roiBefore: string
   growth: string; growthBefore: string; desc: string; tags: string[]
 }) {
@@ -667,22 +568,6 @@ function CardPreview({
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none">
         <span className="font-bold text-[80px] text-white/10 leading-none">
           {(brand[0] ?? "N").toUpperCase()}
-        </span>
-      </div>
-
-      {/* Video play button */}
-      {mediaType === "video" && (
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-            <Play className="text-white fill-white ml-0.5" size={18} />
-          </div>
-        </div>
-      )}
-
-      {/* Type badge */}
-      <div className="absolute top-3 right-3">
-        <span className="text-[10px] bg-black/40 backdrop-blur-sm text-white/90 px-2 py-0.5 rounded-full">
-          {mediaType === "tiktok" ? "TikTok" : mediaType === "video" ? "วิดีโอ" : "รูปภาพ"}
         </span>
       </div>
 

@@ -125,15 +125,12 @@ export function PortfolioModal({ item, onClose, lineHref = "/api/auth/line" }: P
             </div>
           </div>
 
-          {/* ── Right: info + media panel ── */}
+          {/* ── Right: info panel ── */}
           <div className="p-5 sm:p-7 flex flex-col gap-4">
-            {/* Badges */}
+            {/* Badge */}
             <div className="flex items-center gap-2 pr-10">
               <span className="text-xs bg-[#DC2626]/20 text-[#FCA5A5] px-2.5 py-1 rounded-full font-medium">
                 {categoryLabel[item.category]}
-              </span>
-              <span className="text-xs bg-white/5 text-slate-400 px-2.5 py-1 rounded-full">
-                {item.tiktokId ? "TikTok" : item.type === "video" ? "วิดีโอ" : "รูปภาพ"}
               </span>
             </div>
 
@@ -153,38 +150,6 @@ export function PortfolioModal({ item, onClose, lineHref = "/api/auth/line" }: P
                     {tag}
                   </span>
                 ))}
-              </div>
-            )}
-
-            {/* YouTube embed */}
-            {item.type === "video" && item.videoId && (
-              <div className="rounded-xl overflow-hidden aspect-video bg-black ring-1 ring-white/10">
-                <iframe
-                  src={`https://www.youtube.com/embed/${item.videoId}`}
-                  className="w-full h-full"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  title={`${item.brand} — portfolio video`}
-                />
-              </div>
-            )}
-
-            {/* TikTok embed — crop out header (~50px) and bottom chrome (~110px) */}
-            {item.tiktokId && (
-              <div className="flex justify-center">
-                <div
-                  className="relative w-full max-w-[240px] overflow-hidden rounded-xl ring-1 ring-white/10 bg-black"
-                  style={{ height: 400 }}
-                >
-                  <iframe
-                    src={`https://www.tiktok.com/embed/v2/${item.tiktokId}`}
-                    className="absolute left-0 w-full border-0"
-                    style={{ top: -50, height: 560 }}
-                    allow="autoplay; encrypted-media"
-                    allowFullScreen
-                    title={`${item.brand} — TikTok`}
-                  />
-                </div>
               </div>
             )}
 

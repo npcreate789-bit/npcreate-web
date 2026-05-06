@@ -1,18 +1,11 @@
 "use client"
 
 import { useState } from "react"
-import { Play } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { categoryOptions, categoryLabel } from "@/lib/data/portfolio"
-import type { PortfolioCategory, PortfolioMediaType, PortfolioItem } from "@/lib/data/portfolio"
+import type { PortfolioCategory, PortfolioItem } from "@/lib/data/portfolio"
 import type { Portfolio } from "@/types/database"
 import { PortfolioModal } from "./PortfolioModal"
-
-function parseTikTokId(input: string): string | undefined {
-  if (!input) return undefined
-  const match = input.match(/\/video\/(\d+)/)
-  return match ? match[1] : /^\d+$/.test(input.trim()) ? input.trim() : undefined
-}
 
 function fmtGMV(val: number | null): string {
   if (!val) return "—"
@@ -26,8 +19,6 @@ function toItem(p: Portfolio): PortfolioItem {
     id:          p.id,
     brand:       p.client_name || p.title,
     category:    (p.industry ?? "other") as Exclude<PortfolioCategory, "all">,
-    // TikTok maps to "video" so the filter treats it as video content
-    type:        p.media_type === "image" ? "image" : "video",
     gradient:    p.gradient ?? "from-red-800 via-rose-700 to-red-600",
     stats: {
       gmv:          fmtGMV(p.gmv_after),
@@ -39,8 +30,6 @@ function toItem(p: Portfolio): PortfolioItem {
     },
     description: p.short_desc ?? "",
     tags:        p.service_type ?? [],
-    videoId:     p.media_type === "video"  ? (p.video_id  ?? undefined) : undefined,
-    tiktokId:    p.media_type === "tiktok" ? parseTikTokId(p.video_id ?? "") : undefined,
     coverImage:  p.cover_image || undefined,
     bgImage:     p.bg_image || undefined,
   }
@@ -53,52 +42,32 @@ interface Props {
 
 export function PortfolioGrid({ portfolios, lineHref = "/api/auth/line" }: Props) {
   const [activeCategory, setActiveCategory] = useState<PortfolioCategory>("all")
-  const [activeType, setActiveType] = useState<PortfolioMediaType>("all")
   const [selected, setSelected] = useState<PortfolioItem | null>(null)
 
   const items = portfolios.map(toItem)
 
-  const filtered = items.filter((item) => {
-    const matchCat  = activeCategory === "all" || item.category === activeCategory
-    const matchType = activeType === "all" || item.type === activeType
-    return matchCat && matchType
-  })
+  const filtered = items.filter((item) =>
+    activeCategory === "all" || item.category === activeCategory
+  )
 
   return (
     <>
       {/* Filter bar */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-10">
-        <div className="flex flex-wrap gap-2">
-          {categoryOptions.map((opt) => (
-            <button
-              key={opt.value}
-              onClick={() => setActiveCategory(opt.value)}
-              className={cn(
-                "px-4 py-1.5 rounded-full text-sm font-medium transition-all",
-                activeCategory === opt.value
-                  ? "bg-[#DC2626] text-white shadow-lg shadow-red-900/30"
-                  : "bg-[#1C0D0D] text-slate-400 hover:text-white hover:bg-[#1C0D0D]/80"
-              )}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-
-        <div className="flex items-center gap-1 bg-[#1C0D0D] p-1 rounded-lg shrink-0">
-          {(["all", "image", "video"] as const).map((type) => (
-            <button
-              key={type}
-              onClick={() => setActiveType(type)}
-              className={cn(
-                "px-3 py-1.5 rounded-md text-xs font-medium transition-colors",
-                activeType === type ? "bg-[#0A0808] text-white" : "text-slate-400 hover:text-white"
-              )}
-            >
-              {type === "all" ? "ทั้งหมด" : type === "image" ? "รูปภาพ" : "วิดีโอ"}
-            </button>
-          ))}
-        </div>
+      <div className="flex flex-wrap gap-2 mb-10">
+        {categoryOptions.map((opt) => (
+          <button
+            key={opt.value}
+            onClick={() => setActiveCategory(opt.value)}
+            className={cn(
+              "px-4 py-1.5 rounded-full text-sm font-medium transition-all",
+              activeCategory === opt.value
+                ? "bg-[#DC2626] text-white shadow-lg shadow-red-900/30"
+                : "bg-[#1C0D0D] text-slate-400 hover:text-white hover:bg-[#1C0D0D]/80"
+            )}
+          >
+            {opt.label}
+          </button>
+        ))}
       </div>
 
       {items.length === 0 ? (
@@ -127,8 +96,6 @@ export function PortfolioGrid({ portfolios, lineHref = "/api/auth/line" }: Props
 }
 
 function PortfolioCard({ item, onClick }: { item: PortfolioItem; onClick: () => void }) {
-  const isVideo = item.type === "video"
-
   return (
     <div
       onClick={onClick}
@@ -155,22 +122,6 @@ function PortfolioCard({ item, onClick }: { item: PortfolioItem; onClick: () => 
           </span>
         </div>
       )}
-
-      {/* Play button for video/tiktok */}
-      {isVideo && (
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-            <Play className="text-white fill-white ml-0.5" size={20} />
-          </div>
-        </div>
-      )}
-
-      {/* Media type badge */}
-      <div className="absolute top-3 right-3">
-        <span className="text-[11px] bg-black/40 backdrop-blur-sm text-white/90 px-2.5 py-1 rounded-full font-medium">
-          {item.tiktokId ? "TikTok" : isVideo ? "วิดีโอ" : "รูปภาพ"}
-        </span>
-      </div>
 
       {/* Default bottom label — slides out on hover */}
       <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 via-black/30 to-transparent translate-y-0 group-hover:translate-y-full transition-transform duration-300">
