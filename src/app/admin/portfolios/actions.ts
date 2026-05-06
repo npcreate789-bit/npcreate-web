@@ -27,9 +27,17 @@ export async function uploadPortfolioCover(formData: FormData): Promise<string> 
   return data.publicUrl
 }
 
+function toDbPayload(data: PortfolioInput) {
+  // Strip undefined values — prevents Supabase "column does not exist" errors
+  // if a migration hasn't been applied on the production DB yet.
+  return Object.fromEntries(
+    Object.entries(data).filter(([, v]) => v !== undefined)
+  )
+}
+
 export async function createPortfolio(data: PortfolioInput) {
   const { supabase } = await requireAdmin()
-  const { error } = await supabase.from("portfolios").insert(data)
+  const { error } = await supabase.from("portfolios").insert(toDbPayload(data))
   if (error) throw new Error(error.message)
   revalidatePath("/admin/portfolios")
   redirect("/admin/portfolios")
@@ -37,7 +45,8 @@ export async function createPortfolio(data: PortfolioInput) {
 
 export async function updatePortfolio(id: string, data: PortfolioInput) {
   const { supabase } = await requireAdmin()
-  const { error } = await supabase.from("portfolios").update({ ...data, updated_at: new Date().toISOString() }).eq("id", id)
+  const payload = { ...toDbPayload(data), updated_at: new Date().toISOString() }
+  const { error } = await supabase.from("portfolios").update(payload).eq("id", id)
   if (error) throw new Error(error.message)
   revalidatePath("/admin/portfolios")
   redirect("/admin/portfolios")
