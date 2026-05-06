@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect } from "react"
-import { X, BarChart2, Zap, TrendingUp } from "lucide-react"
+import { X, Zap, TrendingUp } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { PortfolioItem } from "@/lib/data/portfolio"
 import { categoryLabel } from "@/lib/data/portfolio"
@@ -60,20 +60,32 @@ export function PortfolioModal({ item, onClose, lineHref = "/api/auth/line" }: P
               </span>
             </div>
 
-            {/* Stats grid over visual */}
-            <div className="absolute bottom-0 left-0 right-0 p-5">
-              <div className="grid grid-cols-3 gap-2">
+            {/* Stats overlay */}
+            <div className="absolute bottom-0 left-0 right-0 p-4 space-y-2">
+              {/* GMV before → after */}
+              <div className="bg-black/40 backdrop-blur-sm rounded-xl px-4 py-3 flex items-center gap-3">
+                <div className="flex-1 text-center">
+                  <div className="text-white/40 text-[9px] mb-0.5">ก่อนดูแล</div>
+                  <div className="text-white font-bold text-lg leading-none">{item.stats.gmvBefore}</div>
+                  <div className="text-white/30 text-[8px] mt-0.5">บาท/6เดือน</div>
+                </div>
+                <div className="text-[#F59E0B] font-bold text-xl">→</div>
+                <div className="flex-1 text-center">
+                  <div className="text-[#10B981] text-[9px] mb-0.5">หลังดูแล</div>
+                  <div className="font-display font-bold text-[#F59E0B] text-xl leading-none">{item.stats.gmv}</div>
+                  <div className="text-white/30 text-[8px] mt-0.5">บาท/6เดือน</div>
+                </div>
+              </div>
+              {/* ROI + Growth */}
+              <div className="grid grid-cols-2 gap-2">
                 {[
-                  { Icon: BarChart2, label: "GMV", value: item.stats.gmv },
-                  { Icon: Zap, label: "ROI", value: item.stats.roas },
+                  { Icon: Zap,        label: "ROI",    value: item.stats.roas },
                   { Icon: TrendingUp, label: "Growth", value: item.stats.growth },
                 ].map(({ Icon, label, value }) => (
-                  <div key={label} className="bg-black/30 backdrop-blur-sm rounded-xl p-3 text-center">
-                    <Icon size={13} className="text-[#F59E0B] mx-auto mb-1" />
-                    <div className="font-display font-bold text-[#F59E0B] text-xl leading-none">
-                      {value}
-                    </div>
-                    <div className="text-white/50 text-[10px] mt-0.5">{label}</div>
+                  <div key={label} className="bg-black/30 backdrop-blur-sm rounded-xl p-2.5 text-center">
+                    <Icon size={12} className="text-[#F59E0B] mx-auto mb-1" />
+                    <div className="font-display font-bold text-[#F59E0B] text-lg leading-none">{value}</div>
+                    <div className="text-white/50 text-[9px] mt-0.5">{label}</div>
                   </div>
                 ))}
               </div>

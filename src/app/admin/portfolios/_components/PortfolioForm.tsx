@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Loader2, Play, BarChart2, Zap, TrendingUp } from "lucide-react"
+import { Loader2, Play, Zap, TrendingUp } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { portfolioSchema, type PortfolioInput } from "../schema"
 import { createPortfolio, updatePortfolio, uploadPortfolioCover } from "../actions"
@@ -277,23 +277,43 @@ export function PortfolioForm({ portfolio }: Props) {
 
         {/* ตัวเลขผลลัพธ์ */}
         <Section title="ตัวเลขผลลัพธ์ (แสดงบนการ์ด)">
+          {/* GMV before → after */}
+          <div>
+            <p className="text-slate-300 text-xs font-medium mb-3">
+              GMV เปรียบเทียบ <span className="text-slate-500 font-normal">(บาท / 6 เดือน)</span>
+            </p>
+            <div className="flex items-end gap-3">
+              <div className="flex-1 space-y-1.5">
+                <span className="text-slate-500 text-[10px]">ก่อนดูแล</span>
+                <input
+                  type="number"
+                  {...register("gmv_before", { setValueAs: toNum })}
+                  placeholder="200000"
+                  className={inputClass(false)}
+                />
+              </div>
+              <div className="pb-2.5 text-[#F59E0B] font-bold text-xl flex-shrink-0">→</div>
+              <div className="flex-1 space-y-1.5">
+                <span className="text-[#10B981] text-[10px]">หลังดูแล</span>
+                <input
+                  type="number"
+                  {...register("gmv_after", { setValueAs: toNum })}
+                  placeholder="2400000"
+                  className={inputClass(false)}
+                />
+              </div>
+            </div>
+          </div>
+
           <div className="grid sm:grid-cols-3 gap-4">
-            <Field label="GMV หลัง (บาท/เดือน)">
-              <input type="number" {...register("gmv_after", { setValueAs: toNum })} placeholder="2400000" className={inputClass(false)} />
-            </Field>
             <Field label="ROI (เท่า)">
               <input type="number" step="0.1" {...register("roas", { setValueAs: toNum })} placeholder="9" className={inputClass(false)} />
             </Field>
             <Field label="Growth (%)">
               <input type="number" {...register("gmv_growth_pct", { setValueAs: toNum })} placeholder="280" className={inputClass(false)} />
             </Field>
-          </div>
-          <div className="grid sm:grid-cols-2 gap-4">
-            <Field label="GMV ก่อน (บาท/เดือน)">
-              <input type="number" {...register("gmv_before", { setValueAs: toNum })} placeholder="200000" className={inputClass(false)} />
-            </Field>
             <Field label="ระยะเวลา (วัน)">
-              <input type="number" {...register("duration_days", { setValueAs: toNum })} placeholder="30" className={inputClass(false)} />
+              <input type="number" {...register("duration_days", { setValueAs: toNum })} placeholder="180" className={inputClass(false)} />
             </Field>
           </div>
         </Section>
@@ -465,6 +485,7 @@ export function PortfolioForm({ portfolio }: Props) {
           mediaType={mediaType}
           gradient={gradient}
           gmv={fmtGMV(watched.gmv_after)}
+          gmvBefore={fmtGMV(watched.gmv_before)}
           roi={watched.roas ? `${watched.roas}x` : "—"}
           growth={watched.gmv_growth_pct ? `+${watched.gmv_growth_pct}%` : "—"}
           desc={watched.short_desc || "คำอธิบายสั้นของผลงาน จะแสดงเมื่อ hover บนการ์ด"}
@@ -481,10 +502,10 @@ export function PortfolioForm({ portfolio }: Props) {
 // ── Live preview card ──────────────────────────────────────────────────────────
 
 function CardPreview({
-  brand, category, mediaType, gradient, gmv, roi, growth, desc, tags,
+  brand, category, mediaType, gradient, gmv, gmvBefore, roi, growth, desc, tags,
 }: {
   brand: string; category: string; mediaType: string; gradient: string
-  gmv: string; roi: string; growth: string; desc: string; tags: string[]
+  gmv: string; gmvBefore: string; roi: string; growth: string; desc: string; tags: string[]
 }) {
   return (
     <div className="relative aspect-[3/4] rounded-2xl overflow-hidden w-full max-w-[260px] mx-auto ring-1 ring-white/10">
@@ -516,16 +537,27 @@ function CardPreview({
 
       {/* Hover overlay — always visible in preview */}
       <div className="absolute inset-0 bg-black/85 backdrop-blur-[2px] flex flex-col justify-center p-4">
-        {/* Stats row */}
-        <div className="grid grid-cols-3 gap-1.5 mb-4">
+        {/* GMV before → after */}
+        <div className="bg-black/30 backdrop-blur-sm rounded-lg px-3 py-2 flex items-center justify-between gap-1 mb-2">
+          <div className="text-center flex-1">
+            <div className="text-white/40 text-[8px] leading-none mb-0.5">ก่อน</div>
+            <div className="text-white/70 font-bold text-xs leading-none">{gmvBefore}</div>
+          </div>
+          <div className="text-[#F59E0B] font-bold text-sm">→</div>
+          <div className="text-center flex-1">
+            <div className="text-[#10B981] text-[8px] leading-none mb-0.5">หลัง/6เดือน</div>
+            <div className="text-[#F59E0B] font-bold text-xs leading-none">{gmv}</div>
+          </div>
+        </div>
+        {/* ROI + Growth */}
+        <div className="grid grid-cols-2 gap-1.5 mb-4">
           {[
-            { Icon: BarChart2, label: "GMV",    value: gmv },
-            { Icon: Zap,       label: "ROI",    value: roi },
-            { Icon: TrendingUp,label: "Growth", value: growth },
+            { Icon: Zap,        label: "ROI",    value: roi },
+            { Icon: TrendingUp, label: "Growth", value: growth },
           ].map(({ Icon, label, value }) => (
             <div key={label} className="bg-black/30 backdrop-blur-sm rounded-lg p-2 text-center">
               <Icon size={11} className="text-[#F59E0B] mx-auto mb-1" />
-              <div className="text-[#F59E0B] font-bold text-base leading-none">{value}</div>
+              <div className="text-[#F59E0B] font-bold text-sm leading-none">{value}</div>
               <div className="text-white/40 text-[9px] mt-0.5">{label}</div>
             </div>
           ))}

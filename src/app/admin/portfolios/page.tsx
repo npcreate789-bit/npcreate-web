@@ -6,6 +6,12 @@ import { PortfolioRowActions } from "./_components/PortfolioRowActions"
 import { PortfolioPageSettingsForm } from "./_components/PortfolioPageSettingsForm"
 import { mergePortfolioPage } from "@/lib/data/portfolio-page"
 
+function fmtShort(val: number): string {
+  if (val >= 1_000_000) return `${(val / 1_000_000).toFixed(1)}M`
+  if (val >= 1_000) return `${Math.round(val / 1_000)}K`
+  return val.toLocaleString()
+}
+
 export default async function PortfoliosPage() {
   const supabase = await createClient()
   const [{ data: portfolios }, { data: pageData }] = await Promise.all([
@@ -59,7 +65,7 @@ export default async function PortfoliosPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-white/5">
-                  {["ชื่อผลงาน", "แบรนด์", "GMV หลัง", "ROI", ""].map((h) => (
+                  {["ชื่อผลงาน", "แบรนด์", "GMV เปรียบเทียบ (บาท/6เดือน)", "ROI", ""].map((h) => (
                     <th key={h} className="px-5 py-3.5 text-left text-slate-500 font-medium text-xs whitespace-nowrap">
                       {h}
                     </th>
@@ -76,8 +82,13 @@ export default async function PortfoliosPage() {
                     <td className="px-5 py-4 text-slate-300 whitespace-nowrap">
                       {p.client_name ?? "—"}
                     </td>
-                    <td className="px-5 py-4 text-slate-300 whitespace-nowrap">
-                      {p.gmv_after ? `฿${p.gmv_after.toLocaleString()}` : "—"}
+                    <td className="px-5 py-4 whitespace-nowrap">
+                      {p.gmv_before ? (
+                        <span className="text-slate-500 text-xs">฿{fmtShort(p.gmv_before)} → </span>
+                      ) : null}
+                      <span className="text-white font-medium">
+                        {p.gmv_after ? `฿${fmtShort(p.gmv_after)}` : "—"}
+                      </span>
                     </td>
                     <td className="px-5 py-4 text-slate-300 whitespace-nowrap">
                       {p.roas ? `${p.roas}x` : "—"}
