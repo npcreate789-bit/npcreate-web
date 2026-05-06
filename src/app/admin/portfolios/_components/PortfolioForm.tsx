@@ -37,13 +37,13 @@ function fmtGMV(val: number | null | undefined) {
   return val.toLocaleString()
 }
 
-// Resize any image to 540×960 (9:16 portrait) with center-crop using Canvas API
-function resizeTo9x16(file: File): Promise<File> {
+// Resize any image to 960×540 (16:9 landscape) with center-crop using Canvas API
+function resizeTo16x9(file: File): Promise<File> {
   return new Promise((resolve, reject) => {
     const img = new Image()
     img.onload = () => {
-      const targetW = 540
-      const targetH = 960
+      const targetW = 960
+      const targetH = 540
       const canvas = document.createElement("canvas")
       canvas.width  = targetW
       canvas.height = targetH
@@ -188,7 +188,7 @@ export function PortfolioForm({ portfolio }: Props) {
     setBgUploading(true)
     setBgUploadError(null)
     try {
-      const resized = await resizeTo9x16(file)
+      const resized = await resizeTo16x9(file)
       const formData = new FormData()
       formData.append("file", resized)
       const url = await uploadPortfolioCover(formData)
@@ -448,7 +448,7 @@ export function PortfolioForm({ portfolio }: Props) {
             {/* ── Right: รูป Background 9:16 ── */}
             <div className="space-y-3">
               <div>
-                <p className="text-slate-300 text-xs font-medium">รูป Background (9:16)</p>
+                <p className="text-slate-300 text-xs font-medium">รูป Background (16:9)</p>
                 <p className="text-slate-500 text-[11px] mt-0.5">ใช้เป็น background ใน popup เมื่อไม่มีรูปปก — ระบบ resize อัตโนมัติ</p>
               </div>
 
@@ -456,7 +456,7 @@ export function PortfolioForm({ portfolio }: Props) {
               {watched.bg_image && !bgUploading ? (
                 <div className="relative group rounded-xl overflow-hidden border border-white/10 bg-black/20">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={watched.bg_image} alt="bg preview" className="w-full object-cover aspect-[9/16]" />
+                  <img src={watched.bg_image} alt="bg preview" className="w-full object-cover aspect-[16/9]" />
                   <label className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
                     <span className="text-white text-sm font-semibold bg-black/70 px-4 py-2 rounded-xl">
                       คลิกเพื่อเปลี่ยนรูป
@@ -475,7 +475,7 @@ export function PortfolioForm({ portfolio }: Props) {
                 </div>
               ) : (
                 <label className={cn(
-                  "flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-xl px-3 cursor-pointer transition-colors aspect-[9/16]",
+                  "flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-xl px-3 cursor-pointer transition-colors aspect-[16/9]",
                   bgUploading ? "border-white/20 opacity-60 cursor-not-allowed" : "border-white/10 hover:border-[#DC2626]/50"
                 )}>
                   {bgUploading ? (
@@ -486,7 +486,7 @@ export function PortfolioForm({ portfolio }: Props) {
                   ) : (
                     <>
                       <span className="text-slate-400 text-sm text-center">คลิกเพื่อเลือกรูปภาพ</span>
-                      <span className="text-slate-600 text-[11px] text-center">JPG, PNG, WEBP<br />ระบบจะ resize เป็น 9:16<br />อัตโนมัติ</span>
+                      <span className="text-slate-600 text-[11px] text-center">JPG, PNG, WEBP<br />ระบบจะ resize เป็น 16:9<br />อัตโนมัติ</span>
                     </>
                   )}
                   <input type="file" accept="image/*" disabled={bgUploading} className="sr-only"
