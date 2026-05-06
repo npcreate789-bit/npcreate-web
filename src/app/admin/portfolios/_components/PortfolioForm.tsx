@@ -212,69 +212,36 @@ export function PortfolioForm({ portfolio }: Props) {
           </Field>
         </Section>
 
-        {/* ประเภทสื่อ + gradient */}
-        <Section title="รูปแบบการ์ด">
-          <Field label="ประเภทสื่อ">
-            <div className="flex gap-2">
-              {([
-                { value: "image",  label: "🖼 รูปภาพ" },
-                { value: "video",  label: "▶ YouTube" },
-                { value: "tiktok", label: "♪ TikTok" },
-              ] as const).map((t) => (
-                <button
-                  key={t.value}
-                  type="button"
-                  onClick={() => setValue("media_type", t.value)}
-                  className={cn(
-                    "flex-1 py-2.5 rounded-xl text-sm font-medium border transition-all",
-                    mediaType === t.value
-                      ? "bg-[#DC2626] border-[#DC2626] text-white"
-                      : "bg-transparent border-white/10 text-slate-400 hover:text-white"
-                  )}
-                >
-                  {t.label}
-                </button>
-              ))}
-            </div>
-          </Field>
-
-          {/* Image type — upload cover image directly */}
-          {mediaType === "image" && (
-            <div className="space-y-2">
-              <p className="text-slate-300 text-xs font-medium">รูปภาพหลัก</p>
-              {watched.cover_image && !coverUploading ? (
-                <div className="relative group rounded-xl overflow-hidden border border-white/10 bg-black/20">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={watched.cover_image} alt="cover preview" className="w-full object-cover aspect-[3/4]" />
-                  <label className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                    <span className="text-white text-sm font-semibold bg-black/70 px-5 py-2.5 rounded-xl">คลิกเพื่อเปลี่ยนรูป</span>
-                    <input type="file" accept="image/*" className="sr-only"
-                      onChange={(e) => { const f = e.target.files?.[0]; if (f) void handleCoverUpload(f) }} />
-                  </label>
-                </div>
-              ) : (
-                <label className={cn(
-                  "flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-xl px-4 py-10 cursor-pointer transition-colors",
-                  coverUploading ? "border-white/20 opacity-60 cursor-not-allowed" : "border-white/10 hover:border-[#DC2626]/50"
-                )}>
-                  {coverUploading ? (
-                    <div className="flex items-center gap-2 text-slate-400 text-sm">
-                      <Loader2 size={16} className="animate-spin" />
-                      กำลังอัพโหลด...
-                    </div>
-                  ) : (
-                    <>
-                      <span className="text-slate-400 text-sm">คลิกเพื่อเลือกรูปภาพ</span>
-                      <span className="text-slate-600 text-xs">JPG, PNG, WEBP · สูงสุด 10 MB</span>
-                    </>
-                  )}
-                  <input type="file" accept="image/*" disabled={coverUploading} className="sr-only"
-                    onChange={(e) => { const f = e.target.files?.[0]; if (f) void handleCoverUpload(f) }} />
-                </label>
-              )}
-              {coverUploadError && <p className="text-red-400 text-xs">{coverUploadError}</p>}
-            </div>
-          )}
+        {/* ── Section 1: ประเภทสื่อ ── */}
+        <Section title="ประเภทสื่อ">
+          <div className="flex gap-2">
+            {([
+              { value: "image",  label: "🖼 รูปภาพ",   desc: "แสดงรูปบนการ์ดและ popup" },
+              { value: "video",  label: "▶ YouTube",   desc: "เล่น YouTube ใน popup" },
+              { value: "tiktok", label: "♪ TikTok",    desc: "เล่น TikTok ใน popup" },
+            ] as const).map((t) => (
+              <button
+                key={t.value}
+                type="button"
+                onClick={() => setValue("media_type", t.value)}
+                className={cn(
+                  "flex-1 py-2.5 rounded-xl text-sm font-medium border transition-all",
+                  mediaType === t.value
+                    ? "bg-[#DC2626] border-[#DC2626] text-white"
+                    : "bg-transparent border-white/10 text-slate-400 hover:text-white"
+                )}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+          <p className="text-slate-500 text-xs -mt-1">
+            {mediaType === "image"
+              ? "รูปภาพปกจะแสดงบนการ์ดและ popup — ตั้งค่าได้ที่ section รูปภาพปกด้านล่าง"
+              : mediaType === "video"
+              ? "วิดีโอจะเปิดใน popup เมื่อคลิกการ์ด — รูปบนการ์ดตั้งค่าที่ section รูปภาพปก"
+              : "วิดีโอจะเปิดใน popup เมื่อคลิกการ์ด — รูปบนการ์ดตั้งค่าที่ section รูปภาพปก"}
+          </p>
 
           {mediaType === "video" && (
             <Field label="YouTube Video ID">
@@ -283,7 +250,7 @@ export function PortfolioForm({ portfolio }: Props) {
                 placeholder="เช่น dQw4w9WgXcQ"
                 className={inputClass(false)}
               />
-              <p className="text-slate-500 text-xs mt-1.5">
+              <p className="text-slate-500 text-xs mt-1">
                 copy จาก URL: youtube.com/watch?v=<span className="text-slate-400">VIDEO_ID</span>
               </p>
               {watchedVideoId && (
@@ -307,7 +274,7 @@ export function PortfolioForm({ portfolio }: Props) {
                 placeholder="https://www.tiktok.com/@username/video/7123456789"
                 className={inputClass(false)}
               />
-              <p className="text-slate-500 text-xs mt-1.5">
+              <p className="text-slate-500 text-xs mt-1">
                 วาง URL เต็มจาก TikTok — ระบบจะดึง Video ID ให้อัตโนมัติ
               </p>
               {tiktokPreviewId ? (
@@ -326,26 +293,109 @@ export function PortfolioForm({ portfolio }: Props) {
               ) : null}
             </Field>
           )}
+        </Section>
 
-          <Field label="สีธีมการ์ด">
-            <div className="flex flex-wrap gap-2 mt-1">
-              {GRADIENT_OPTIONS.map((g) => (
-                <button
-                  key={g}
-                  type="button"
-                  onClick={() => setValue("gradient", g)}
-                  title={g}
-                  className={cn(
-                    "w-9 h-9 rounded-xl bg-gradient-to-br border-2 transition-all",
-                    g,
-                    gradient === g
-                      ? "border-white shadow-lg scale-110"
-                      : "border-transparent opacity-60 hover:opacity-90 hover:scale-105"
+        {/* ── Section 2: รูปภาพปก (unified — always shown) ── */}
+        <Section title={mediaType === "image" ? "รูปภาพปก *" : "รูปภาพปก / Thumbnail"}>
+          <p className="text-slate-500 text-xs -mt-2">
+            {mediaType === "image"
+              ? "รูปนี้จะแสดงบนการ์ดและ popup — ควรอัพโหลดเสมอ"
+              : "ภาพปกที่แสดงบนการ์ดผลงาน — ถ้าไม่มีจะใช้สีธีมแทน"}
+          </p>
+
+          {/* Tab: upload / URL */}
+          <div className="flex gap-1 bg-white/5 p-1 rounded-xl">
+            {([
+              { key: "upload" as const, label: "อัพโหลดไฟล์" },
+              { key: "url"   as const, label: "ใส่ URL" },
+            ]).map(({ key, label }) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setCoverUploadMode(key)}
+                className={cn(
+                  "flex-1 py-1.5 rounded-lg text-xs font-medium transition-all text-center",
+                  coverUploadMode === key ? "bg-[#DC2626] text-white" : "text-slate-400 hover:text-white"
+                )}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {coverUploadMode === "upload" ? (
+            <div className="space-y-2">
+              {watched.cover_image && !coverUploading ? (
+                <div className="relative group rounded-xl overflow-hidden border border-white/10 bg-black/20">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={watched.cover_image} alt="cover preview" className="w-full object-cover aspect-[3/4]" />
+                  <label className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                    <span className="text-white text-sm font-semibold bg-black/70 px-5 py-2.5 rounded-xl">
+                      คลิกเพื่อเปลี่ยนรูป
+                    </span>
+                    <input type="file" accept="image/*" className="sr-only"
+                      onChange={(e) => { const f = e.target.files?.[0]; if (f) void handleCoverUpload(f) }} />
+                  </label>
+                </div>
+              ) : (
+                <label className={cn(
+                  "flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-xl px-4 py-10 cursor-pointer transition-colors",
+                  coverUploading ? "border-white/20 opacity-60 cursor-not-allowed" : "border-white/10 hover:border-[#DC2626]/50"
+                )}>
+                  {coverUploading ? (
+                    <div className="flex items-center gap-2 text-slate-400 text-sm">
+                      <Loader2 size={16} className="animate-spin" />
+                      กำลังอัพโหลด...
+                    </div>
+                  ) : (
+                    <>
+                      <span className="text-slate-400 text-sm">คลิกเพื่อเลือกรูปภาพ</span>
+                      <span className="text-slate-600 text-xs">JPG, PNG, WEBP · สูงสุด 10 MB · อัตราส่วน 3:4</span>
+                    </>
                   )}
-                />
-              ))}
+                  <input type="file" accept="image/*" disabled={coverUploading} className="sr-only"
+                    onChange={(e) => { const f = e.target.files?.[0]; if (f) void handleCoverUpload(f) }} />
+                </label>
+              )}
+              {coverUploadError && <p className="text-red-400 text-xs">{coverUploadError}</p>}
             </div>
-          </Field>
+          ) : (
+            <div className="space-y-2">
+              <input
+                {...register("cover_image")}
+                placeholder="https://example.com/cover.jpg"
+                className={inputClass(false)}
+              />
+              {watched.cover_image && (
+                <div className="rounded-xl overflow-hidden border border-white/10 bg-black/20">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={watched.cover_image} alt="cover preview" className="w-full object-cover aspect-[3/4]" />
+                </div>
+              )}
+            </div>
+          )}
+        </Section>
+
+        {/* ── Section 3: สีธีมการ์ด ── */}
+        <Section title="สีธีมการ์ด">
+          <p className="text-slate-500 text-xs -mt-2">ใช้เป็น background เมื่อไม่มีรูปปก</p>
+          <div className="flex flex-wrap gap-2">
+            {GRADIENT_OPTIONS.map((g) => (
+              <button
+                key={g}
+                type="button"
+                onClick={() => setValue("gradient", g)}
+                title={g}
+                className={cn(
+                  "w-9 h-9 rounded-xl bg-gradient-to-br border-2 transition-all",
+                  g,
+                  gradient === g
+                    ? "border-white shadow-lg scale-110"
+                    : "border-transparent opacity-60 hover:opacity-90 hover:scale-105"
+                )}
+              />
+            ))}
+          </div>
         </Section>
 
         {/* ตัวเลขผลลัพธ์ */}
@@ -415,108 +465,6 @@ export function PortfolioForm({ portfolio }: Props) {
           </div>
           <p className="text-slate-600 text-xs mt-1">แสดงเป็นแท็กใต้คำอธิบายในการ์ด</p>
         </Section>
-
-        {/* รูปภาพปก — แสดงเฉพาะ video/tiktok (image type จัดการใน media section แล้ว) */}
-        {mediaType !== "image" && <Section title="รูปภาพปก / Thumbnail (ถ้ามี)">
-          {/* Tab switcher */}
-          <div className="flex gap-1 bg-white/5 p-1 rounded-xl">
-            {([
-              { key: "upload" as const, label: "อัพโหลดไฟล์" },
-              { key: "url"   as const, label: "ใส่ URL" },
-            ]).map(({ key, label }) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => setCoverUploadMode(key)}
-                className={cn(
-                  "flex-1 py-1.5 rounded-lg text-xs font-medium transition-all text-center",
-                  coverUploadMode === key
-                    ? "bg-[#DC2626] text-white"
-                    : "text-slate-400 hover:text-white"
-                )}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-
-          {coverUploadMode === "upload" ? (
-            <div className="space-y-2">
-              {watched.cover_image && !coverUploading ? (
-                <div className="relative group rounded-xl overflow-hidden border border-white/10 bg-black/20">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={watched.cover_image}
-                    alt="cover preview"
-                    className="w-full object-cover aspect-[3/4]"
-                  />
-                  <label className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                    <span className="text-white text-sm font-semibold bg-black/70 px-5 py-2.5 rounded-xl">
-                      คลิกเพื่อเปลี่ยนรูป
-                    </span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="sr-only"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0]
-                        if (file) void handleCoverUpload(file)
-                      }}
-                    />
-                  </label>
-                </div>
-              ) : (
-                <label className={cn(
-                  "flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-xl px-4 py-10 cursor-pointer transition-colors",
-                  coverUploading
-                    ? "border-white/20 opacity-60 cursor-not-allowed"
-                    : "border-white/10 hover:border-[#DC2626]/50"
-                )}>
-                  {coverUploading ? (
-                    <div className="flex items-center gap-2 text-slate-400 text-sm">
-                      <Loader2 size={16} className="animate-spin" />
-                      กำลังอัพโหลด...
-                    </div>
-                  ) : (
-                    <>
-                      <span className="text-slate-400 text-sm">คลิกเพื่อเลือกรูปปก</span>
-                      <span className="text-slate-600 text-xs">JPG, PNG, WEBP · สูงสุด 10 MB</span>
-                    </>
-                  )}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    disabled={coverUploading}
-                    className="sr-only"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0]
-                      if (file) void handleCoverUpload(file)
-                    }}
-                  />
-                </label>
-              )}
-              {coverUploadError && <p className="text-red-400 text-xs">{coverUploadError}</p>}
-            </div>
-          ) : (
-            <div className="space-y-3">
-              <input
-                {...register("cover_image")}
-                placeholder="https://example.com/cover.jpg"
-                className={inputClass(false)}
-              />
-              {watched.cover_image && (
-                <div className="rounded-xl overflow-hidden border border-white/10 bg-black/20">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={watched.cover_image}
-                    alt="cover preview"
-                    className="w-full object-cover aspect-[3/4]"
-                  />
-                </div>
-              )}
-            </div>
-          )}
-        </Section>}
 
         {/* การแสดงผล */}
         <Section title="การแสดงผล">

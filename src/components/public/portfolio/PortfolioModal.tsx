@@ -49,16 +49,25 @@ export function PortfolioModal({ item, onClose, lineHref = "/api/auth/line" }: P
           <div
             className={cn(
               "relative min-h-64 md:min-h-full rounded-t-2xl md:rounded-l-2xl md:rounded-tr-none overflow-hidden",
-              "bg-gradient-to-br",
-              item.gradient
+              item.coverImage ? "bg-black" : cn("bg-gradient-to-br", item.gradient)
             )}
           >
-            {/* Brand watermark */}
+            {/* Cover image (for image type) */}
+            {item.coverImage && (
+              <div
+                className="absolute inset-0 bg-cover bg-center"
+                style={{ backgroundImage: `url(${item.coverImage})` }}
+              />
+            )}
+
+            {/* Brand watermark (only when no cover image) */}
+            {!item.coverImage && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <span className="font-display font-black text-[120px] text-white/10 select-none">
                 {item.brand[0]}
               </span>
             </div>
+            )}
 
             {/* Stats overlay */}
             <div className="absolute bottom-0 left-0 right-0 p-4">
