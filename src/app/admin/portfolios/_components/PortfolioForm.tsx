@@ -7,6 +7,7 @@ import { Loader2, Play, BarChart2, Zap, TrendingUp } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { portfolioSchema, type PortfolioInput } from "../schema"
 import { createPortfolio, updatePortfolio } from "../actions"
+import { createClient as createBrowserClient } from "@/lib/supabase/client"
 import type { Portfolio } from "@/types/database"
 
 function toSlug(text: string) {
@@ -67,6 +68,9 @@ interface Props {
 export function PortfolioForm({ portfolio }: Props) {
   const isEdit = !!portfolio
   const [serverError, setServerError] = useState<string | null>(null)
+  const [coverUploadMode, setCoverUploadMode] = useState<"upload" | "url">("upload")
+  const [coverUploading, setCoverUploading]   = useState(false)
+  const [coverUploadError, setCoverUploadError] = useState<string | null>(null)
 
   const {
     register,
@@ -113,6 +117,26 @@ export function PortfolioForm({ portfolio }: Props) {
   const mediaType    = watched.media_type ?? "image"
   const gradient     = watched.gradient ?? GRADIENT_OPTIONS[0]
   const industryLabel = INDUSTRY_OPTIONS.find((o) => o.value === watched.industry)?.label ?? ""
+
+  async function handleCoverUpload(file: File) {
+    setCoverUploading(true)
+    setCoverUploadError(null)
+    try {
+      const supabase = createBrowserClient()
+      const ext  = file.name.split(".").pop() ?? "jpg"
+      const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+      const { error } = await supabase.storage
+        .from("portfolio-covers")
+        .upload(path, file, { upsert: false })
+      if (error) throw error
+      const { data } = supabase.storage.from("portfolio-covers").getPublicUrl(path)
+      setValue("cover_image", data.publicUrl)
+    } catch (e) {
+      setCoverUploadError(e instanceof Error ? e.message : "อัพโหลดล้มเหลว")
+    } finally {
+      setCoverUploading(false)
+    }
+  }
 
   const toggleService = (s: string) =>
     setValue(
@@ -302,11 +326,106 @@ export function PortfolioForm({ portfolio }: Props) {
           <p className="text-slate-600 text-xs mt-1">แสดงเป็นแท็กใต้คำอธิบายในการ์ด</p>
         </Section>
 
-        {/* รูปภาพ */}
+        {/* รูปภาพปก */}
         <Section title="รูปภาพปก (ถ้ามี)">
-          <Field label="Cover Image URL">
-            <input {...register("cover_image")} placeholder="https://..." className={inputClass(false)} />
-          </Field>
+          {/* Tab switcher */}
+          <div className="flex gap-1 bg-white/5 p-1 rounded-xl">
+            {([
+              { key: "upload" as const, label: "อัพโหลดไฟล์" },
+              { key: "url"   as const, label: "ใส่ URL" },
+            ]).map(({ key, label }) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setCoverUploadMode(key)}
+                className={cn(
+                  "flex-1 py-1.5 rounded-lg text-xs font-medium transition-all text-center",
+                  coverUploadMode === key
+                    ? "bg-[#DC2626] text-white"
+                    : "text-slate-400 hover:text-white"
+                )}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {coverUploadMode === "upload" ? (
+            <div className="space-y-2">
+              {watched.cover_image && !coverUploading ? (
+                <div className="relative group rounded-xl overflow-hidden border border-white/10 bg-black/20">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={watched.cover_image}
+                    alt="cover preview"
+                    className="w-full object-cover aspect-[3/4]"
+                  />
+                  <label className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                    <span className="text-white text-sm font-semibold bg-black/70 px-5 py-2.5 rounded-xl">
+                      คลิกเพื่อเปลี่ยนรูป
+                    </span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="sr-only"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0]
+                        if (file) void handleCoverUpload(file)
+                      }}
+                    />
+                  </label>
+                </div>
+              ) : (
+                <label className={cn(
+                  "flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-xl px-4 py-10 cursor-pointer transition-colors",
+                  coverUploading
+                    ? "border-white/20 opacity-60 cursor-not-allowed"
+                    : "border-white/10 hover:border-[#DC2626]/50"
+                )}>
+                  {coverUploading ? (
+                    <div className="flex items-center gap-2 text-slate-400 text-sm">
+                      <Loader2 size={16} className="animate-spin" />
+                      กำลังอัพโหลด...
+                    </div>
+                  ) : (
+                    <>
+                      <span className="text-slate-400 text-sm">คลิกเพื่อเลือกรูปปก</span>
+                      <span className="text-slate-600 text-xs">JPG, PNG, WEBP · สูงสุด 10 MB</span>
+                    </>
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    disabled={coverUploading}
+                    className="sr-only"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (file) void handleCoverUpload(file)
+                    }}
+                  />
+                </label>
+              )}
+              {coverUploadError && <p className="text-red-400 text-xs">{coverUploadError}</p>}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <input
+                {...register("cover_image")}
+                placeholder="https://example.com/cover.jpg"
+                className={inputClass(false)}
+              />
+              {watched.cover_image && (
+                <div className="rounded-xl overflow-hidden border border-white/10 bg-black/20">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={watched.cover_image}
+                    alt="cover preview"
+                    className="w-full object-cover aspect-[3/4]"
+                  />
+                </div>
+              )}
+            </div>
+          )}
         </Section>
 
         {/* การแสดงผล */}
@@ -469,7 +588,7 @@ function Field({
 
 function inputClass(hasError: boolean) {
   return cn(
-    "w-full bg-[#0A0808] border rounded-xl px-3 py-2 text-white text-sm placeholder:text-slate-600",
+    "w-full bg-[#0A0808] border rounded-xl px-3 py-2 text-white text-base placeholder:text-slate-600",
     "focus:outline-none focus:ring-2 transition-colors appearance-none",
     hasError
       ? "border-red-500/50 focus:ring-red-500/30"
