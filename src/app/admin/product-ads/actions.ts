@@ -18,9 +18,9 @@ function normalise(data: ProductInput) {
 }
 
 function bust(id?: string) {
-  revalidatePath("/admin/marketplace")
-  revalidatePath("/marketplace")
-  if (id) revalidatePath(`/marketplace/${id}`)
+  revalidatePath("/admin/product-ads")
+  revalidatePath("/product-ads")
+  if (id) revalidatePath(`/product-ads/${id}`)
 }
 
 export async function createProduct(data: ProductInput) {
@@ -28,7 +28,7 @@ export async function createProduct(data: ProductInput) {
   const { error } = await supabase.from("products").insert(normalise(data))
   if (error) throw new Error(error.message)
   bust()
-  redirect("/admin/marketplace")
+  redirect("/admin/product-ads")
 }
 
 export async function updateProduct(id: string, data: ProductInput) {
@@ -39,7 +39,7 @@ export async function updateProduct(id: string, data: ProductInput) {
     .eq("id", id)
   if (error) throw new Error(error.message)
   bust(id)
-  redirect("/admin/marketplace")
+  redirect("/admin/product-ads")
 }
 
 export async function deleteProduct(id: string) {

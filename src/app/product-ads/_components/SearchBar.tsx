@@ -18,14 +18,14 @@ export function SearchBar({ defaultValue }: { defaultValue?: string }) {
       params.delete("q")
     }
     params.delete("page")
-    router.push(`/marketplace?${params.toString()}`)
+    router.push(`/product-ads?${params.toString()}`)
   }
 
   function handleClear() {
     setQ("")
     const params = new URLSearchParams(searchParams.toString())
     params.delete("q")
-    router.push(`/marketplace?${params.toString()}`)
+    router.push(`/product-ads?${params.toString()}`)
   }
 
   return (
@@ -58,7 +58,7 @@ export function SortSelect({ defaultValue }: { defaultValue?: string }) {
     } else {
       params.delete("sort")
     }
-    router.push(`/marketplace?${params.toString()}`)
+    router.push(`/product-ads?${params.toString()}`)
   }
 
   return (

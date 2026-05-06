@@ -83,7 +83,7 @@ export async function createCampaign(data: CampaignInput) {
   const { error } = await supabase.from("campaigns").insert(parseInput({ ...data, product_ids: safeProductIds }, storeId))
   if (error) throw new Error(error.message)
   revalidatePath("/member/store/campaigns")
-  revalidatePath("/member/marketplace")
+  revalidatePath("/member/product-ads")
 }
 
 export async function updateCampaign(id: string, data: CampaignInput) {
@@ -95,7 +95,7 @@ export async function updateCampaign(id: string, data: CampaignInput) {
   }).eq("id", id).eq("store_id", storeId)
   if (error) throw new Error(error.message)
   revalidatePath("/member/store/campaigns")
-  revalidatePath("/member/marketplace")
+  revalidatePath("/member/product-ads")
 }
 
 export async function toggleCampaignActive(id: string, isActive: boolean) {
@@ -105,7 +105,7 @@ export async function toggleCampaignActive(id: string, isActive: boolean) {
     .eq("id", id).eq("store_id", storeId)
   if (error) throw new Error(error.message)
   revalidatePath("/member/store/campaigns")
-  revalidatePath("/member/marketplace")
+  revalidatePath("/member/product-ads")
 }
 
 export async function deleteCampaign(id: string) {
@@ -113,5 +113,5 @@ export async function deleteCampaign(id: string) {
   const { error } = await supabase.from("campaigns").delete().eq("id", id).eq("store_id", storeId)
   if (error) throw new Error(error.message)
   revalidatePath("/member/store/campaigns")
-  revalidatePath("/member/marketplace")
+  revalidatePath("/member/product-ads")
 }

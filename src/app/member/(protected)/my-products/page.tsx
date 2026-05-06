@@ -5,7 +5,7 @@ import {
   Truck, XCircle, ArrowLeft, Home, UserCog, ChevronRight, Rocket,
 } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
-import { getMyPulledProducts } from "../marketplace/actions"
+import { getMyPulledProducts } from "../product-ads/actions"
 import { cn, safeUrl } from "@/lib/utils"
 import type { SampleStatus } from "@/types/database"
 
@@ -57,10 +57,10 @@ export default async function MyProductsPage() {
 
         {/* Quick nav tabs */}
         <div className="flex gap-2 overflow-x-auto pb-0.5 -mx-1 px-1 scrollbar-none">
-          <Link href="/marketplace"
+          <Link href="/product-ads"
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#1C0D0D] border border-white/5 hover:border-[#F59E0B]/30 text-slate-400 hover:text-[#F59E0B] text-xs font-medium transition-colors whitespace-nowrap shrink-0">
             <ShoppingBag size={13} />
-            Marketplace
+            ProductAds
           </Link>
           <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#F59E0B]/10 border border-[#F59E0B]/30 text-[#F59E0B] text-xs font-semibold whitespace-nowrap shrink-0">
             <Package size={13} />
@@ -121,12 +121,12 @@ export default async function MyProductsPage() {
             <Package size={36} className="text-slate-700 mx-auto" />
             <div>
               <p className="text-slate-400 text-sm font-medium">ยังไม่มีสินค้าที่ดึงมา</p>
-              <p className="text-slate-600 text-xs mt-1">เลือกสินค้าจาก Marketplace เพื่อเริ่มโปรโมท</p>
+              <p className="text-slate-600 text-xs mt-1">เลือกสินค้าจาก ProductAds เพื่อเริ่มโปรโมท</p>
             </div>
-            <Link href="/marketplace"
+            <Link href="/product-ads"
               className="inline-flex items-center gap-2 bg-[#F59E0B]/10 hover:bg-[#F59E0B]/20 border border-[#F59E0B]/20 hover:border-[#F59E0B]/40 text-[#F59E0B] font-semibold text-sm px-5 py-2.5 rounded-xl transition-colors">
               <ShoppingBag size={15} />
-              ไป Marketplace
+              ไป ProductAds
               <ChevronRight size={13} />
             </Link>
           </div>
@@ -139,7 +139,7 @@ export default async function MyProductsPage() {
                 return (
                   <div key={pull.id} className="p-4 flex gap-3">
                     {/* Thumbnail */}
-                    <Link href={`/marketplace/${product.id}`} className="w-14 h-14 rounded-xl overflow-hidden bg-white/[0.03] shrink-0 flex items-center justify-center hover:opacity-80 transition-opacity">
+                    <Link href={`/product-ads/${product.id}`} className="w-14 h-14 rounded-xl overflow-hidden bg-white/[0.03] shrink-0 flex items-center justify-center hover:opacity-80 transition-opacity">
                       {product.image_url ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
@@ -152,7 +152,7 @@ export default async function MyProductsPage() {
                     <div className="min-w-0 flex-1 space-y-2">
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
-                          <Link href={`/marketplace/${product.id}`} className="text-white hover:text-[#FCA5A5] font-semibold text-sm truncate block transition-colors">{product.name}</Link>
+                          <Link href={`/product-ads/${product.id}`} className="text-white hover:text-[#FCA5A5] font-semibold text-sm truncate block transition-colors">{product.name}</Link>
                           <p className="text-slate-500 text-xs truncate">{product.store.name}</p>
                         </div>
                         <span className="text-[#F59E0B] font-bold text-sm shrink-0">{product.commission_rate}%</span>
@@ -185,7 +185,7 @@ export default async function MyProductsPage() {
                         </a>
                       )}
                       {pull.sample_status === "rejected" && (
-                        <Link href="/marketplace"
+                        <Link href="/product-ads"
                           className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-300 transition-colors">
                           <ShoppingBag size={11} />
                           ดูสินค้าอื่น →
@@ -217,14 +217,14 @@ export default async function MyProductsPage() {
 
         {/* Bottom CTA — browse more */}
         {pulls.length > 0 && (
-          <Link href="/marketplace"
+          <Link href="/product-ads"
             className="group flex items-center gap-3 bg-[#1C0D0D] border border-[#F59E0B]/20 hover:border-[#F59E0B]/40 hover:bg-[#F59E0B]/5 rounded-2xl p-4 sm:p-5 transition-colors">
             <div className="w-10 h-10 bg-[#F59E0B]/10 rounded-xl flex items-center justify-center shrink-0">
               <ShoppingBag size={18} className="text-[#F59E0B]" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-white text-sm group-hover:text-[#F59E0B] transition-colors">ดูสินค้าเพิ่มเติม</p>
-              <p className="text-slate-500 text-xs mt-0.5">เลือกสินค้าใหม่จาก Marketplace</p>
+              <p className="text-slate-500 text-xs mt-0.5">เลือกสินค้าใหม่จาก ProductAds</p>
             </div>
             <ChevronRight size={15} className="text-slate-600 shrink-0 group-hover:text-[#F59E0B] transition-colors" />
           </Link>

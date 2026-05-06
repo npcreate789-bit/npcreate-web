@@ -1,18 +1,18 @@
 import { Suspense } from "react"
 import { ShoppingBag, LayoutDashboard } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
-import { getMarketplaceProducts, getActiveCampaigns, getMyPullSet } from "./actions"
+import { getProductAdsProducts, getActiveCampaigns, getMyPullSet } from "./actions"
 import { ProductCard } from "./_components/ProductCard"
 import { SearchBar, SortSelect } from "./_components/SearchBar"
 import { CampaignSection } from "./_components/CampaignSection"
 import Link from "next/link"
 
 export const metadata = {
-  title: "Marketplace — NP Create",
+  title: "ProductAds — NP Create",
   description: "เลือกสินค้าโปรโมทผ่าน TikTok และรับค่าคอมมิชชั่น",
 }
 
-export default async function MarketplacePage({
+export default async function ProductAdsPage({
   searchParams,
 }: {
   searchParams: Promise<{ q?: string; sort?: string }>
@@ -24,7 +24,7 @@ export default async function MarketplacePage({
   const { data: { user } } = await supabase.auth.getUser()
 
   const [products, campaigns, profileRes, pulledSet] = await Promise.all([
-    getMarketplaceProducts({ q, sort: validSort }),
+    getProductAdsProducts({ q, sort: validSort }),
     getActiveCampaigns(),
     user
       ? supabase.from("profiles").select("role, tiktok_channel_url, is_active").eq("id", user.id).maybeSingle()
@@ -82,7 +82,7 @@ export default async function MarketplacePage({
         <div className="flex items-center justify-between">
           <div>
             <h1 className="font-display font-bold text-white text-2xl flex items-center gap-2">
-              <ShoppingBag size={22} className="text-[#DC2626]" /> Marketplace
+              <ShoppingBag size={22} className="text-[#DC2626]" /> ProductAds
             </h1>
             <p className="text-slate-500 text-sm mt-0.5">
               {q ? `ผลการค้นหา "${q}" — ${products.length} สินค้า` : `${products.length} สินค้าทั้งหมด`}
@@ -130,10 +130,10 @@ export default async function MarketplacePage({
           <div className="bg-[#1C0D0D] border border-white/5 rounded-2xl py-20 text-center space-y-3">
             <ShoppingBag size={36} className="text-slate-700 mx-auto" />
             <p className="text-slate-500 text-sm">
-              {q ? `ไม่พบสินค้าที่ตรงกับ "${q}"` : "ยังไม่มีสินค้าใน Marketplace"}
+              {q ? `ไม่พบสินค้าที่ตรงกับ "${q}"` : "ยังไม่มีสินค้าใน ProductAds"}
             </p>
             {q && (
-              <Link href="/marketplace" className="text-xs text-[#DC2626] hover:text-[#FCA5A5] transition-colors">
+              <Link href="/product-ads" className="text-xs text-[#DC2626] hover:text-[#FCA5A5] transition-colors">
                 ดูสินค้าทั้งหมด →
               </Link>
             )}

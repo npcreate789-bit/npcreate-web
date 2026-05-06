@@ -38,7 +38,7 @@ export default async function AdminDashboard() {
     { label: "Leads ใหม่", value: stats.leadsNew, icon: Users, color: "text-[#F59E0B]", bg: "bg-[#F59E0B]/10", href: "/admin/leads?status=new" },
     { label: "Portfolio (เผยแพร่)", value: stats.portfolios, icon: Briefcase, color: "text-[#DC2626]", bg: "bg-[#DC2626]/10", href: "/admin/portfolios" },
     { label: "บริการ (เปิดใช้)", value: stats.services, icon: MessageSquare, color: "text-[#FCA5A5]", bg: "bg-[#FCA5A5]/10", href: "/admin/services" },
-    { label: "สินค้า Marketplace", value: stats.products, icon: ShoppingBag, color: "text-emerald-400", bg: "bg-emerald-500/10", href: "/admin/marketplace" },
+    { label: "สินค้า ProductAds", value: stats.products, icon: ShoppingBag, color: "text-emerald-400", bg: "bg-emerald-500/10", href: "/admin/product-ads" },
     { label: "Affiliate (active)", value: stats.affiliates, icon: Users, color: "text-sky-400", bg: "bg-sky-500/10", href: "/admin/members?role=affiliate" },
   ]
 

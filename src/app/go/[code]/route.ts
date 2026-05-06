@@ -5,5 +5,5 @@ export async function GET(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _ctx: { params: Promise<{ code: string }> }
 ) {
-  return NextResponse.redirect(new URL("/marketplace", request.url))
+  return NextResponse.redirect(new URL("/product-ads", request.url))
 }

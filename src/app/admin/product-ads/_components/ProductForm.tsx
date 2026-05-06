@@ -229,7 +229,7 @@ export function ProductForm({ product, stores }: Props) {
           </div>
           <label className="flex items-center gap-3 cursor-pointer">
             <input type="checkbox" {...register("is_active")} className="w-4 h-4 accent-[#DC2626]" />
-            <span className="text-slate-300 text-sm">แสดงสินค้าใน Marketplace (เปิดขาย)</span>
+            <span className="text-slate-300 text-sm">แสดงสินค้าใน ProductAds (เปิดขาย)</span>
           </label>
         </Section>
 
@@ -297,7 +297,7 @@ export function ProductForm({ product, stores }: Props) {
             {isSubmitting && <Loader2 size={14} className="animate-spin" />}
             {isEdit ? "บันทึกการแก้ไข" : "เพิ่มสินค้า"}
           </button>
-          <a href="/admin/marketplace" className="text-slate-400 hover:text-white text-sm transition-colors">
+          <a href="/admin/product-ads" className="text-slate-400 hover:text-white text-sm transition-colors">
             ยกเลิก
           </a>
         </div>

@@ -56,7 +56,7 @@ export async function saveRoleAndInfo(
         })
         .eq("id", user.id)
       if (error) return { error: error.message }
-      redirectPath = "/member/marketplace"
+      redirectPath = "/member/product-ads"
     } else {
       // Seller: update profile + upsert store
       const { error: profileError } = await supabase

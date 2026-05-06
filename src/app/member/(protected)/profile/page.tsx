@@ -85,9 +85,9 @@ export default async function MemberProfilePage() {
         <div className="flex gap-2 overflow-x-auto pb-0.5 -mx-1 px-1 scrollbar-none">
           {profile.role === "affiliate" && (
             <>
-              <Link href="/marketplace"
+              <Link href="/product-ads"
                 className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#1C0D0D] border border-white/5 hover:border-[#F59E0B]/30 text-slate-400 hover:text-[#F59E0B] text-xs font-medium transition-colors whitespace-nowrap shrink-0">
-                <ShoppingBag size={13} /> Marketplace
+                <ShoppingBag size={13} /> ProductAds
               </Link>
               <Link href="/member/my-products"
                 className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#1C0D0D] border border-white/5 hover:border-white/15 text-slate-400 hover:text-white text-xs font-medium transition-colors whitespace-nowrap shrink-0">

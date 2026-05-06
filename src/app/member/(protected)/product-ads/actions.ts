@@ -11,7 +11,7 @@ export type PullWithProduct = AffiliatePull & {
   product: ProductWithStore
 }
 
-export async function getMarketplaceData() {
+export async function getProductAdsData() {
   const supabase = await createClient()
   const now = new Date().toISOString()
 

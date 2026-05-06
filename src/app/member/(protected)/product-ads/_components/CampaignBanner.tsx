@@ -7,7 +7,7 @@ export function CampaignBanner({ campaign }: { campaign: CampaignWithStore }) {
   const daysLeft = Math.ceil((endsAt.getTime() - Date.now()) / 86400000)
 
   return (
-    <Link href={`/member/marketplace/${campaign.store_id}`}
+    <Link href={`/member/product-ads/${campaign.store_id}`}
       className="relative bg-[#1C0D0D] border border-[#F59E0B]/20 hover:border-[#F59E0B]/40 rounded-2xl overflow-hidden transition-colors shrink-0 w-[260px] flex flex-col">
       {campaign.banner_url ? (
         // eslint-disable-next-line @next/next/no-img-element

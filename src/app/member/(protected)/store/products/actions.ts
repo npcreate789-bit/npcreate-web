@@ -101,7 +101,7 @@ export async function createProduct(data: ProductInput) {
   const { error } = await supabase.from("products").insert(parseInput(parsed.data, storeId))
   if (error) throw new Error(error.message)
   revalidatePath("/member/store/products")
-  revalidatePath("/marketplace")
+  revalidatePath("/product-ads")
 }
 
 export async function updateProduct(id: string, data: ProductInput) {
@@ -114,7 +114,7 @@ export async function updateProduct(id: string, data: ProductInput) {
   }).eq("id", id).eq("store_id", storeId)
   if (error) throw new Error(error.message)
   revalidatePath("/member/store/products")
-  revalidatePath("/marketplace")
+  revalidatePath("/product-ads")
 }
 
 export async function toggleProductActive(id: string, isActive: boolean) {
@@ -124,7 +124,7 @@ export async function toggleProductActive(id: string, isActive: boolean) {
     .eq("id", id).eq("store_id", storeId)
   if (error) throw new Error(error.message)
   revalidatePath("/member/store/products")
-  revalidatePath("/marketplace")
+  revalidatePath("/product-ads")
 }
 
 export async function deleteProduct(id: string) {
@@ -132,5 +132,5 @@ export async function deleteProduct(id: string) {
   const { error } = await supabase.from("products").delete().eq("id", id).eq("store_id", storeId)
   if (error) throw new Error(error.message)
   revalidatePath("/member/store/products")
-  revalidatePath("/marketplace")
+  revalidatePath("/product-ads")
 }

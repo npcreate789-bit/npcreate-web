@@ -18,7 +18,7 @@ const stockLabel: Record<string, string> = {
   in_stock: "มีสินค้า", low_stock: "ใกล้หมด", out_of_stock: "หมด",
 }
 
-export default async function AdminMarketplacePage({
+export default async function AdminProductAdsPage({
   searchParams,
 }: {
   searchParams: Promise<{ q?: string; store?: string; page?: string }>
@@ -54,7 +54,7 @@ export default async function AdminMarketplacePage({
     if (store) params.set("store", store)
     if (p > 1) params.set("page", String(p))
     const qs = params.toString()
-    return `/admin/marketplace${qs ? `?${qs}` : ""}`
+    return `/admin/product-ads${qs ? `?${qs}` : ""}`
   }
 
   return (
@@ -62,12 +62,12 @@ export default async function AdminMarketplacePage({
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-display font-bold text-white text-2xl flex items-center gap-2">
-            <ShoppingBag size={20} className="text-[#DC2626]" /> Marketplace
+            <ShoppingBag size={20} className="text-[#DC2626]" /> ProductAds
           </h1>
-          <p className="text-slate-400 text-sm mt-0.5">จัดการสินค้าใน Marketplace</p>
+          <p className="text-slate-400 text-sm mt-0.5">จัดการสินค้าใน ProductAds</p>
         </div>
         <Link
-          href="/admin/marketplace/new"
+          href="/admin/product-ads/new"
           className="inline-flex items-center gap-2 bg-[#DC2626] hover:bg-[#B91C1C] text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors"
         >
           <Plus size={16} /> เพิ่มสินค้า
@@ -100,7 +100,7 @@ export default async function AdminMarketplacePage({
         </button>
         {(q || store) && (
           <Link
-            href="/admin/marketplace"
+            href="/admin/product-ads"
             className="text-slate-500 hover:text-slate-300 text-sm transition-colors"
           >
             ล้าง
@@ -123,7 +123,7 @@ export default async function AdminMarketplacePage({
               {q || store ? "ไม่พบสินค้าที่ตรงกัน" : "ยังไม่มีสินค้า"}
             </p>
             <Link
-              href="/admin/marketplace/new"
+              href="/admin/product-ads/new"
               className="inline-flex items-center gap-1.5 text-[#DC2626] hover:text-[#FCA5A5] text-sm transition-colors"
             >
               <Plus size={14} /> เพิ่มสินค้าแรก

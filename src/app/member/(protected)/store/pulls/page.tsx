@@ -371,7 +371,7 @@ export default async function StorePullsPage({
               </p>
               {activeStatus === "all" && (
                 <p className="text-slate-600 text-xs mt-1">
-                  เมื่อ Affiliate เลือกสินค้าจาก Marketplace รายการจะปรากฏที่นี่
+                  เมื่อ Affiliate เลือกสินค้าจาก ProductAds รายการจะปรากฏที่นี่
                 </p>
               )}
             </div>
@@ -440,11 +440,11 @@ export default async function StorePullsPage({
                       {/* TikTok product link */}
                       {productItem && (
                         <Link
-                          href={`/marketplace/${productItem.id}`}
+                          href={`/product-ads/${productItem.id}`}
                           className="inline-flex items-center gap-1 text-slate-600 hover:text-slate-400 text-[10px] mt-1.5 transition-colors"
                           target="_blank"
                         >
-                          <ExternalLink size={9} /> ดูใน Marketplace
+                          <ExternalLink size={9} /> ดูใน ProductAds
                         </Link>
                       )}
                     </div>

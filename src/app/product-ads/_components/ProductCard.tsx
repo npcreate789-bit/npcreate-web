@@ -30,7 +30,7 @@ export function ProductCard({ product, isPulled, isLoggedIn, isAffiliate, hasTik
   return (
     <div className="bg-[#1C0D0D] border border-white/5 hover:border-white/10 rounded-2xl overflow-hidden transition-colors flex flex-col group">
       {/* Image */}
-      <Link href={`/marketplace/${product.id}`} className="relative aspect-square bg-white/[0.03] overflow-hidden block">
+      <Link href={`/product-ads/${product.id}`} className="relative aspect-square bg-white/[0.03] overflow-hidden block">
         {product.image_url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={product.image_url} alt={product.name}
@@ -59,7 +59,7 @@ export function ProductCard({ product, isPulled, isLoggedIn, isAffiliate, hasTik
       {/* Info */}
       <div className="p-3 flex flex-col flex-1 gap-2">
         <div className="flex-1 min-w-0">
-          <Link href={`/marketplace/${product.id}`}>
+          <Link href={`/product-ads/${product.id}`}>
             <p className="text-white font-semibold text-xs leading-snug line-clamp-2 hover:text-[#FCA5A5] transition-colors">{product.name}</p>
           </Link>
           <div className="flex items-center gap-1 mt-1">
@@ -100,7 +100,7 @@ export function ProductCard({ product, isPulled, isLoggedIn, isAffiliate, hasTik
         )}
 
         {isSeller ? (
-          <Link href={`/marketplace/${product.id}`}
+          <Link href={`/product-ads/${product.id}`}
             className="w-full inline-flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-slate-400 hover:text-white font-medium py-2.5 rounded-xl text-xs transition-colors">
             ดูรายละเอียด →
           </Link>

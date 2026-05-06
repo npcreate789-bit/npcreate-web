@@ -18,7 +18,7 @@ const navItems = [
   { href: "/admin/services",  label: "บริการ",     icon: MessageSquare },
   { href: "/admin/testimonials", label: "รีวิว",  icon: Star },
   { href: "/admin/about",      label: "เกี่ยวกับเรา", icon: FileText },
-  { href: "/admin/marketplace", label: "Marketplace", icon: ShoppingBag },
+  { href: "/admin/product-ads", label: "ProductAds", icon: ShoppingBag },
   { href: "/admin/members",    label: "สมาชิก",      icon: UserCircle },
   { href: "/admin/settings",   label: "ตั้งค่า",     icon: Settings },
 ]

@@ -64,7 +64,7 @@ export async function updateStore(id: string, data: {
   }).eq("id", id).eq("seller_id", user.id)
   if (error) throw new Error(error.message)
   revalidatePath("/member/store")
-  revalidatePath("/member/marketplace")
+  revalidatePath("/member/product-ads")
 }
 
 export async function getStoreDashboardStats() {

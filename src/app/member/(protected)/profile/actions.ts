@@ -50,7 +50,7 @@ export async function updateTiktokUrl(url: string) {
   if (error) throw new Error(error.message)
   revalidatePath("/member")
   revalidatePath("/member/profile")
-  revalidatePath("/marketplace")
+  revalidatePath("/product-ads")
 }
 
 export async function updateAddress(data: {

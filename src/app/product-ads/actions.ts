@@ -14,7 +14,7 @@ export type CampaignWithStore = Campaign & {
   store: Pick<Store, "id" | "name">
 }
 
-export async function getMarketplaceProducts(opts?: {
+export async function getProductAdsProducts(opts?: {
   q?: string
   sort?: "commission" | "newest" | "popular"
   storeId?: string
@@ -153,7 +153,7 @@ export async function pullProduct(productId: string): Promise<{ success: true } 
 
   if (error) return { error: error.message }
 
-  revalidatePath(`/marketplace/${productId}`)
+  revalidatePath(`/product-ads/${productId}`)
   revalidatePath("/member/my-products")
   return { success: true }
 }

@@ -28,7 +28,7 @@ export function ProductRowActions({ id, name, isActive }: Props) {
       </button>
 
       <Link
-        href={`/admin/marketplace/${id}/edit`}
+        href={`/admin/product-ads/${id}/edit`}
         className="text-slate-400 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-white/5"
       >
         <Pencil size={14} />

@@ -39,9 +39,9 @@ export default async function ProductDetailPage({
       <div className="max-w-2xl mx-auto px-4 sm:px-6 pt-8 space-y-6">
 
         {/* Back */}
-        <Link href="/marketplace"
+        <Link href="/product-ads"
           className="inline-flex items-center gap-1.5 text-slate-400 hover:text-white text-sm transition-colors p-2 -ml-2 rounded-xl hover:bg-white/5">
-          <ChevronRight size={15} className="rotate-180" /> กลับ Marketplace
+          <ChevronRight size={15} className="rotate-180" /> กลับ ProductAds
         </Link>
 
         {/* Product Image */}
@@ -164,7 +164,7 @@ export default async function ProductDetailPage({
                     สมัครสมาชิกเพื่อดูข้อมูลเหล่านี้
                   </p>
                 </div>
-                <Link href={`/register?next=/marketplace/${product.id}`}
+                <Link href={`/register?next=/product-ads/${product.id}`}
                   className="inline-flex items-center gap-1.5 bg-[#DC2626] hover:bg-[#B91C1C] text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-colors">
                   สมัครสมาชิกฟรี →
                 </Link>
