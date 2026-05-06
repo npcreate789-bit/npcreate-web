@@ -83,10 +83,10 @@ export function HeroMediaForm({ heroMedia }: Props) {
   }
 
   return (
-    <div className="grid xl:grid-cols-[1fr_260px] gap-8 items-start">
+    <div className="grid xl:grid-cols-[1fr_260px] gap-8 items-start min-w-0">
 
       {/* ── Form ── */}
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 min-w-0">
         {serverError && (
           <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm px-4 py-3 rounded-xl">
             {serverError}
@@ -120,7 +120,7 @@ export function HeroMediaForm({ heroMedia }: Props) {
         {/* อัพโหลดสื่อ */}
         <Section title="สื่อ">
           {/* Tab switcher */}
-          <div className="flex gap-1 bg-white/5 p-1 rounded-xl w-fit">
+          <div className="flex gap-1 bg-white/5 p-1 rounded-xl">
             {([
               { key: "upload" as const, label: "อัพโหลดไฟล์" },
               { key: "url"    as const, label: "ใส่ URL" },
@@ -130,7 +130,7 @@ export function HeroMediaForm({ heroMedia }: Props) {
                 type="button"
                 onClick={() => setUploadMode(key)}
                 className={cn(
-                  "px-4 py-1.5 rounded-lg text-xs font-medium transition-all",
+                  "flex-1 py-1.5 rounded-lg text-xs font-medium transition-all text-center",
                   uploadMode === key
                     ? "bg-[#DC2626] text-white"
                     : "text-slate-400 hover:text-white"
@@ -177,7 +177,9 @@ export function HeroMediaForm({ heroMedia }: Props) {
                 <p className="text-red-400 text-xs mt-1.5">{uploadError}</p>
               )}
               {watchedMediaUrl && !uploading && (
-                <p className="text-emerald-400 text-xs mt-1.5 truncate">อัพโหลดแล้ว: {watchedMediaUrl}</p>
+                <p className="text-emerald-400 text-xs mt-1.5 truncate overflow-hidden">
+                  ✓ {watchedMediaUrl.split("/").pop() ?? "อัพโหลดแล้ว"}
+                </p>
               )}
             </div>
           ) : (
