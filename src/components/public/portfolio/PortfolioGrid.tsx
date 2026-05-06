@@ -134,11 +134,11 @@ function PortfolioCard({ item, onClick }: { item: PortfolioItem; onClick: () => 
       onClick={onClick}
       className="group relative aspect-[3/4] rounded-2xl overflow-hidden cursor-pointer"
     >
-      {/* Background: cover image > bg image > gradient */}
-      {item.coverImage || item.bgImage ? (
+      {/* Background: cover image only on card (bg_image is modal-only, wrong ratio for 3:4 card) */}
+      {item.coverImage ? (
         <div
           className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
-          style={{ backgroundImage: `url(${item.coverImage ?? item.bgImage})` }}
+          style={{ backgroundImage: `url(${item.coverImage})` }}
         />
       ) : (
         <div className={cn(
@@ -147,8 +147,8 @@ function PortfolioCard({ item, onClick }: { item: PortfolioItem; onClick: () => 
         )} />
       )}
 
-      {/* Brand initial watermark (when no image) */}
-      {!item.coverImage && !item.bgImage && (
+      {/* Brand initial watermark (when no cover image) */}
+      {!item.coverImage && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <span className="font-display font-black text-[80px] text-white/10 select-none leading-none">
             {item.brand[0]}

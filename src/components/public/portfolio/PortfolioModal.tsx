@@ -71,7 +71,7 @@ export function PortfolioModal({ item, onClose, lineHref = "/api/auth/line" }: P
             /* Image / YouTube: bg image or gradient + stats overlay */
             <div
               className={cn(
-                "relative min-h-56 md:min-h-full rounded-t-2xl md:rounded-l-2xl md:rounded-tr-none overflow-hidden",
+                "relative min-h-64 md:min-h-full rounded-t-2xl md:rounded-l-2xl md:rounded-tr-none overflow-hidden",
                 panelImage(item) ? "bg-black" : cn("bg-gradient-to-br", item.gradient)
               )}
             >
@@ -81,8 +81,10 @@ export function PortfolioModal({ item, onClose, lineHref = "/api/auth/line" }: P
                   style={{ backgroundImage: `url(${panelImage(item)})` }}
                 />
               )}
-              {/* readability overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
+              {/* overlay เฉพาะเมื่อมีรูป เพื่อให้อ่าน stats ได้ */}
+              {panelImage(item) && (
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+              )}
 
               {!panelImage(item) && (
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
