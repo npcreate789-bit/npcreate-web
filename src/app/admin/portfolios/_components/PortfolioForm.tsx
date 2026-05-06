@@ -6,8 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { Loader2, Play, BarChart2, Zap, TrendingUp } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { portfolioSchema, type PortfolioInput } from "../schema"
-import { createPortfolio, updatePortfolio } from "../actions"
-import { createClient as createBrowserClient } from "@/lib/supabase/client"
+import { createPortfolio, updatePortfolio, uploadPortfolioCover } from "../actions"
 import type { Portfolio } from "@/types/database"
 
 function toSlug(text: string) {
@@ -122,15 +121,10 @@ export function PortfolioForm({ portfolio }: Props) {
     setCoverUploading(true)
     setCoverUploadError(null)
     try {
-      const supabase = createBrowserClient()
-      const ext  = file.name.split(".").pop() ?? "jpg"
-      const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
-      const { error } = await supabase.storage
-        .from("portfolio-covers")
-        .upload(path, file, { upsert: false })
-      if (error) throw error
-      const { data } = supabase.storage.from("portfolio-covers").getPublicUrl(path)
-      setValue("cover_image", data.publicUrl)
+      const formData = new FormData()
+      formData.append("file", file)
+      const url = await uploadPortfolioCover(formData)
+      setValue("cover_image", url)
     } catch (e) {
       setCoverUploadError(e instanceof Error ? e.message : "อัพโหลดล้มเหลว")
     } finally {
