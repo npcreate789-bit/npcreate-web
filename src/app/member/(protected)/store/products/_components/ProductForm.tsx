@@ -6,6 +6,7 @@ import { Loader2, Save } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { createProduct, updateProduct, type ProductInput } from "../actions"
+import { ImageUploader } from "./ImageUploader"
 import type { Product } from "@/types/database"
 
 const TAGS_PRESET = ["best_seller","flash_sale","new","limited","recommended"]
@@ -121,10 +122,8 @@ export function ProductForm({ product }: { product?: Product }) {
 
       <div className="bg-[#1C0D0D] border border-white/5 rounded-2xl p-5 sm:p-6 space-y-4">
         <h2 className="text-white font-semibold text-sm">รายละเอียดเพิ่มเติม</h2>
-        <Field label="URL รูปสินค้า">
-          <input value={imageUrl} onChange={e => setImageUrl(e.target.value)} placeholder="https://..." className={inputCls()} />
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          {imageUrl && <img src={imageUrl} alt="" className="mt-2 h-24 w-24 object-cover rounded-xl bg-white/5" onError={e => { (e.target as HTMLImageElement).style.display = "none" }} />}
+        <Field label="รูปสินค้า">
+          <ImageUploader value={imageUrl} onChange={setImageUrl} />
         </Field>
         <Field label="แท็ก (คั่นด้วยจุลภาค)">
           <div className="flex flex-wrap gap-2 mb-2">
