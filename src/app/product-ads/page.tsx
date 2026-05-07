@@ -100,18 +100,17 @@ export default async function ProductAdsPage({
               จัดการร้านค้า →
             </Link>
           )}
-        </div>
-
-        {/* Guest signup CTA — pill button with shine flash */}
-        {!isLoggedIn && (
-          <div className="flex justify-center pt-1">
+          {!isLoggedIn && (
             <Link
               href="/register"
-              aria-label="สมัครสมาชิกฟรี"
-              className="group relative overflow-hidden inline-flex items-center justify-center gap-2.5 w-full max-w-xs sm:w-auto sm:min-w-[260px] bg-gradient-to-r from-[#DC2626] via-[#E11D48] to-[#DC2626] hover:from-[#B91C1C] hover:via-[#BE123C] hover:to-[#B91C1C] text-white font-semibold tracking-wide px-8 py-3.5 rounded-full text-sm sm:text-base animate-pulse-glow ring-1 ring-white/10 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+              aria-label="สมัครสมาชิกฟรี เพื่อ ลง / ดึง สินค้า"
+              className="group relative overflow-hidden inline-flex items-center gap-2.5 shrink-0 bg-gradient-to-r from-[#DC2626] via-[#E11D48] to-[#DC2626] hover:from-[#B91C1C] hover:via-[#BE123C] hover:to-[#B91C1C] text-white px-4 sm:px-5 py-2 rounded-2xl animate-pulse-glow ring-1 ring-white/10 transition-all duration-300 hover:scale-[1.03] active:scale-[0.98]"
             >
-              <span className="relative z-10 whitespace-nowrap">สมัครสมาชิกฟรี</span>
-              <ArrowRight size={17} className="relative z-10 transition-transform duration-300 group-hover:translate-x-1" />
+              <span className="relative z-10 flex flex-col items-start leading-tight text-left">
+                <span className="font-bold text-sm sm:text-[15px] tracking-wide whitespace-nowrap">สมัครสมาชิกฟรี</span>
+                <span className="text-[10px] sm:text-[11px] text-white/85 font-medium whitespace-nowrap">เพื่อ ลง / ดึง สินค้า</span>
+              </span>
+              <ArrowRight size={16} className="relative z-10 shrink-0 transition-transform duration-300 group-hover:translate-x-1" />
               <span
                 aria-hidden
                 className="pointer-events-none absolute inset-y-0 -inset-x-4 w-1/3 bg-gradient-to-r from-transparent via-white/60 to-transparent animate-shine-sweep"
@@ -121,8 +120,8 @@ export default async function ProductAdsPage({
                 className="pointer-events-none absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/15 to-transparent"
               />
             </Link>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* TikTok warn banner for affiliate without TikTok */}
         {isLoggedIn && isAffiliate && !hasTiktok && (
