@@ -1,5 +1,5 @@
 import { Suspense } from "react"
-import { ShoppingBag, LayoutDashboard } from "lucide-react"
+import { ShoppingBag, LayoutDashboard, Sparkles, ArrowRight } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
 import { getProductAdsProducts, getActiveCampaigns, getMyPullSet } from "./actions"
 import { ProductCard } from "./_components/ProductCard"
@@ -100,13 +100,38 @@ export default async function ProductAdsPage({
               จัดการร้านค้า →
             </Link>
           )}
-          {!isLoggedIn && (
-            <Link href="/register"
-              className="inline-flex items-center gap-1.5 text-xs text-[#DC2626] hover:text-[#FCA5A5] border border-[#DC2626]/30 hover:border-[#DC2626]/60 px-3 py-1.5 rounded-lg transition-colors shrink-0">
-              สมัครสมาชิกฟรี →
-            </Link>
-          )}
         </div>
+
+        {/* Guest signup CTA — prominent banner with shine flash */}
+        {!isLoggedIn && (
+          <div className="relative overflow-hidden rounded-2xl border border-[#DC2626]/30 bg-gradient-to-br from-[#DC2626]/15 via-[#1C0D0D] to-[#1C0D0D] p-5 sm:p-6">
+            <div className="pointer-events-none absolute -top-20 -right-20 w-56 h-56 rounded-full bg-[#DC2626]/20 blur-3xl" />
+            <div className="relative flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-5">
+              <div className="flex-1 min-w-0 space-y-1.5">
+                <div className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-[#FCA5A5] bg-[#DC2626]/20 border border-[#DC2626]/30 px-2 py-0.5 rounded-full">
+                  <Sparkles size={11} /> เริ่มต้นที่นี่
+                </div>
+                <h2 className="font-display font-bold text-white text-lg sm:text-xl leading-snug">
+                  สมัครสมาชิกฟรี เพื่อดึงสินค้าและรับค่าคอมมิชชัน
+                </h2>
+                <p className="text-slate-400 text-xs sm:text-sm">
+                  ต้องสมัครสมาชิกก่อน จึงจะดึงสินค้า รับลิงก์ Affiliate และดูข้อมูลเชิงลึกได้
+                </p>
+              </div>
+              <Link
+                href="/register"
+                className="group relative overflow-hidden inline-flex items-center justify-center gap-2 bg-[#DC2626] hover:bg-[#B91C1C] text-white font-semibold px-6 py-3 rounded-xl text-sm shrink-0 animate-pulse-glow transition-colors"
+              >
+                <span className="relative z-10">สมัครสมาชิกฟรี</span>
+                <ArrowRight size={16} className="relative z-10 transition-transform group-hover:translate-x-0.5" />
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute inset-y-0 -inset-x-4 w-1/3 bg-gradient-to-r from-transparent via-white/55 to-transparent animate-shine-sweep"
+                />
+              </Link>
+            </div>
+          </div>
+        )}
 
         {/* TikTok warn banner for affiliate without TikTok */}
         {isLoggedIn && isAffiliate && !hasTiktok && (
