@@ -102,18 +102,23 @@ export default async function ProductAdsPage({
           )}
         </div>
 
-        {/* Guest signup CTA — button only, with shine flash */}
+        {/* Guest signup CTA — pill button with shine flash */}
         {!isLoggedIn && (
-          <div className="flex justify-center">
+          <div className="flex justify-center pt-1">
             <Link
               href="/register"
-              className="group relative overflow-hidden inline-flex items-center justify-center gap-2 bg-[#DC2626] hover:bg-[#B91C1C] text-white font-semibold px-6 py-3 rounded-xl text-sm animate-pulse-glow transition-colors"
+              aria-label="สมัครสมาชิกฟรี"
+              className="group relative overflow-hidden inline-flex items-center justify-center gap-2.5 w-full max-w-xs sm:w-auto sm:min-w-[260px] bg-gradient-to-r from-[#DC2626] via-[#E11D48] to-[#DC2626] hover:from-[#B91C1C] hover:via-[#BE123C] hover:to-[#B91C1C] text-white font-semibold tracking-wide px-8 py-3.5 rounded-full text-sm sm:text-base animate-pulse-glow ring-1 ring-white/10 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
             >
-              <span className="relative z-10">สมัครสมาชิกฟรี</span>
-              <ArrowRight size={16} className="relative z-10 transition-transform group-hover:translate-x-0.5" />
+              <span className="relative z-10 whitespace-nowrap">สมัครสมาชิกฟรี</span>
+              <ArrowRight size={17} className="relative z-10 transition-transform duration-300 group-hover:translate-x-1" />
               <span
                 aria-hidden
-                className="pointer-events-none absolute inset-y-0 -inset-x-4 w-1/3 bg-gradient-to-r from-transparent via-white/55 to-transparent animate-shine-sweep"
+                className="pointer-events-none absolute inset-y-0 -inset-x-4 w-1/3 bg-gradient-to-r from-transparent via-white/60 to-transparent animate-shine-sweep"
+              />
+              <span
+                aria-hidden
+                className="pointer-events-none absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/15 to-transparent"
               />
             </Link>
           </div>
