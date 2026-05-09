@@ -36,6 +36,7 @@ const serviceOptions = [
   { value: "ยิงแอด GMV Max",         label: "ยิงแอด GMV Max" },
   { value: "วางกลยุทธ์ TikTok Shop", label: "วางกลยุทธ์ TikTok Shop" },
   { value: "Content & Creative",     label: "Content & Creative" },
+  { value: "โปรแกรมรีรันวิดีโอ",      label: "โปรแกรมรีรันวิดีโอ" },
   { value: "ทั้งหมด",                 label: "ต้องการครบทุกบริการ" },
   { value: "ยังไม่แน่ใจ",             label: "ยังไม่แน่ใจ อยากปรึกษาก่อน" },
 ]

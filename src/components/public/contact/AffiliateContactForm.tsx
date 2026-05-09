@@ -23,6 +23,7 @@ const serviceOptions = [
   { value: "คอร์สเรียน TikTok Affiliate",      label: "คอร์สเรียน TikTok Affiliate" },
   { value: "บริการวางแผน Affiliate",             label: "บริการวางแผนกลยุทธ์ Affiliate" },
   { value: "สมัครเป็น Affiliate กับ NP Create", label: "สมัครเป็น Affiliate กับ NP Create" },
+  { value: "โปรแกรมรีรันวิดีโอ",                  label: "โปรแกรมรีรันวิดีโอ" },
   { value: "ที่ปรึกษา Affiliate",                label: "ขอคำปรึกษา Affiliate" },
   { value: "ยังไม่แน่ใจ",                        label: "ยังไม่แน่ใจ อยากสอบถามก่อน" },
 ]
