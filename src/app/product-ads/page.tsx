@@ -23,7 +23,7 @@ export default async function ProductAdsPage({
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const [products, campaigns, profileRes, pulledSet] = await Promise.all([
+  const [productResult, campaigns, profileRes, pulledSet] = await Promise.all([
     getProductAdsProducts({ q, sort: validSort }),
     getActiveCampaigns(),
     user
@@ -31,6 +31,8 @@ export default async function ProductAdsPage({
       : Promise.resolve({ data: null }),
     user ? getMyPullSet() : Promise.resolve(new Set<string>()),
   ])
+
+  const { items: products, total: productTotal, truncated: productTruncated } = productResult
 
   const isLoggedIn   = !!user
   const isAffiliate  = profileRes.data?.role === "affiliate"
@@ -85,7 +87,14 @@ export default async function ProductAdsPage({
               <ShoppingBag size={22} className="text-[#DC2626]" /> ProductAds
             </h1>
             <p className="text-slate-500 text-sm mt-0.5">
-              {q ? `ผลการค้นหา "${q}" — ${products.length} สินค้า` : `${products.length} สินค้าทั้งหมด`}
+              {q
+                ? `ผลการค้นหา "${q}" — ${productTotal} สินค้า`
+                : `${productTotal} สินค้าทั้งหมด`}
+              {productTruncated && (
+                <span className="text-slate-600">
+                  {` · แสดง ${products.length} รายการ (ใช้คำค้น/จัดเรียงเพื่อกรองเพิ่ม)`}
+                </span>
+              )}
             </p>
           </div>
           {isLoggedIn && isAffiliate && (

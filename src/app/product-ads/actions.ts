@@ -14,17 +14,25 @@ export type CampaignWithStore = Campaign & {
   store: Pick<Store, "id" | "name">
 }
 
+const PRODUCT_LIST_LIMIT = 200
+
 export async function getProductAdsProducts(opts?: {
   q?: string
   sort?: "commission" | "newest" | "popular"
   storeId?: string
-}): Promise<ProductWithMeta[]> {
+}): Promise<{ items: ProductWithMeta[]; total: number; truncated: boolean }> {
   const supabase = await createClient()
 
+  // stores!inner → exclude products whose store is not visible (e.g. inactive store)
+  // count: "exact" → return total ignoring limit so UI can show real count
   let query = supabase
     .from("products")
-    .select("*, store:stores(id, name, logo_url, is_verified), affiliate_pulls(count)")
+    .select(
+      "*, store:stores!inner(id, name, logo_url, is_verified, is_active), affiliate_pulls(count)",
+      { count: "exact" },
+    )
     .eq("is_active", true)
+    .eq("store.is_active", true)
 
   if (opts?.q) {
     // PostgREST .or() uses comma/paren as delimiters — strip them from user input
@@ -46,14 +54,17 @@ export async function getProductAdsProducts(opts?: {
     query = query.order("commission_rate", { ascending: false }).order("monthly_sales_est", { ascending: false })
   }
 
-  query = query.limit(48)
+  query = query.limit(PRODUCT_LIST_LIMIT)
 
-  const { data } = await query
-  return (data ?? []).map(p => ({
+  const { data, count } = await query
+  const total = count ?? (data?.length ?? 0)
+  const items = (data ?? []).map(p => ({
     ...p,
     store: p.store as Pick<Store, "id" | "name" | "logo_url" | "is_verified">,
     pull_count: (p.affiliate_pulls as unknown as { count: number }[])?.[0]?.count ?? 0,
   })) as ProductWithMeta[]
+
+  return { items, total, truncated: total > items.length }
 }
 
 export async function getActiveCampaigns(): Promise<CampaignWithStore[]> {
