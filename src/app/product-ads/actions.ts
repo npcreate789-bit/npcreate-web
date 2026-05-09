@@ -27,7 +27,11 @@ export async function getProductAdsProducts(opts?: {
     .eq("is_active", true)
 
   if (opts?.q) {
-    query = query.ilike("name", `%${opts.q}%`)
+    // PostgREST .or() uses comma/paren as delimiters — strip them from user input
+    const safe = opts.q.replace(/[,()\\"]/g, " ").trim()
+    if (safe) {
+      query = query.or(`name.ilike.%${safe}%,description.ilike.%${safe}%`)
+    }
   }
   if (opts?.storeId) {
     query = query.eq("store_id", opts.storeId)
