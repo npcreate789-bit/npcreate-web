@@ -18,7 +18,7 @@ const PRODUCT_LIST_LIMIT = 200
 
 export async function getProductAdsProducts(opts?: {
   q?: string
-  sort?: "commission" | "newest" | "popular"
+  sort?: "commission" | "newest" | "popular" | "affiliate_interest"
   storeId?: string
 }): Promise<{ items: ProductWithMeta[]; total: number; truncated: boolean }> {
   const supabase = await createClient()
@@ -50,7 +50,8 @@ export async function getProductAdsProducts(opts?: {
   } else if (opts?.sort === "popular") {
     query = query.order("monthly_sales_est", { ascending: false })
   } else {
-    // default: highest commission
+    // default + affiliate_interest: order by commission for the DB fetch;
+    // affiliate_interest re-sorts client-side by pull_count below
     query = query.order("commission_rate", { ascending: false }).order("monthly_sales_est", { ascending: false })
   }
 
@@ -63,6 +64,10 @@ export async function getProductAdsProducts(opts?: {
     store: p.store as Pick<Store, "id" | "name" | "logo_url" | "is_verified">,
     pull_count: (p.affiliate_pulls as unknown as { count: number }[])?.[0]?.count ?? 0,
   })) as ProductWithMeta[]
+
+  if (opts?.sort === "affiliate_interest") {
+    items.sort((a, b) => b.pull_count - a.pull_count)
+  }
 
   return { items, total, truncated: total > items.length }
 }

@@ -18,7 +18,7 @@ export default async function ProductAdsPage({
   searchParams: Promise<{ q?: string; sort?: string }>
 }) {
   const { q, sort } = await searchParams
-  const validSort = (["commission", "newest", "popular"] as const).find(s => s === sort) ?? "commission"
+  const validSort = (["commission", "newest", "popular", "affiliate_interest"] as const).find(s => s === sort) ?? "commission"
 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

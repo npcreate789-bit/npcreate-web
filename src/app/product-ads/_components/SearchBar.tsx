@@ -100,6 +100,7 @@ export function SortSelect({ defaultValue }: { defaultValue?: string }) {
       <option value="commission">คอมสูงสุด</option>
       <option value="newest">ล่าสุด</option>
       <option value="popular">ยอดนิยม</option>
+      <option value="affiliate_interest">นายหน้าสนใจ</option>
     </select>
   )
 }
