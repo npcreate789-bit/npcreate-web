@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Search, X, Heart } from "lucide-react"
+import { Search, X } from "lucide-react"
 
 export function SearchBar({ defaultValue }: { defaultValue?: string }) {
   const router = useRouter()
@@ -101,47 +101,5 @@ export function SortSelect({ defaultValue }: { defaultValue?: string }) {
       <option value="newest">ล่าสุด</option>
       <option value="popular">ยอดนิยม</option>
     </select>
-  )
-}
-
-export function InterestSelect({
-  defaultValue,
-  options,
-}: {
-  defaultValue?: string
-  options: { tag: string; pull_count: number }[]
-}) {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-
-  function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    const params = new URLSearchParams(searchParams.toString())
-    if (e.target.value) {
-      params.set("interest", e.target.value)
-    } else {
-      params.delete("interest")
-    }
-    params.delete("page")
-    router.replace(`/product-ads?${params.toString()}`, { scroll: false })
-  }
-
-  if (options.length === 0) return null
-
-  return (
-    <div className="relative">
-      <Heart size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#DC2626] pointer-events-none" />
-      <select
-        value={defaultValue ?? ""}
-        onChange={handleChange}
-        className="bg-[#1C0D0D] border border-white/10 rounded-xl pl-7 pr-3 py-2.5 text-slate-300 text-base outline-none focus:border-white/20 transition-colors cursor-pointer max-w-[160px]"
-      >
-        <option value="">ความสนใจ: ทั้งหมด</option>
-        {options.map(o => (
-          <option key={o.tag} value={o.tag}>
-            {o.tag}{o.pull_count > 0 ? ` (${o.pull_count})` : ""}
-          </option>
-        ))}
-      </select>
-    </div>
   )
 }

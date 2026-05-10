@@ -1,9 +1,9 @@
 import { Suspense } from "react"
 import { ShoppingBag, LayoutDashboard, ArrowRight } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
-import { getProductAdsProducts, getActiveCampaigns, getMyPullSet, getInterestTags } from "./actions"
+import { getProductAdsProducts, getActiveCampaigns, getMyPullSet } from "./actions"
 import { ProductCard } from "./_components/ProductCard"
-import { SearchBar, SortSelect, InterestSelect } from "./_components/SearchBar"
+import { SearchBar, SortSelect } from "./_components/SearchBar"
 import { CampaignSection } from "./_components/CampaignSection"
 import Link from "next/link"
 
@@ -15,22 +15,21 @@ export const metadata = {
 export default async function ProductAdsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; sort?: string; interest?: string }>
+  searchParams: Promise<{ q?: string; sort?: string }>
 }) {
-  const { q, sort, interest } = await searchParams
+  const { q, sort } = await searchParams
   const validSort = (["commission", "newest", "popular"] as const).find(s => s === sort) ?? "commission"
 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const [productResult, campaigns, profileRes, pulledSet, interestTags] = await Promise.all([
-    getProductAdsProducts({ q, sort: validSort, interest }),
+  const [productResult, campaigns, profileRes, pulledSet] = await Promise.all([
+    getProductAdsProducts({ q, sort: validSort }),
     getActiveCampaigns(),
     user
       ? supabase.from("profiles").select("role, tiktok_channel_url, is_active").eq("id", user.id).maybeSingle()
       : Promise.resolve({ data: null }),
     user ? getMyPullSet() : Promise.resolve(new Set<string>()),
-    getInterestTags(12),
   ])
 
   const { items: products, total: productTotal, truncated: productTruncated } = productResult
@@ -66,16 +65,13 @@ export default async function ProductAdsPage({
             </div>
           </div>
         )}
-        {/* Search + filters */}
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 flex flex-wrap items-center gap-3">
-          <div className="flex-1 min-w-[180px]">
+        {/* Search + sort */}
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 flex items-center gap-3">
+          <div className="flex-1 min-w-0">
             <Suspense fallback={<div className="h-10 bg-white/5 rounded-xl animate-pulse" />}>
               <SearchBar defaultValue={q} />
             </Suspense>
           </div>
-          <Suspense fallback={null}>
-            <InterestSelect defaultValue={interest} options={interestTags} />
-          </Suspense>
           <Suspense fallback={null}>
             <SortSelect defaultValue={validSort} />
           </Suspense>
@@ -93,9 +89,7 @@ export default async function ProductAdsPage({
             <p className="text-slate-500 text-sm mt-0.5">
               {q
                 ? `ผลการค้นหา "${q}" — ${productTotal} สินค้า`
-                : interest
-                  ? `ความสนใจ: ${interest} — ${productTotal} สินค้า`
-                  : `${productTotal} สินค้าทั้งหมด`}
+                : `${productTotal} สินค้าทั้งหมด`}
               {productTruncated && (
                 <span className="text-slate-600">
                   {` · แสดง ${products.length} รายการ (ใช้คำค้น/จัดเรียงเพื่อกรองเพิ่ม)`}
@@ -160,13 +154,9 @@ export default async function ProductAdsPage({
           <div className="bg-[#1C0D0D] border border-white/5 rounded-2xl py-20 text-center space-y-3">
             <ShoppingBag size={36} className="text-slate-700 mx-auto" />
             <p className="text-slate-500 text-sm">
-              {q
-                ? `ไม่พบสินค้าที่ตรงกับ "${q}"`
-                : interest
-                  ? `ไม่พบสินค้าในความสนใจ "${interest}"`
-                  : "ยังไม่มีสินค้าใน ProductAds"}
+              {q ? `ไม่พบสินค้าที่ตรงกับ "${q}"` : "ยังไม่มีสินค้าใน ProductAds"}
             </p>
-            {(q || interest) && (
+            {q && (
               <Link href="/product-ads" className="text-xs text-[#DC2626] hover:text-[#FCA5A5] transition-colors">
                 ดูสินค้าทั้งหมด →
               </Link>

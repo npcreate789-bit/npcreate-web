@@ -20,7 +20,6 @@ export async function getProductAdsProducts(opts?: {
   q?: string
   sort?: "commission" | "newest" | "popular"
   storeId?: string
-  interest?: string
 }): Promise<{ items: ProductWithMeta[]; total: number; truncated: boolean }> {
   const supabase = await createClient()
 
@@ -45,9 +44,6 @@ export async function getProductAdsProducts(opts?: {
   if (opts?.storeId) {
     query = query.eq("store_id", opts.storeId)
   }
-  if (opts?.interest) {
-    query = query.contains("tags", [opts.interest])
-  }
 
   if (opts?.sort === "newest") {
     query = query.order("created_at", { ascending: false })
@@ -69,38 +65,6 @@ export async function getProductAdsProducts(opts?: {
   })) as ProductWithMeta[]
 
   return { items, total, truncated: total > items.length }
-}
-
-export async function getInterestTags(limit = 10): Promise<{ tag: string; pull_count: number }[]> {
-  const supabase = await createClient()
-
-  const { data } = await supabase
-    .from("products")
-    .select("tags, affiliate_pulls(count)")
-    .eq("is_active", true)
-
-  if (!data) return []
-
-  const pullsByTag = new Map<string, number>()
-  const occurrenceByTag = new Map<string, number>()
-
-  for (const p of data) {
-    const pullCount = (p.affiliate_pulls as unknown as { count: number }[])?.[0]?.count ?? 0
-    for (const tag of (p.tags ?? []) as string[]) {
-      const t = tag.trim()
-      if (!t) continue
-      pullsByTag.set(t, (pullsByTag.get(t) ?? 0) + pullCount)
-      occurrenceByTag.set(t, (occurrenceByTag.get(t) ?? 0) + 1)
-    }
-  }
-
-  const totalPulls = [...pullsByTag.values()].reduce((s, n) => s + n, 0)
-  const source = totalPulls > 0 ? pullsByTag : occurrenceByTag
-
-  return [...source.entries()]
-    .map(([tag, pull_count]) => ({ tag, pull_count }))
-    .sort((a, b) => b.pull_count - a.pull_count)
-    .slice(0, limit)
 }
 
 export async function getActiveCampaigns(): Promise<CampaignWithStore[]> {
