@@ -15,11 +15,12 @@ const stockLabel: Record<string, string> = {
   out_of_stock: "หมด",
 }
 
-export function ProductCard({ product, isPulled, isLoggedIn, isAffiliate, hasTiktok, isSeller }: {
+export function ProductCard({ product, isPulled, isLoggedIn, isAffiliate, hasLine, hasTiktok, isSeller }: {
   product: ProductWithMeta
   isPulled: boolean
   isLoggedIn: boolean
   isAffiliate: boolean
+  hasLine: boolean
   hasTiktok: boolean
   isSeller?: boolean
 }) {
@@ -110,6 +111,7 @@ export function ProductCard({ product, isPulled, isLoggedIn, isAffiliate, hasTik
             isLoggedIn={isLoggedIn}
             isAffiliate={isAffiliate}
             isPulled={isPulled}
+            hasLine={hasLine}
             hasTiktok={hasTiktok}
           />
         )}

@@ -3,7 +3,8 @@
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
-import type { Product } from "@/types/database"
+import type { Product, Profile } from "@/types/database"
+import { getOnboardingStatus, buildOnboardingError } from "@/lib/onboarding"
 
 const productSchema = z.object({
   name:                z.string().min(1).max(200).trim(),
@@ -34,6 +35,18 @@ async function getSellerCtx() {
   if (!user) throw new Error("ไม่ได้เข้าสู่ระบบ")
   const storeId = await getStoreId(supabase, user.id)
   return { supabase, user, storeId }
+}
+
+async function requireSellerOnboarding(supabase: Awaited<ReturnType<typeof createClient>>, userId: string) {
+  const { data } = await supabase
+    .from("profiles")
+    .select("role, line_user_id, tiktok_channel_url")
+    .eq("id", userId)
+    .maybeSingle()
+  if (!data) throw new Error("ไม่พบโปรไฟล์")
+  if (data.role === "admin") return
+  const status = getOnboardingStatus(data as Pick<Profile, "role" | "line_user_id" | "tiktok_channel_url">)
+  if (!status.isComplete) throw new Error(buildOnboardingError(status.missing))
 }
 
 export async function getStoreProducts(): Promise<Product[]> {
@@ -97,7 +110,8 @@ function parseInput(data: ProductInput, storeId: string) {
 export async function createProduct(data: ProductInput) {
   const parsed = productSchema.safeParse(data)
   if (!parsed.success) throw new Error(parsed.error.issues[0]?.message ?? "ข้อมูลไม่ถูกต้อง")
-  const { supabase, storeId } = await getSellerCtx()
+  const { supabase, user, storeId } = await getSellerCtx()
+  await requireSellerOnboarding(supabase, user.id)
   const { error } = await supabase.from("products").insert(parseInput(parsed.data, storeId))
   if (error) throw new Error(error.message)
   revalidatePath("/member/store/products")

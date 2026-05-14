@@ -1,36 +1,46 @@
 "use client"
 
 import { useState, useTransition } from "react"
+import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Loader2, CheckCircle2, Plus, AlertTriangle } from "lucide-react"
+import { Loader2, CheckCircle2, Plus, AlertTriangle, ChevronRight } from "lucide-react"
 import { toast } from "sonner"
 import { pullProduct } from "../actions"
 import { RegisterPromptModal } from "./RegisterPromptModal"
+
+type MissingItem = { key: "line" | "tiktok"; label: string; href: string }
 
 export function PullButton({
   productId,
   isLoggedIn,
   isAffiliate,
   isPulled: initialPulled,
+  hasLine,
   hasTiktok,
 }: {
   productId: string
   isLoggedIn: boolean
   isAffiliate: boolean
   isPulled: boolean
+  hasLine: boolean
   hasTiktok: boolean
 }) {
   const pathname = usePathname()
-  const [pulled, setPulled]                   = useState(initialPulled)
-  const [showModal, setShowModal]             = useState(false)
-  const [showTiktokWarn, setShowTiktokWarn]   = useState(false)
-  const [pending, start]                      = useTransition()
+  const [pulled, setPulled]       = useState(initialPulled)
+  const [showModal, setShowModal] = useState(false)
+  const [pending, start]          = useTransition()
+
+  const missing: MissingItem[] = []
+  if (isLoggedIn && isAffiliate) {
+    if (!hasLine)   missing.push({ key: "line",   label: "เชื่อมต่อ LINE",     href: "/api/auth/line?returnTo=/member/profile" })
+    if (!hasTiktok) missing.push({ key: "tiktok", label: "เพิ่มลิงก์ช่อง TikTok", href: "/member/profile#tiktok" })
+  }
+  const isBlocked = missing.length > 0
 
   function handleClick() {
-    if (!isLoggedIn) { setShowModal(true); return }
+    if (!isLoggedIn)  { setShowModal(true); return }
     if (!isAffiliate) { toast.error("เฉพาะสมาชิก Affiliate เท่านั้น"); return }
-    if (!hasTiktok && !showTiktokWarn) { setShowTiktokWarn(true); return }
-    setShowTiktokWarn(false)
+    if (isBlocked)    return  // blocker UI already visible — no-op
     doPull()
   }
 
@@ -57,26 +67,37 @@ export function PullButton({
   return (
     <>
       <div className="space-y-2">
-        {showTiktokWarn && (
-          <div className="flex items-start gap-2 bg-amber-500/10 border border-amber-500/20 rounded-xl px-3 py-2.5">
-            <AlertTriangle size={14} className="text-amber-400 shrink-0 mt-0.5" />
-            <div className="min-w-0">
-              <p className="text-amber-300 text-xs font-medium">แนะนำใส่ลิงก์ TikTok ก่อน</p>
-              <p className="text-amber-400/70 text-xs mt-0.5">
-                Seller จะได้เห็นช่องของคุณเพื่อพิจารณาส่งสินค้าตัวอย่าง
+        {isBlocked && (
+          <div className="rounded-xl bg-amber-500/10 border border-amber-500/25 px-3 py-2.5 space-y-2">
+            <div className="flex items-start gap-2">
+              <AlertTriangle size={14} className="text-amber-400 shrink-0 mt-0.5" />
+              <p className="text-amber-200 text-xs font-semibold leading-snug">
+                อีกนิดเดียวก็พร้อมดึงสินค้า
               </p>
+            </div>
+            <div className="space-y-1">
+              {missing.map(m => (
+                <Link
+                  key={m.key}
+                  href={m.href}
+                  className="group flex items-center gap-2 text-xs text-amber-200/90 hover:text-white bg-amber-500/5 hover:bg-amber-500/15 border border-amber-500/15 hover:border-amber-500/40 px-2.5 py-1.5 rounded-lg transition-colors"
+                >
+                  <span className="flex-1">{m.label}</span>
+                  <ChevronRight size={12} className="opacity-70 group-hover:translate-x-0.5 transition-transform" />
+                </Link>
+              ))}
             </div>
           </div>
         )}
 
         <button
           onClick={handleClick}
-          disabled={pending}
-          className="w-full inline-flex items-center justify-center gap-2 bg-[#DC2626] hover:bg-[#B91C1C] disabled:opacity-60 text-white font-semibold py-3 rounded-xl text-sm transition-colors"
+          disabled={pending || isBlocked}
+          className="w-full inline-flex items-center justify-center gap-2 bg-[#DC2626] hover:bg-[#B91C1C] disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-xl text-sm transition-colors"
         >
           {pending
             ? <><Loader2 size={15} className="animate-spin" /> กำลังดึง...</>
-            : <><Plus size={15} /> {showTiktokWarn ? "ดึงสินค้าต่อไป" : "ดึงสินค้า"}</>}
+            : <><Plus size={15} /> ดึงสินค้า</>}
         </button>
       </div>
 

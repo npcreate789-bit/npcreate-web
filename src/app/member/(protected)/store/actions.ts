@@ -2,7 +2,8 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
-import type { Store } from "@/types/database"
+import type { Store, Profile } from "@/types/database"
+import { getOnboardingStatus, buildOnboardingError } from "@/lib/onboarding"
 
 async function getSellerUser() {
   const supabase = await createClient()
@@ -12,6 +13,18 @@ async function getSellerUser() {
     .from("profiles").select("role").eq("id", user.id).maybeSingle()
   if (profile?.role !== "seller" && profile?.role !== "admin") throw new Error("เฉพาะ Seller เท่านั้น")
   return { supabase, user }
+}
+
+async function requireSellerOnboarding(supabase: Awaited<ReturnType<typeof createClient>>, userId: string) {
+  const { data } = await supabase
+    .from("profiles")
+    .select("role, line_user_id, tiktok_channel_url")
+    .eq("id", userId)
+    .maybeSingle()
+  if (!data) throw new Error("ไม่พบโปรไฟล์")
+  if (data.role === "admin") return  // admin bypass
+  const status = getOnboardingStatus(data as Pick<Profile, "role" | "line_user_id" | "tiktok_channel_url">)
+  if (!status.isComplete) throw new Error(buildOnboardingError(status.missing))
 }
 
 export async function getMyStore(): Promise<Store | null> {
@@ -37,6 +50,7 @@ export async function createStore(data: {
   logo_url: string
 }) {
   const { supabase, user } = await getSellerUser()
+  await requireSellerOnboarding(supabase, user.id)
   const { error } = await supabase.from("stores").insert({
     seller_id: user.id,
     name: data.name.trim(),

@@ -28,7 +28,7 @@ export default async function ProductDetailPage({
   const detail = await getProductDetail(productId)
   if (!detail) notFound()
 
-  const { product, isPulled, hasTiktok } = detail
+  const { product, isPulled, hasLine, hasTiktok } = detail
 
   const discount = product.original_price && product.original_price > product.price
     ? Math.round((1 - product.price / product.original_price) * 100)
@@ -178,6 +178,7 @@ export default async function ProductDetailPage({
             isLoggedIn={detail.isLoggedIn}
             isAffiliate={detail.isAffiliate}
             isPulled={isPulled}
+            hasLine={hasLine}
             hasTiktok={hasTiktok}
           />
 

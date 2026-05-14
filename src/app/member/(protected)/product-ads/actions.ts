@@ -2,7 +2,8 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
-import type { Store, Product, Campaign, AffiliatePull } from "@/types/database"
+import type { Store, Product, Campaign, AffiliatePull, Profile } from "@/types/database"
+import { getOnboardingStatus, buildOnboardingError } from "@/lib/onboarding"
 
 export type StoreWithCount = Store & { product_count: number }
 export type ProductWithStore = Product & { store: Pick<Store, "id" | "name" | "logo_url" | "is_verified"> }
@@ -88,11 +89,15 @@ export async function pullProduct(productId: string): Promise<string> {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role, is_active")
+    .select("role, is_active, line_user_id, tiktok_channel_url")
     .eq("id", user.id)
     .maybeSingle()
   if (!profile?.is_active)        throw new Error("บัญชีถูกระงับการใช้งาน")
   if (profile?.role !== "affiliate") throw new Error("เฉพาะสมาชิก Affiliate เท่านั้น")
+
+  // Onboarding gate — Affiliate must have LINE + TikTok connected
+  const onboarding = getOnboardingStatus(profile as Pick<Profile, "role" | "line_user_id" | "tiktok_channel_url">)
+  if (!onboarding.isComplete) throw new Error(buildOnboardingError(onboarding.missing))
 
   // ตรวจสอบว่าสินค้ายังเปิดใช้งาน
   const { data: product } = await supabase

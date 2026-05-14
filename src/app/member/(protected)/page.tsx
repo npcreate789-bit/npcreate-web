@@ -9,6 +9,8 @@ import {
 } from "lucide-react"
 import type { Profile, Lead } from "@/types/database"
 import { MemberLogout } from "./_components/MemberLogout"
+import { OnboardingCard } from "@/components/member/OnboardingCard"
+import { getOnboardingStatus } from "@/lib/onboarding"
 import { cn } from "@/lib/utils"
 
 const roleLabel: Record<string, string> = {
@@ -108,7 +110,8 @@ export default async function MemberPage() {
     }
   }
 
-  const hasActiveLead = myLeads.some(l => l.status === "new" || l.status === "contacted")
+  const hasActiveLead     = myLeads.some(l => l.status === "new" || l.status === "contacted")
+  const onboardingStatus  = getOnboardingStatus(profile)
 
   return (
     <div className="min-h-screen bg-[#0A0808] pt-10 pb-16 overflow-x-hidden">
@@ -138,6 +141,9 @@ export default async function MemberPage() {
           </div>
           <MemberLogout />
         </div>
+
+        {/* ── Onboarding nudge (auto-hides when complete) ────────────────── */}
+        <OnboardingCard status={onboardingStatus} />
 
         {/* ── Role: Affiliate ─────────────────────────────────────────────── */}
         {profile.role === "affiliate" && (

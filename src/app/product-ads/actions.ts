@@ -3,7 +3,8 @@
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
-import type { Product, Store, Campaign } from "@/types/database"
+import type { Product, Store, Campaign, Profile } from "@/types/database"
+import { getOnboardingStatus, buildOnboardingError } from "@/lib/onboarding"
 
 export type ProductWithMeta = Product & {
   store: Pick<Store, "id" | "name" | "logo_url" | "is_verified">
@@ -90,6 +91,7 @@ export async function getProductDetail(productId: string): Promise<{
   product: ProductWithMeta
   isPulled: boolean
   isAffiliate: boolean
+  hasLine: boolean
   hasTiktok: boolean
   isLoggedIn: boolean
 } | null> {
@@ -111,18 +113,19 @@ export async function getProductDetail(productId: string): Promise<{
   }
 
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { product, isPulled: false, isAffiliate: false, hasTiktok: false, isLoggedIn: false }
+  if (!user) return { product, isPulled: false, isAffiliate: false, hasLine: false, hasTiktok: false, isLoggedIn: false }
 
   const [profileRes, pullRes] = await Promise.all([
-    supabase.from("profiles").select("role, tiktok_channel_url").eq("id", user.id).maybeSingle(),
+    supabase.from("profiles").select("role, line_user_id, tiktok_channel_url").eq("id", user.id).maybeSingle(),
     supabase.from("affiliate_pulls").select("id").eq("product_id", productId).eq("affiliate_id", user.id).maybeSingle(),
   ])
 
   const isAffiliate = profileRes.data?.role === "affiliate"
-  const hasTiktok = !!profileRes.data?.tiktok_channel_url
-  const isPulled = !!pullRes.data
+  const hasLine     = !!profileRes.data?.line_user_id
+  const hasTiktok   = !!profileRes.data?.tiktok_channel_url
+  const isPulled    = !!pullRes.data
 
-  return { product, isPulled, isAffiliate, hasTiktok, isLoggedIn: true }
+  return { product, isPulled, isAffiliate, hasLine, hasTiktok, isLoggedIn: true }
 }
 
 export async function getMyPullSet(): Promise<Set<string>> {
@@ -150,12 +153,16 @@ export async function pullProduct(productId: string): Promise<{ success: true } 
   // Role check server-side — never trust client
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role, is_active")
+    .select("role, is_active, line_user_id, tiktok_channel_url")
     .eq("id", user.id)
     .maybeSingle()
 
   if (!profile?.is_active) return { error: "บัญชีถูกระงับการใช้งาน" }
   if (profile.role !== "affiliate") return { error: "เฉพาะสมาชิก Affiliate เท่านั้น" }
+
+  // Onboarding gate — Affiliate must have LINE + TikTok connected
+  const onboarding = getOnboardingStatus(profile as Pick<Profile, "role" | "line_user_id" | "tiktok_channel_url">)
+  if (!onboarding.isComplete) return { error: buildOnboardingError(onboarding.missing) }
 
   // Product must be active
   const { data: product } = await supabase

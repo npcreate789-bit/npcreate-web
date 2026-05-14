@@ -27,7 +27,7 @@ export default async function ProductAdsPage({
     getProductAdsProducts({ q, sort: validSort }),
     getActiveCampaigns(),
     user
-      ? supabase.from("profiles").select("role, tiktok_channel_url, is_active").eq("id", user.id).maybeSingle()
+      ? supabase.from("profiles").select("role, line_user_id, tiktok_channel_url, is_active, full_name").eq("id", user.id).maybeSingle()
       : Promise.resolve({ data: null }),
     user ? getMyPullSet() : Promise.resolve(new Set<string>()),
   ])
@@ -37,8 +37,12 @@ export default async function ProductAdsPage({
   const isLoggedIn   = !!user
   const isAffiliate  = profileRes.data?.role === "affiliate"
   const isSeller     = profileRes.data?.role === "seller"
+  const hasLine      = !!profileRes.data?.line_user_id
   const hasTiktok    = !!profileRes.data?.tiktok_channel_url
   const memberName   = profileRes.data ? (profileRes.data as { full_name?: string | null }).full_name ?? null : null
+  const affiliateMissing: { key: "line" | "tiktok"; label: string; href: string }[] = []
+  if (isLoggedIn && isAffiliate && !hasLine)   affiliateMissing.push({ key: "line",   label: "เชื่อมต่อ LINE",     href: "/api/auth/line?returnTo=/member/profile" })
+  if (isLoggedIn && isAffiliate && !hasTiktok) affiliateMissing.push({ key: "tiktok", label: "เพิ่มลิงก์ช่อง TikTok", href: "/member/profile#tiktok" })
 
   return (
     <div className="min-h-screen bg-[#0A0808] pb-16">
@@ -132,17 +136,27 @@ export default async function ProductAdsPage({
           )}
         </div>
 
-        {/* TikTok warn banner for affiliate without TikTok */}
-        {isLoggedIn && isAffiliate && !hasTiktok && (
-          <div className="flex items-center gap-3 bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-3">
-            <div className="min-w-0 flex-1">
-              <p className="text-amber-300 text-sm font-medium">เพิ่มลิงก์ TikTok ของคุณ</p>
-              <p className="text-amber-400/70 text-xs mt-0.5">Seller จะได้เห็นช่องของคุณและอาจส่งสินค้าตัวอย่างให้</p>
+        {/* Onboarding banner — Affiliate must complete LINE + TikTok before pulling */}
+        {affiliateMissing.length > 0 && (
+          <div className="bg-amber-500/10 border border-amber-500/25 rounded-2xl px-4 py-3.5 space-y-2.5">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-amber-200 text-sm font-semibold">เปิดใช้งานการดึงสินค้าอีก {affiliateMissing.length} ขั้นตอน</p>
+                <p className="text-amber-300/70 text-xs mt-0.5">ตั้งค่าให้ครบเพื่อเริ่มดึงสินค้าและรับค่าคอม</p>
+              </div>
+              <Link href="/member/profile"
+                className="shrink-0 text-xs text-amber-200 hover:text-white border border-amber-500/40 hover:border-amber-500/70 hover:bg-amber-500/15 px-3 py-1.5 rounded-lg transition-colors">
+                ตั้งค่า →
+              </Link>
             </div>
-            <Link href="/member/profile"
-              className="shrink-0 text-xs text-amber-300 hover:text-amber-200 border border-amber-500/30 hover:border-amber-500/60 px-3 py-1.5 rounded-lg transition-colors">
-              เพิ่มเลย →
-            </Link>
+            <div className="flex flex-wrap gap-1.5">
+              {affiliateMissing.map(m => (
+                <Link key={m.key} href={m.href}
+                  className="inline-flex items-center gap-1 text-[11px] text-amber-200/90 hover:text-white bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 hover:border-amber-500/50 px-2 py-1 rounded-lg transition-colors">
+                  • {m.label}
+                </Link>
+              ))}
+            </div>
           </div>
         )}
 
@@ -171,6 +185,7 @@ export default async function ProductAdsPage({
                 isPulled={pulledSet.has(p.id)}
                 isLoggedIn={isLoggedIn}
                 isAffiliate={isAffiliate}
+                hasLine={hasLine}
                 hasTiktok={hasTiktok}
                 isSeller={isSeller}
               />
