@@ -38,12 +38,16 @@ export function TiktokForm({ currentUrl }: { currentUrl: string | null }) {
       <div className="space-y-1.5">
         <label className="text-slate-300 text-xs font-medium">URL ช่อง TikTok</label>
         <input
-          type="url"
+          type="text"
+          inputMode="url"
+          autoCapitalize="off"
+          autoCorrect="off"
+          spellCheck={false}
           value={url}
           onChange={e => setUrl(e.target.value)}
-          placeholder="https://www.tiktok.com/@yourusername"
+          placeholder="tiktok.com/@yourusername"
           className={cn(
-            "w-full bg-[#0A0808] border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm",
+            "w-full bg-[#0A0808] border border-white/10 rounded-xl px-4 py-2.5 text-white text-base",
             "placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:border-[#DC2626]/50 focus:ring-[#DC2626]/20 transition-colors"
           )}
         />

@@ -41,8 +41,19 @@ export async function updateTiktokUrl(url: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error("ไม่ได้เข้าสู่ระบบ")
-  const trimmed = url.trim()
-  if (trimmed && !/^https?:\/\//i.test(trimmed)) throw new Error("URL ต้องเป็น https:// หรือ http://")
+  // Normalize: auto-prepend https:// if user omits the protocol
+  let trimmed = url.trim()
+  if (trimmed && !/^https?:\/\//i.test(trimmed)) trimmed = `https://${trimmed}`
+  if (trimmed) {
+    try {
+      const parsed = new URL(trimmed)
+      if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+        throw new Error("URL ไม่ถูกต้อง")
+      }
+    } catch {
+      throw new Error("URL ไม่ถูกต้อง")
+    }
+  }
   const { error } = await supabase
     .from("profiles")
     .update({ tiktok_channel_url: trimmed || null, updated_at: new Date().toISOString() })
