@@ -7,7 +7,7 @@ const NAV_LINKS = [
   { label: "ผลงาน",       href: "/portfolio" },
   { label: "บริการ",       href: "/services" },
   { label: "เกี่ยวกับเรา", href: "/about" },
-  { label: "ติดต่อ",       href: "/contact" },
+  { label: "ติดต่อ",       href: "https://app.npcreate.co.th/contact" },
 ]
 
 export async function Footer({ lineHref = "/api/auth/line" }: { lineHref?: string }) {

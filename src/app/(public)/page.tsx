@@ -43,10 +43,10 @@ export default async function HomePage() {
 
   return (
     <main>
-      <HeroSection settings={hp} media={heroMedia} lineHref="/contact" />
+      <HeroSection settings={hp} media={heroMedia} lineHref="https://app.npcreate.co.th/contact" />
       <PromoBannersSection banners={promoBanners} />
       <TestimonialsSection testimonials={testimonials} />
-      <CTASection settings={hp.cta_section} lineOaHref="/contact" />
+      <CTASection settings={hp.cta_section} lineOaHref="https://app.npcreate.co.th/contact" />
     </main>
   )
 }

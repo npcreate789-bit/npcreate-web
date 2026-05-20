@@ -44,7 +44,7 @@ export default async function PortfolioPage() {
           )}
         </div>
 
-        <PortfolioGrid portfolios={(portfolios as Portfolio[]) ?? []} lineHref="/contact" />
+        <PortfolioGrid portfolios={(portfolios as Portfolio[]) ?? []} lineHref="https://app.npcreate.co.th/contact" />
       </div>
     </main>
   )

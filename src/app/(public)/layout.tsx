@@ -7,8 +7,8 @@ export default async function PublicLayout({ children }: { children: React.React
     <div className="flex flex-col min-h-screen bg-[#0A0808]">
       <Navbar />
       <div className="flex-1">{children}</div>
-      <Footer lineHref="/contact" />
-      <FloatingLineButton href="/contact" />
+      <Footer lineHref="https://app.npcreate.co.th/contact" />
+      <FloatingLineButton href="https://app.npcreate.co.th/contact" />
     </div>
   )
 }

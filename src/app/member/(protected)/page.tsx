@@ -303,7 +303,7 @@ export default async function MemberPage() {
                 <span className="text-slate-600 text-xs">{myLeads.length} รายการ</span>
               </div>
               {!hasActiveLead && (
-                <Link href="/contact"
+                <Link href="https://app.npcreate.co.th/contact"
                   className="text-xs text-[#DC2626] hover:text-[#FCA5A5] font-medium transition-colors flex items-center gap-0.5">
                   ส่งใหม่ <ChevronRight size={11} />
                 </Link>
@@ -345,7 +345,7 @@ export default async function MemberPage() {
                   <p className="text-slate-500 text-[10px] mt-0.5">ส่งคำขอเพื่อรับคำปรึกษาฟรีจาก NP Create</p>
                 </div>
               </div>
-              <Link href="/contact"
+              <Link href="https://app.npcreate.co.th/contact"
                 className="shrink-0 text-xs bg-[#DC2626]/10 hover:bg-[#DC2626]/20 border border-[#DC2626]/20 text-[#DC2626] hover:text-[#FCA5A5] px-3 py-1.5 rounded-lg transition-colors font-medium">
                 ปรึกษาฟรี
               </Link>

@@ -80,12 +80,12 @@ export default async function ServicesPage() {
       />
       <PricingSection
         plans={plans}
-        lineHref="/contact"
+        lineHref="https://app.npcreate.co.th/contact"
         label={page.pricing_label}
         heading={page.pricing_heading}
         subtext={page.pricing_subtext}
       />
-      <FAQSection faqs={page.faqs} lineHref="/contact" />
+      <FAQSection faqs={page.faqs} lineHref="https://app.npcreate.co.th/contact" />
     </main>
   )
 }

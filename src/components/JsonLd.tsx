@@ -11,7 +11,7 @@ export function OrganizationJsonLd() {
       "@type": "ContactPoint",
       contactType: "customer service",
       availableLanguage: "Thai",
-      url: "https://npcreate.co.th/contact",
+      url: "https://app.npcreate.co.th/contact",
     },
     sameAs: ["https://line.me/R/ti/p/@npcreate"],
     areaServed: "TH",

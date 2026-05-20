@@ -134,7 +134,7 @@ export default async function AboutPage() {
         </div>
       </section>
 
-      <CTASection lineOaHref="/contact" />
+      <CTASection lineOaHref="https://app.npcreate.co.th/contact" />
     </main>
   )
 }
