@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next"
-import Script from "next/script"
+import { GoogleAnalytics } from "@next/third-parties/google"
 import { Inter, Plus_Jakarta_Sans, Noto_Sans_Thai } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { SpeedInsights } from "@vercel/speed-insights/next"
@@ -62,19 +62,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="th" suppressHydrationWarning className="bg-[#0A0808]">
       <head>
         <meta property="fb:app_id" content="1768055977512245" />
-        {/* Google tag (gtag.js) */}
-        <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-TFLYHVZH20"
-          strategy="afterInteractive"
-        />
-        <Script id="google-analytics" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-TFLYHVZH20');
-          `}
-        </Script>
       </head>
       <body className={`${inter.variable} ${jakarta.variable} ${notoThai.variable} font-sans antialiased bg-[#0A0808]`}>
         <OrganizationJsonLd />
@@ -83,6 +70,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <Analytics />
         <SpeedInsights />
       </body>
+      <GoogleAnalytics gaId="G-TFLYHVZH20" />
     </html>
   )
 }
